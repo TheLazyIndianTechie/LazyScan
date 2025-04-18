@@ -68,16 +68,51 @@ def main():
         BAR_COLOR = SIZE_COLOR = RESET = ''
     BLOCK = '█'
 
-    # Gather file sizes
-    file_sizes = []
+    # First pass to count total files for progress bar
+    total_files = 0
+    print(f"Counting files in '{scan_path}'...")
     for root, dirs, files in os.walk(scan_path):
+        total_files += len(files)
+    
+    # Gather file sizes with progress indication
+    file_sizes = []
+    file_count = 0
+    
+    # Progress bar configuration
+    bar_width = 30
+    
+    # Start the scan with progress bar
+    print(f"Scanning {total_files} files in '{scan_path}'...")
+    
+    for root, dirs, files in os.walk(scan_path):
+        rel_path = os.path.relpath(root, scan_path)
+        rel_path = '.' if rel_path == '.' else f".../{rel_path}"
+        
         for name in files:
+            file_count += 1
+            
+            # Update progress bar
+            percent = min(100, int(file_count / total_files * 100))
+            filled_length = int(bar_width * file_count // total_files)
+            bar = '█' * filled_length + '░' * (bar_width - filled_length)
+            
+            # Create the progress display
+            progress_str = f"\rScanning: [{bar}] {percent}% | {file_count}/{total_files} | {rel_path}"
+            sys.stdout.write(progress_str)
+            sys.stdout.flush()
+            
+            # Process the file
             full_path = os.path.join(root, name)
             try:
                 size = os.path.getsize(full_path)
             except (OSError, PermissionError):
                 continue
             file_sizes.append((full_path, size))
+    
+    # Clear progress display with completion message
+    sys.stdout.write(f"\rCompleted: [{bar_width*'█'}] 100% | {file_count}/{total_files} files scanned.{' '*20}\n")
+    sys.stdout.flush()
+    
     if not file_sizes:
         print(f"No files found under '{scan_path}'.")
         return
