@@ -42,17 +42,30 @@ def select_directory():
 
 
 def show_logo():
-    """Display the lazy-space logo"""
-    logo = r"""
- _               _____                     
-| |    __ _ ____/ ___/  ___  ___ ____ ___ 
-| |   / _` |_  /\___ \ / _ \/ _ `/ __/ -_)
-|___| \__,_|/__/ ___/ \/ .__/\_,_/_/  \__/
-                       /_/                 
-    """
-    print(logo)
-    print("The lazy way to find what's eating your disk space.")
-    print("Created by TheLazyIndianTechie\n")
+    """Display the lazy-space cyberpunk-style logo"""
+    # Define ANSI color codes
+    CYAN = '\033[36m'
+    MAGENTA = '\033[35m'
+    YELLOW = '\033[33m'
+    GREEN = '\033[32m'
+    BLUE = '\033[34m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    
+    # Cyberpunk-style logo with gradient colors
+    logo_lines = [
+        f"{CYAN}    __{MAGENTA}___      {YELLOW}__{MAGENTA}___   {GREEN}______  {BLUE}__  __     {CYAN}______{MAGENTA}______    {RESET}",
+        f"{CYAN}   /{MAGENTA}/   |    {YELLOW}/__{MAGENTA}/ /  {GREEN}/ ____/ {BLUE}/ / / /    {CYAN}/ ___/{MAGENTA}/ ____/    {RESET}",
+        f"{CYAN}  / {MAGENTA}/ /| |  {YELLOW}__/__{MAGENTA}/ /  {GREEN}/___ \  {BLUE}/ /_/ /    {CYAN}\__ \{MAGENTA}/ /     {YELLOW}____{RESET}",
+        f"{CYAN} / {MAGENTA}/_/ |_/ {YELLOW}/_/_{MAGENTA}  _/  {GREEN}____/ / {BLUE}/ __  /    {CYAN}___/ {MAGENTA}/ /___  {YELLOW}/ __/{RESET}",
+        f"{CYAN}/__{MAGENTA}____/  {YELLOW}/_/{MAGENTA} /_/   {GREEN}/_____/ {BLUE}/_/ /_/    {CYAN}/____/{MAGENTA}\____/ {YELLOW}/_/   {RESET}"
+    ]
+    
+    for line in logo_lines:
+        print(line)
+    
+    print(f"\n{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {YELLOW}The next-gen tool for the {GREEN}lazy{YELLOW} developer who wants results {GREEN}fast{RESET}")
+    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.3{RESET}\n")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -80,23 +93,42 @@ def main():
     else:
         scan_path = args.path or '.'
 
-    # Color support
+    # Cyberpunk color scheme
     use_color = sys.stdout.isatty()
     if use_color:
-        BAR_COLOR  = '\033[92m'  # light green
-        SIZE_COLOR = '\033[1m'   # bold
-        RESET      = '\033[0m'
+        # Define cyberpunk-style color palette
+        CYAN = '\033[36m'
+        BRIGHT_CYAN = '\033[96m'
+        MAGENTA = '\033[35m'
+        BRIGHT_MAGENTA = '\033[95m'
+        YELLOW = '\033[33m'
+        GREEN = '\033[92m'
+        BLUE = '\033[94m'
+        RED = '\033[91m'
+        BOLD = '\033[1m'
+        RESET = '\033[0m'
+        
+        # Colors for specific elements
+        BAR_COLOR = BRIGHT_CYAN
+        SIZE_COLOR = BRIGHT_MAGENTA
+        HEADER_COLOR = YELLOW
+        PATH_COLOR = GREEN
+        ACCENT_COLOR = MAGENTA
     else:
-        BAR_COLOR = SIZE_COLOR = RESET = ''
+        # Fallback for non-terminal output
+        CYAN = BRIGHT_CYAN = MAGENTA = BRIGHT_MAGENTA = YELLOW = GREEN = BLUE = RED = BOLD = RESET = ''
+        BAR_COLOR = SIZE_COLOR = HEADER_COLOR = PATH_COLOR = ACCENT_COLOR = ''
+    
+    # Use full block character for the bar
     BLOCK = '█'
 
     # Initialize terminal and progress display
     term_width = os.get_terminal_size().columns if sys.stdout.isatty() else 80
     use_progress = sys.stdout.isatty()  # Only use progress display on actual terminals
     
-    # First pass to count total files for progress bar
+    # First pass to count total files for progress bar with cyberpunk styling
     total_files = 0
-    print(f"Counting files in '{scan_path}'...")
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}*{CYAN}]{RESET} {YELLOW}Initializing neural scan of {GREEN}'{scan_path}'{YELLOW}...{RESET}")
     for root, dirs, files in os.walk(scan_path):
         total_files += len(files)
     
@@ -109,11 +141,25 @@ def main():
     last_update_time = 0
     update_interval = 0.1  # seconds between updates, to avoid flicker
     
-    # Start the scan with progress bar
-    print(f"Scanning {total_files} files in '{scan_path}'...")
+    # Start the scan with cyberpunk styling
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}!{CYAN}]{RESET} {BRIGHT_CYAN}COMMENCING DEEP SCAN{RESET} of {YELLOW}{total_files}{RESET} files in {GREEN}'{scan_path}'{RESET}")
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}>{CYAN}]{RESET} {YELLOW}Stand by for data analysis...{RESET}")
     
     # For throttling progress updates
     import time
+    
+    # Create a variable to track the single progress line
+    progress_line = ""
+    
+    # IMPORTANT: Clear any previous output
+    if use_progress:
+        # First, write a blank line that will be our progress line
+        sys.stdout.write("\n")
+        # Then move cursor back up one line - this ensures we always have a line to write to
+        sys.stdout.write("\033[1A")
+        sys.stdout.flush()
+    
+    # Start tracking time for updates
     current_time = time.time()
     
     for root, dirs, files in os.walk(scan_path):
@@ -151,19 +197,36 @@ def main():
                 else:
                     show_path = rel_path
                 
-                # Create progress string
-                progress_str = f"Scanning: [{bar}] {percent}% | {file_count}/{total_files} | {show_path}"
+                # Create cyberpunk-style progress string
+                scan_symbol = "▓▒░" if file_count % 3 == 0 else "░▒▓" if file_count % 3 == 1 else "▒▓░"
+                progress_str = f"{CYAN}[{BRIGHT_MAGENTA}{scan_symbol}{CYAN}] {BRIGHT_CYAN}SCANNING{RESET}: {BAR_COLOR}[{bar}]{RESET} {YELLOW}{percent}%{RESET} | {MAGENTA}{file_count}/{total_files}{RESET} | {GREEN}{show_path}{RESET}"
                 
-                # Use terminal control codes to update progress in place
-                # Move cursor to beginning of line and clear the entire line
-                sys.stdout.write("\033[1G\033[2K")
+                # Use terminal control codes to FORCE single line updating
+                # We'll use a different combination of escape codes that should work in all terminals
+                # First we go to beginning of line and clear the entire line
+                sys.stdout.write("\r")  # Just carriage return is most compatible
+                # Write the new progress string
                 sys.stdout.write(progress_str)
+                # Clear anything that might be left on the line
+                sys.stdout.write(" " * 20)  # Add extra spaces to cover any leftover characters
+                # Go back to the end of our actual content
+                sys.stdout.write("\r" + progress_str)
                 sys.stdout.flush()
+                
+                # Add small delay to ensure terminal updates properly
+                time.sleep(0.01)
     
-    # Display completion message
+    # Display cyberpunk-style completion message, using the same approach as the progress updates
     if use_progress:
-        sys.stdout.write("\033[1G\033[2K")  # Move to beginning of line and clear it
-        sys.stdout.write(f"Completed: [{bar_width*'█'}] 100% | {file_count}/{total_files} files scanned.\n")
+        completion_msg = f"{CYAN}[{BRIGHT_MAGENTA}■■■{CYAN}] {BRIGHT_CYAN}SCAN COMPLETED{RESET}: {BAR_COLOR}[{bar_width*'█'}]{RESET} {YELLOW}100%{RESET} | {MAGENTA}{file_count}/{total_files}{RESET} files processed. {GREEN}Analysis ready.{RESET}"
+        # Clear line with carriage return
+        sys.stdout.write("\r")
+        # Write completion message
+        sys.stdout.write(completion_msg)
+        # Clear anything that might be left on the line
+        sys.stdout.write(" " * 30)
+        # End with a newline for the next output
+        sys.stdout.write("\n")
         sys.stdout.flush()
     
     if not file_sizes:
@@ -175,25 +238,45 @@ def main():
     top_files = file_sizes[:args.top]
     max_size = top_files[0][1]
 
-    # Render chart header
-    print(f"\n{BAR_COLOR}Top {len(top_files)} space hogs found:{RESET}")
-    print(f"{'#':>2}  {'Size Bar':<{args.width+2}}  {'Size':^10}  Path")
-    print(f"{'-'*2}  {'-'*(args.width+2)}  {'-'*10}  {'-'*30}")
+    # Render cyberpunk-style chart header with box drawing
+    print(f"\n{BOLD}{ACCENT_COLOR}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓{RESET}")
+    print(f"{BOLD}{ACCENT_COLOR}┃ {HEADER_COLOR}TARGET ACQUIRED: {BRIGHT_CYAN}TOP {len(top_files)} SPACE HOGS IDENTIFIED{ACCENT_COLOR} ┃{RESET}")
+    print(f"{BOLD}{ACCENT_COLOR}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{RESET}")
     
-    # Render chart
+    # Table header with cyberpunk styling
+    print(f"{BOLD}{ACCENT_COLOR}┌─{'─'*2}──{'─'*(args.width+2)}──{'─'*10}──{'─'*30}─┐{RESET}")
+    print(f"{BOLD}{ACCENT_COLOR}│ {HEADER_COLOR}#{ACCENT_COLOR} │ {HEADER_COLOR}{'SIZE ALLOCATION':^{args.width}}{ACCENT_COLOR} │ {HEADER_COLOR}{'VOLUME':^10}{ACCENT_COLOR} │ {HEADER_COLOR}{'LOCATION PATH':^30}{ACCENT_COLOR} │{RESET}")
+    print(f"{BOLD}{ACCENT_COLOR}├─{'─'*2}──{'─'*(args.width+2)}──{'─'*10}──{'─'*30}─┤{RESET}")
+    
+    # Render each file as a cyberpunk-style data entry
     for idx, (path, size) in enumerate(top_files, start=1):
         bar_len = int((size / max_size) * args.width) if max_size > 0 else 0
+        
+        # Use bright cyan for the progress bar with a glowing effect
         bar_full = BLOCK * bar_len
-        bar_empty = ' ' * (args.width - bar_len)
-        bar = f"{BAR_COLOR}{bar_full}{RESET}{bar_empty}"
+        bar_empty = '·' * (args.width - bar_len)  # Using dots instead of spaces for empty space
+        bar = f"{BAR_COLOR}{bar_full}{ACCENT_COLOR}{bar_empty}"
+        
+        # Format size with bright magenta
         human = human_readable(size)
         size_str = f"{SIZE_COLOR}{human:>9}{RESET}"
-        print(f"{idx:>2}. │{bar}│ {size_str} │ {path}")
+        
+        # Format path with green color
+        path_display = path
+        if len(path) > 40:
+            path_display = "..." + path[-37:]
+        
+        # Print the row with cyberpunk styling
+        print(f"{BOLD}{ACCENT_COLOR}│ {YELLOW}{idx:>2}{ACCENT_COLOR} │ {bar} │ {size_str} │ {PATH_COLOR}{path_display}{RESET}{' ' * (30 - len(path_display))}{ACCENT_COLOR} │{RESET}")
     
-    # Print total size info
+    # Close the table
+    print(f"{BOLD}{ACCENT_COLOR}└─{'─'*2}──{'─'*(args.width+2)}──{'─'*10}──{'─'*30}─┘{RESET}")
+    
+    # Print total size info with cyberpunk styling
     total_size = sum(size for _, size in top_files)
-    print(f"\n{SIZE_COLOR}Total size of top {len(top_files)} files:{RESET} {human_readable(total_size)}")
-    print(f"Scanned directory: {scan_path}")
+    print(f"\n{ACCENT_COLOR}[{BRIGHT_CYAN}SYS{ACCENT_COLOR}] {HEADER_COLOR}Total data volume: {SIZE_COLOR}{human_readable(total_size)}{RESET}")
+    print(f"{ACCENT_COLOR}[{BRIGHT_CYAN}SYS{ACCENT_COLOR}] {HEADER_COLOR}Target directory: {PATH_COLOR}{scan_path}{RESET}")
+    print(f"{ACCENT_COLOR}[{BRIGHT_CYAN}SYS{ACCENT_COLOR}] {YELLOW}Scan complete. {GREEN}Have a nice day.{RESET}")
 
 
 if __name__ == '__main__':
