@@ -1,8 +1,0 @@
-README.md
-bigfile_map.py
-setup.py
-bigfile_map.egg-info/PKG-INFO
-bigfile_map.egg-info/SOURCES.txt
-bigfile_map.egg-info/dependency_links.txt
-bigfile_map.egg-info/entry_points.txt
-bigfile_map.egg-info/top_level.txt
