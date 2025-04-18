@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-Generate a colorful, interactive bar chart of the biggest files in a directory tree.
+lazy-space: A lazy way to find what's eating your disk space.
+
+Created by TheLazyIndianTechie - for the lazy developer in all of us.
 """
 import os
 import sys
 import argparse
+import time
 
 
 def human_readable(size):
@@ -38,19 +41,38 @@ def select_directory():
         print(f"Invalid choice: {choice}")
 
 
+def show_logo():
+    """Display the lazy-space logo"""
+    logo = r"""
+ _               _____                     
+| |    __ _ ____/ ___/  ___  ___ ____ ___ 
+| |   / _` |_  /\___ \ / _ \/ _ `/ __/ -_)
+|___| \__,_|/__/ ___/ \/ .__/\_,_/_/  \__/
+                       /_/                 
+    """
+    print(logo)
+    print("The lazy way to find what's eating your disk space.")
+    print("Created by TheLazyIndianTechie\n")
+
 def main():
     parser = argparse.ArgumentParser(
-        description='Generate a colorful bar chart of the largest files'
+        description='A lazy way to find what\'s eating your disk space',
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('-n', '--top', type=int, default=20,
-                        help='number of top files to display')
+                        help='number of top files to display (default: 20)')
     parser.add_argument('-w', '--width', type=int, default=40,
-                        help='bar width in characters')
+                        help='bar width in characters (default: 40)')
     parser.add_argument('-i', '--interactive', action='store_true',
-                        help='prompt to choose directory')
+                        help='prompt to choose directory (for the truly lazy)')
+    parser.add_argument('--no-logo', action='store_true',
+                        help='hide the lazy-space logo')
     parser.add_argument('path', nargs='?', default=None,
-                        help='directory path to scan')
+                        help='directory path to scan (default: current directory)')
     args = parser.parse_args()
+    
+    if not args.no_logo:
+        show_logo()
 
     # Determine scan path
     if args.interactive:
@@ -153,6 +175,11 @@ def main():
     top_files = file_sizes[:args.top]
     max_size = top_files[0][1]
 
+    # Render chart header
+    print(f"\n{BAR_COLOR}Top {len(top_files)} space hogs found:{RESET}")
+    print(f"{'#':>2}  {'Size Bar':<{args.width+2}}  {'Size':^10}  Path")
+    print(f"{'-'*2}  {'-'*(args.width+2)}  {'-'*10}  {'-'*30}")
+    
     # Render chart
     for idx, (path, size) in enumerate(top_files, start=1):
         bar_len = int((size / max_size) * args.width) if max_size > 0 else 0
@@ -162,6 +189,11 @@ def main():
         human = human_readable(size)
         size_str = f"{SIZE_COLOR}{human:>9}{RESET}"
         print(f"{idx:>2}. │{bar}│ {size_str} │ {path}")
+    
+    # Print total size info
+    total_size = sum(size for _, size in top_files)
+    print(f"\n{SIZE_COLOR}Total size of top {len(top_files)} files:{RESET} {human_readable(total_size)}")
+    print(f"Scanned directory: {scan_path}")
 
 
 if __name__ == '__main__':
