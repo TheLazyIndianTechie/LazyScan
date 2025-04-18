@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-lazy-space: A lazy way to find what's eating your disk space.
+lazyscan: A lazy way to find what's eating your disk space.
 
 Created by TheLazyIndianTechie - for the lazy developer in all of us.
-v0.1.8
+v0.1.9
 """
 import os
 import sys
@@ -90,7 +90,7 @@ def select_directory():
 
 
 def show_logo():
-    """Display the lazy-space cyberpunk-style logo"""
+    """Display the lazyscan cyberpunk-style logo"""
     # Define ANSI color codes
     CYAN = '\033[36m'
     BRIGHT_CYAN = '\033[96m'
@@ -102,7 +102,7 @@ def show_logo():
     RESET = '\033[0m'
     BOLD = '\033[1m'
     
-    # Clear, modern ASCII art that clearly says "LAZY SPACE"
+    # Clear, modern ASCII art that clearly says "LAZY SCAN"
     logo_lines = [
         f"{CYAN}██{MAGENTA}      {BRIGHT_CYAN}█████{YELLOW}   {GREEN}███{BLUE}   {MAGENTA}██{BRIGHT_CYAN}     {YELLOW}███{GREEN}   {BLUE}██████{MAGENTA}    {BRIGHT_CYAN}█████{YELLOW}   {GREEN}██{BLUE}    {MAGENTA}██{BRIGHT_CYAN}",
         f"{CYAN}██{MAGENTA}      {BRIGHT_CYAN}██{YELLOW}  {GREEN}██{BLUE}  {MAGENTA}██{BRIGHT_CYAN} ██{YELLOW}  {GREEN}██{BLUE} {MAGENTA}██{BRIGHT_CYAN}    {YELLOW}██{GREEN} ██{BLUE}  {MAGENTA}██{BRIGHT_CYAN}  {YELLOW}██{GREEN}  {BLUE}██{MAGENTA}  {BRIGHT_CYAN}██{YELLOW} {GREEN}██{BLUE}   {MAGENTA}██{BRIGHT_CYAN}",
@@ -129,7 +129,7 @@ def main():
     parser.add_argument('-i', '--interactive', action='store_true',
                         help='prompt to choose directory (for the truly lazy)')
     parser.add_argument('--no-logo', action='store_true',
-                        help='hide the lazy-space logo')
+                        help='hide the lazyscan logo')
     parser.add_argument('path', nargs='?', default=None,
                         help='directory path to scan (default: current directory)')
     args = parser.parse_args()
