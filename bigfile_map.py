@@ -68,8 +68,9 @@ def main():
         BAR_COLOR = SIZE_COLOR = RESET = ''
     BLOCK = '█'
 
-    # Initialize terminal output management
+    # Initialize terminal and progress display
     term_width = os.get_terminal_size().columns if sys.stdout.isatty() else 80
+    use_progress = sys.stdout.isatty()  # Only use progress display on actual terminals
     
     # First pass to count total files for progress bar
     total_files = 0
@@ -83,12 +84,15 @@ def main():
     
     # Progress bar configuration
     bar_width = 30
+    last_update_time = 0
+    update_interval = 0.1  # seconds between updates, to avoid flicker
     
     # Start the scan with progress bar
     print(f"Scanning {total_files} files in '{scan_path}'...")
     
-    # Track last output length to ensure clean line replacement
-    last_output_len = 0
+    # For throttling progress updates
+    import time
+    current_time = time.time()
     
     for root, dirs, files in os.walk(scan_path):
         rel_path = os.path.relpath(root, scan_path)
@@ -97,49 +101,48 @@ def main():
         for name in files:
             file_count += 1
             
-            # Update progress bar
-            percent = min(100, int(file_count / total_files * 100))
-            filled_length = int(bar_width * file_count // total_files)
-            bar = '█' * filled_length + '░' * (bar_width - filled_length)
-            
-            # Create the progress display with truncated path if needed
-            max_path_len = term_width - 60  # Reserve space for the other elements
-            if len(rel_path) > max_path_len:
-                show_path = "..." + rel_path[-max_path_len+3:]
-            else:
-                show_path = rel_path
-                
-            # Build progress string 
-            progress_str = f"Scanning: [{bar}] {percent}% | {file_count}/{total_files} | {show_path}"
-            
-            # First clear the entire line - ANSI escape code to clear line and return to start
-            sys.stdout.write('\033[2K\r')
-            
-            # Write the new progress string
-            sys.stdout.write(progress_str)
-            sys.stdout.flush()
-            # Ensure no partial lines remain by padding to terminal width with spaces
-            padding = term_width - len(progress_str)
-            if padding > 0:
-                sys.stdout.write(' ' * padding)
-                sys.stdout.write('\r' + progress_str)
-                sys.stdout.flush()
+            # Only update progress periodically to reduce terminal output
+            current_time = time.time()
+            should_update = (current_time - last_update_time) >= update_interval
             
             # Process the file
             full_path = os.path.join(root, name)
             try:
                 size = os.path.getsize(full_path)
+                file_sizes.append((full_path, size))
             except (OSError, PermissionError):
                 continue
-            file_sizes.append((full_path, size))
+                
+            # Update progress display if it's time
+            if use_progress and (should_update or file_count == total_files):
+                last_update_time = current_time
+                
+                # Calculate progress values
+                percent = min(100, int(file_count / total_files * 100))
+                filled_length = int(bar_width * file_count // total_files)
+                bar = '█' * filled_length + '░' * (bar_width - filled_length)
+                
+                # Truncate path if needed
+                max_path_len = term_width - 60
+                if len(rel_path) > max_path_len:
+                    show_path = "..." + rel_path[-max_path_len+3:]
+                else:
+                    show_path = rel_path
+                
+                # Create progress string
+                progress_str = f"Scanning: [{bar}] {percent}% | {file_count}/{total_files} | {show_path}"
+                
+                # Use terminal control codes to update progress in place
+                # Move cursor to beginning of line and clear the entire line
+                sys.stdout.write("\033[1G\033[2K")
+                sys.stdout.write(progress_str)
+                sys.stdout.flush()
     
-    # Clear progress display with completion message
-    complete_msg = f"Completed: [{bar_width*'█'}] 100% | {file_count}/{total_files} files scanned."
-    # Clear entire line first
-    sys.stdout.write('\033[2K\r')
-    # Write completion message
-    sys.stdout.write(complete_msg + '\n')
-    sys.stdout.flush()
+    # Display completion message
+    if use_progress:
+        sys.stdout.write("\033[1G\033[2K")  # Move to beginning of line and clear it
+        sys.stdout.write(f"Completed: [{bar_width*'█'}] 100% | {file_count}/{total_files} files scanned.\n")
+        sys.stdout.flush()
     
     if not file_sizes:
         print(f"No files found under '{scan_path}'.")
