@@ -2,11 +2,11 @@ from setuptools import setup
 
 setup(
     name='lazy-space',
-    version='0.1.7',  # Incremented version: 0.1.6 → 0.1.7 (fixed terminal progress display)
-    py_modules=['bigfile_map'],
+    version='0.1.8',  # Incremented version: 0.1.7 → 0.1.8 (renamed module file)
+    py_modules=['lazyspace'],
     entry_points={
         'console_scripts': [
-            'lazy-space=bigfile_map:main',
+            'lazy-space=lazyspace:main',
         ],
     },
     python_requires='>=3.6',
