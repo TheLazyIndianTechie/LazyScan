@@ -94,7 +94,7 @@ During neural scanning operations, `LAZYSCAN` provides comfort to human operator
 
 In a world overrun with digital clutter, only the laziest survive. `LAZYSCAN` represents the perfect fusion of cybernetic efficiency and human laziness. Why waste precious calories navigating complex GUI tools when you can deploy a cutting-edge neural scan from your terminal with a single command?
 
-Your digital realm deserves the best analysis tools - even if you're too lazy to build them yourself.
+Your digital realm deserves the best analysis tools - even if you're too lazy to build them yourself!
 
 ---
 
