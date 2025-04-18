@@ -92,27 +92,29 @@ def show_logo():
     """Display the lazy-space cyberpunk-style logo"""
     # Define ANSI color codes
     CYAN = '\033[36m'
+    BRIGHT_CYAN = '\033[96m'
     MAGENTA = '\033[35m'
+    BRIGHT_MAGENTA = '\033[95m'
     YELLOW = '\033[33m'
     GREEN = '\033[32m'
     BLUE = '\033[34m'
     RESET = '\033[0m'
     BOLD = '\033[1m'
     
-    # Cyberpunk-style logo with gradient colors
+    # Clear, modern ASCII art that clearly says "LAZY SPACE"
     logo_lines = [
-        f"{CYAN}    __{MAGENTA}___      {YELLOW}__{MAGENTA}___   {GREEN}______  {BLUE}__  __     {CYAN}______{MAGENTA}______    {RESET}",
-        f"{CYAN}   /{MAGENTA}/   |    {YELLOW}/__{MAGENTA}/ /  {GREEN}/ ____/ {BLUE}/ / / /    {CYAN}/ ___/{MAGENTA}/ ____/    {RESET}",
-        f"{CYAN}  / {MAGENTA}/ /| |  {YELLOW}__/__{MAGENTA}/ /  {GREEN}/___ \  {BLUE}/ /_/ /    {CYAN}\__ \{MAGENTA}/ /     {YELLOW}____{RESET}",
-        f"{CYAN} / {MAGENTA}/_/ |_/ {YELLOW}/_/_{MAGENTA}  _/  {GREEN}____/ / {BLUE}/ __  /    {CYAN}___/ {MAGENTA}/ /___  {YELLOW}/ __/{RESET}",
-        f"{CYAN}/__{MAGENTA}____/  {YELLOW}/_/{MAGENTA} /_/   {GREEN}/_____/ {BLUE}/_/ /_/    {CYAN}/____/{MAGENTA}\____/ {YELLOW}/_/   {RESET}"
+        f"{CYAN}██{MAGENTA}      {BRIGHT_CYAN}█████{YELLOW}   {GREEN}███{BLUE}   {MAGENTA}██{BRIGHT_CYAN}     {YELLOW}███{GREEN}   {BLUE}██████{MAGENTA}    {BRIGHT_CYAN}█████{YELLOW}   {GREEN}██{BLUE}    {MAGENTA}██{BRIGHT_CYAN}",
+        f"{CYAN}██{MAGENTA}      {BRIGHT_CYAN}██{YELLOW}  {GREEN}██{BLUE}  {MAGENTA}██{BRIGHT_CYAN} ██{YELLOW}  {GREEN}██{BLUE} {MAGENTA}██{BRIGHT_CYAN}    {YELLOW}██{GREEN} ██{BLUE}  {MAGENTA}██{BRIGHT_CYAN}  {YELLOW}██{GREEN}  {BLUE}██{MAGENTA}  {BRIGHT_CYAN}██{YELLOW} {GREEN}██{BLUE}   {MAGENTA}██{BRIGHT_CYAN}",
+        f"{CYAN}██{MAGENTA}      {BRIGHT_CYAN}██{YELLOW}  {GREEN}██{BLUE}  {MAGENTA}██{BRIGHT_CYAN}███{YELLOW}   {GREEN}██{BLUE} {MAGENTA}██{BRIGHT_CYAN}    {YELLOW}██{GREEN}  {BLUE}█████{MAGENTA}   {BRIGHT_CYAN}█████{YELLOW}   {GREEN}██{BLUE}  {MAGENTA}██{BRIGHT_CYAN} ",
+        f"{CYAN}██{MAGENTA}      {BRIGHT_CYAN}██{YELLOW}  {GREEN}██{BLUE}  {MAGENTA}██{BRIGHT_CYAN} ██{YELLOW}  {GREEN}██{BLUE} {MAGENTA}██{BRIGHT_CYAN}    {YELLOW}██{GREEN}    {BLUE}██{MAGENTA}    {BRIGHT_CYAN}██{YELLOW}  {GREEN}██{BLUE}  {MAGENTA}██{BRIGHT_CYAN} {YELLOW}██{GREEN} ",
+        f"{CYAN}███████{MAGENTA} {BRIGHT_CYAN}█████{YELLOW}   {GREEN}██{BLUE}  {MAGENTA}██{BRIGHT_CYAN} {YELLOW} {GREEN}█████{BLUE}  {MAGENTA}██████{BRIGHT_CYAN} {YELLOW}██{GREEN}   {BLUE}██{MAGENTA}  {BRIGHT_CYAN}██{YELLOW}   {GREEN}██{BLUE} {MAGENTA}███████{BRIGHT_CYAN}",
     ]
     
     for line in logo_lines:
         print(line)
     
     print(f"\n{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {YELLOW}The next-gen tool for the {GREEN}lazy{YELLOW} developer who wants results {GREEN}fast{RESET}")
-    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.6{RESET}\n")
+    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.7{RESET}\n")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -230,12 +232,13 @@ def main():
     # Create a variable to track the single progress line
     progress_line = ""
     
-    # IMPORTANT: Clear any previous output
+    # Initialize progress display with a completely different terminal approach
+    # This disables normal line buffering by using a special escape sequence
     if use_progress:
-        # First, write a blank line that will be our progress line
-        sys.stdout.write("\n")
-        # Then move cursor back up one line - this ensures we always have a line to write to
-        sys.stdout.write("\033[1A")
+        # Print a specific message that will be overwritten
+        print(f"{CYAN}[{BRIGHT_MAGENTA}···{CYAN}] {YELLOW}Preparing scan environment...{RESET}")
+        # Now move cursor back up one line so we can overwrite it
+        sys.stdout.write("\033[1A\r")
         sys.stdout.flush()
     
     # Start tracking time for updates
@@ -280,30 +283,27 @@ def main():
                 scan_symbol = "▓▒░" if file_count % 3 == 0 else "░▒▓" if file_count % 3 == 1 else "▒▓░"
                 progress_str = f"{CYAN}[{BRIGHT_MAGENTA}{scan_symbol}{CYAN}] {BRIGHT_CYAN}SCANNING{RESET}: {BAR_COLOR}[{bar}]{RESET} {YELLOW}{percent}%{RESET} | {MAGENTA}{file_count}/{total_files}{RESET} | {GREEN}{show_path}{RESET}"
                 
-                # Use terminal control codes to FORCE single line updating
-                # We'll use a different combination of escape codes that should work in all terminals
-                # First we go to beginning of line and clear the entire line
-                sys.stdout.write("\r")  # Just carriage return is most compatible
-                # Write the new progress string
+                # Use a more forceful approach to control the cursor and line updating
+                # This clears the ENTIRE current line and moves cursor to beginning
+                sys.stdout.write("\033[2K\r")
+                
+                # Now write the progress string
                 sys.stdout.write(progress_str)
-                # Clear anything that might be left on the line
-                sys.stdout.write(" " * 20)  # Add extra spaces to cover any leftover characters
-                # Go back to the end of our actual content
-                sys.stdout.write("\r" + progress_str)
                 sys.stdout.flush()
                 
                 # Add small delay to ensure terminal updates properly
-                time.sleep(0.01)
+                time.sleep(0.05)
     
-    # Display cyberpunk-style completion message, using the same approach as the progress updates
+    # Display cyberpunk-style completion message, using the same forceful approach
     if use_progress:
         completion_msg = f"{CYAN}[{BRIGHT_MAGENTA}■■■{CYAN}] {BRIGHT_CYAN}SCAN COMPLETED{RESET}: {BAR_COLOR}[{bar_width*'█'}]{RESET} {YELLOW}100%{RESET} | {MAGENTA}{file_count}/{total_files}{RESET} files processed. {GREEN}Analysis ready.{RESET}"
-        # Clear line with carriage return
-        sys.stdout.write("\r")
+        
+        # Clear entire line and move to beginning 
+        sys.stdout.write("\033[2K\r")
+        
         # Write completion message
         sys.stdout.write(completion_msg)
-        # Clear anything that might be left on the line
-        sys.stdout.write(" " * 30)
+        
         # End with a newline for the next output
         sys.stdout.write("\n")
         sys.stdout.flush()

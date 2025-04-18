@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='lazy-space',
-    version='0.1.6',  # Incremented version: 0.1.5 → 0.1.6 (fixed Knight Rider animation)
+    version='0.1.7',  # Incremented version: 0.1.6 → 0.1.7 (fixed terminal progress display)
     py_modules=['bigfile_map'],
     entry_points={
         'console_scripts': [
