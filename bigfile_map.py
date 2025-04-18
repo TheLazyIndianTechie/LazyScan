@@ -65,7 +65,7 @@ def show_logo():
         print(line)
     
     print(f"\n{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {YELLOW}The next-gen tool for the {GREEN}lazy{YELLOW} developer who wants results {GREEN}fast{RESET}")
-    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.3{RESET}\n")
+    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.4{RESET}\n")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -126,11 +126,79 @@ def main():
     term_width = os.get_terminal_size().columns if sys.stdout.isatty() else 80
     use_progress = sys.stdout.isatty()  # Only use progress display on actual terminals
     
-    # First pass to count total files for progress bar with cyberpunk styling
+    # Knight Rider style animation function
+    def knight_rider_animation(message, iterations=3, animation_chars="▮▯▯", delay=0.07):
+        """Display a Knight Rider style animation while performing a task"""
+        animation_width = 10
+        for _ in range(iterations):
+            # Knight Rider animation going right
+            for i in range(animation_width):
+                anim = "▯" * i + animation_chars + "▯" * (animation_width - i - len(animation_chars))
+                sys.stdout.write(f"\r{BOLD}{CYAN}[{BRIGHT_MAGENTA}{anim}{CYAN}]{RESET} {YELLOW}{message}{RESET}")
+                sys.stdout.flush()
+                time.sleep(delay)
+            
+            # Knight Rider animation going left
+            for i in range(animation_width - 1, -1, -1):
+                anim = "▯" * i + animation_chars + "▯" * (animation_width - i - len(animation_chars))
+                sys.stdout.write(f"\r{BOLD}{CYAN}[{BRIGHT_MAGENTA}{anim}{CYAN}]{RESET} {YELLOW}{message}{RESET}")
+                sys.stdout.flush()
+                time.sleep(delay)
+        
+        # Clear the animation line when done
+        sys.stdout.write("\r" + " " * (len(message) + 30) + "\r")
+        sys.stdout.flush()
+    
+    # Funny messages for the scan
+    funny_messages = [
+        "Converting caffeine into code...",
+        "Teaching AI to count without using fingers...",
+        "Preparing to blame your downloads folder...",
+        "Calculating how many cat videos you have...",
+        "Checking if you've actually cleaned up those temp files...",
+        "Looking for your 'definitely not important' folder...",
+        "Finding where all those 'I'll sort this later' files went...",
+        "Locating your digital hoarding evidence...",
+        "Discovering what's actually filling up your drive...",
+        "Searching for those 'I might need this someday' files...",
+    ]
+    
+    # First pass to count total files with Knight Rider animation
     total_files = 0
+    
+    # Display initial message with Knight Rider animation
     print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}*{CYAN}]{RESET} {YELLOW}Initializing neural scan of {GREEN}'{scan_path}'{YELLOW}...{RESET}")
-    for root, dirs, files in os.walk(scan_path):
-        total_files += len(files)
+    
+    # Select a random funny message
+    import random
+    funny_msg = random.choice(funny_messages)
+    
+    # Start counting files with animation
+    file_count_thread_active = True
+    
+    def count_files_task():
+        nonlocal total_files
+        for root, dirs, files in os.walk(scan_path):
+            total_files += len(files)
+            if not file_count_thread_active:
+                break
+    
+    # Use threading to count files while showing animation
+    import threading
+    file_count_thread = threading.Thread(target=count_files_task)
+    file_count_thread.start()
+    
+    # Show animation while counting
+    animation_count = 0
+    while file_count_thread.is_alive():
+        knight_rider_animation(funny_msg, iterations=1)
+        animation_count += 1
+        # Change the message occasionally for variety
+        if animation_count % 3 == 0:
+            funny_msg = random.choice(funny_messages)
+    
+    file_count_thread_active = False
+    file_count_thread.join()
     
     # Gather file sizes with progress indication
     file_sizes = []
