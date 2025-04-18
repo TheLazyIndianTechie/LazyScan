@@ -68,6 +68,9 @@ def main():
         BAR_COLOR = SIZE_COLOR = RESET = ''
     BLOCK = '█'
 
+    # Initialize terminal output management
+    term_width = os.get_terminal_size().columns if sys.stdout.isatty() else 80
+    
     # First pass to count total files for progress bar
     total_files = 0
     print(f"Counting files in '{scan_path}'...")
@@ -84,6 +87,9 @@ def main():
     # Start the scan with progress bar
     print(f"Scanning {total_files} files in '{scan_path}'...")
     
+    # Track last output length to ensure clean line replacement
+    last_output_len = 0
+    
     for root, dirs, files in os.walk(scan_path):
         rel_path = os.path.relpath(root, scan_path)
         rel_path = '.' if rel_path == '.' else f".../{rel_path}"
@@ -96,10 +102,21 @@ def main():
             filled_length = int(bar_width * file_count // total_files)
             bar = '█' * filled_length + '░' * (bar_width - filled_length)
             
-            # Create the progress display
-            progress_str = f"\rScanning: [{bar}] {percent}% | {file_count}/{total_files} | {rel_path}"
-            sys.stdout.write(progress_str)
+            # Create the progress display with truncated path if needed
+            max_path_len = term_width - 60  # Reserve space for the other elements
+            if len(rel_path) > max_path_len:
+                show_path = "..." + rel_path[-max_path_len+3:]
+            else:
+                show_path = rel_path
+                
+            # Build progress string with clear padding
+            progress_str = f"Scanning: [{bar}] {percent}% | {file_count}/{total_files} | {show_path}"
+            # Pad with spaces to overwrite previous line completely + return to start of line
+            clear_line = '\r' + ' ' * last_output_len + '\r'
+            output = clear_line + progress_str
+            sys.stdout.write(output)
             sys.stdout.flush()
+            last_output_len = len(progress_str)
             
             # Process the file
             full_path = os.path.join(root, name)
@@ -110,7 +127,8 @@ def main():
             file_sizes.append((full_path, size))
     
     # Clear progress display with completion message
-    sys.stdout.write(f"\rCompleted: [{bar_width*'█'}] 100% | {file_count}/{total_files} files scanned.{' '*20}\n")
+    complete_msg = f"Completed: [{bar_width*'█'}] 100% | {file_count}/{total_files} files scanned."
+    sys.stdout.write('\r' + ' ' * last_output_len + '\r' + complete_msg + '\n')
     sys.stdout.flush()
     
     if not file_sizes:
