@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='lazy-space',
-    version='0.1.4',  # Incremented version: 0.1.3 → 0.1.4 (animations and humor)
+    version='0.1.5',  # Incremented version: 0.1.4 → 0.1.5 (bugfix for animation)
     py_modules=['bigfile_map'],
     entry_points={
         'console_scripts': [

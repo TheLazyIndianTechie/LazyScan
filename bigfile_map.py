@@ -8,6 +8,8 @@ import os
 import sys
 import argparse
 import time
+import random
+import threading
 
 
 def human_readable(size):
@@ -65,7 +67,7 @@ def show_logo():
         print(line)
     
     print(f"\n{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {YELLOW}The next-gen tool for the {GREEN}lazy{YELLOW} developer who wants results {GREEN}fast{RESET}")
-    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.4{RESET}\n")
+    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.5{RESET}\n")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -170,7 +172,6 @@ def main():
     print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}*{CYAN}]{RESET} {YELLOW}Initializing neural scan of {GREEN}'{scan_path}'{YELLOW}...{RESET}")
     
     # Select a random funny message
-    import random
     funny_msg = random.choice(funny_messages)
     
     # Start counting files with animation
@@ -184,7 +185,6 @@ def main():
                 break
     
     # Use threading to count files while showing animation
-    import threading
     file_count_thread = threading.Thread(target=count_files_task)
     file_count_thread.start()
     
