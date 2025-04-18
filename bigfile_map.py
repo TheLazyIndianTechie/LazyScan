@@ -109,14 +109,21 @@ def main():
             else:
                 show_path = rel_path
                 
-            # Build progress string with clear padding
+            # Build progress string 
             progress_str = f"Scanning: [{bar}] {percent}% | {file_count}/{total_files} | {show_path}"
-            # Pad with spaces to overwrite previous line completely + return to start of line
-            clear_line = '\r' + ' ' * last_output_len + '\r'
-            output = clear_line + progress_str
-            sys.stdout.write(output)
+            
+            # First clear the entire line - ANSI escape code to clear line and return to start
+            sys.stdout.write('\033[2K\r')
+            
+            # Write the new progress string
+            sys.stdout.write(progress_str)
             sys.stdout.flush()
-            last_output_len = len(progress_str)
+            # Ensure no partial lines remain by padding to terminal width with spaces
+            padding = term_width - len(progress_str)
+            if padding > 0:
+                sys.stdout.write(' ' * padding)
+                sys.stdout.write('\r' + progress_str)
+                sys.stdout.flush()
             
             # Process the file
             full_path = os.path.join(root, name)
@@ -128,7 +135,10 @@ def main():
     
     # Clear progress display with completion message
     complete_msg = f"Completed: [{bar_width*'█'}] 100% | {file_count}/{total_files} files scanned."
-    sys.stdout.write('\r' + ' ' * last_output_len + '\r' + complete_msg + '\n')
+    # Clear entire line first
+    sys.stdout.write('\033[2K\r')
+    # Write completion message
+    sys.stdout.write(complete_msg + '\n')
     sys.stdout.flush()
     
     if not file_sizes:
