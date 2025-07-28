@@ -44,6 +44,104 @@ CHROME_PATHS = [
     os.path.expanduser('~/Library/Application Support/Google/Chrome/Crashpad/completed/*'),
 ]
 
+# Perplexity-specific paths
+PERPLEXITY_PATHS = [
+    # Perplexity Cache and Data
+    os.path.expanduser('~/Library/Caches/Perplexity*'),
+    os.path.expanduser('~/Library/Application Support/Perplexity/Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Perplexity/Code Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Perplexity/GPUCache/*'),
+    os.path.expanduser('~/Library/Application Support/Perplexity/Service Worker/CacheStorage/*'),
+    os.path.expanduser('~/Library/Application Support/Perplexity/Service Worker/ScriptCache/*'),
+    os.path.expanduser('~/Library/Application Support/Perplexity/Crashpad/completed/*'),
+    os.path.expanduser('~/Library/WebKit/Perplexity*'),
+]
+
+# Dia diagram editor paths
+DIA_PATHS = [
+    os.path.expanduser('~/Library/Application Support/Dia/*'),
+    os.path.expanduser('~/Library/Caches/Dia*'),
+    os.path.expanduser('~/.dia/autosave/*'),
+    os.path.expanduser('~/.dia/tmp/*'),
+]
+
+# Slack-specific paths
+SLACK_PATHS = [
+    os.path.expanduser('~/Library/Application Support/Slack/Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Slack/Code Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Slack/GPUCache/*'),
+    os.path.expanduser('~/Library/Application Support/Slack/Service Worker/CacheStorage/*'),
+    os.path.expanduser('~/Library/Caches/com.tinyspeck.slackmacgap*'),
+    os.path.expanduser('~/Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Caches/*'),
+]
+
+# Discord-specific paths  
+DISCORD_PATHS = [
+    os.path.expanduser('~/Library/Application Support/discord/Cache/*'),
+    os.path.expanduser('~/Library/Application Support/discord/Code Cache/*'),
+    os.path.expanduser('~/Library/Application Support/discord/GPUCache/*'),
+    os.path.expanduser('~/Library/Application Support/discord/VideoDecodeStats/*'),
+    os.path.expanduser('~/Library/Caches/com.hnc.Discord*'),
+]
+
+# Spotify-specific paths
+SPOTIFY_PATHS = [
+    os.path.expanduser('~/Library/Caches/com.spotify.client*'),
+    os.path.expanduser('~/Library/Application Support/Spotify/PersistentCache/*'),
+    os.path.expanduser('~/Library/Application Support/Spotify/Browser/*'),
+    os.path.expanduser('~/Library/Application Support/Spotify/Data/*'),
+]
+
+# VS Code-specific paths
+VSCODE_PATHS = [
+    os.path.expanduser('~/Library/Application Support/Code/Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Code/CachedData/*'),
+    os.path.expanduser('~/Library/Application Support/Code/Code Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Code/GPUCache/*'),
+    os.path.expanduser('~/Library/Application Support/Code/logs/*'),
+    os.path.expanduser('~/Library/Application Support/Code/Service Worker/CacheStorage/*'),
+    os.path.expanduser('~/Library/Application Support/Code/Service Worker/ScriptCache/*'),
+    os.path.expanduser('~/Library/Application Support/Code/User/workspaceStorage/*'),
+]
+
+# Zoom-specific paths
+ZOOM_PATHS = [
+    os.path.expanduser('~/Library/Application Support/zoom.us/AutoDownload/*'),
+    os.path.expanduser('~/Library/Caches/us.zoom.xos*'),
+    os.path.expanduser('~/Library/Logs/zoom*'),
+    os.path.expanduser('~/Documents/Zoom/*'),  # Recorded meetings
+]
+
+# Microsoft Teams paths
+TEAMS_PATHS = [
+    os.path.expanduser('~/Library/Application Support/Microsoft/Teams/Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Microsoft/Teams/Code Cache/*'),
+    os.path.expanduser('~/Library/Application Support/Microsoft/Teams/GPUCache/*'),
+    os.path.expanduser('~/Library/Application Support/Microsoft/Teams/Service Worker/CacheStorage/*'),
+    os.path.expanduser('~/Library/Application Support/Microsoft/Teams/tmp/*'),
+    os.path.expanduser('~/Library/Application Support/Microsoft/Teams/media-stack/*'),
+]
+
+# Firefox-specific paths
+FIREFOX_PATHS = [
+    os.path.expanduser('~/Library/Caches/Firefox/*'),
+    os.path.expanduser('~/Library/Application Support/Firefox/Profiles/*/cache2/*'),
+    os.path.expanduser('~/Library/Application Support/Firefox/Profiles/*/startupCache/*'),
+    os.path.expanduser('~/Library/Application Support/Firefox/Profiles/*/shader-cache/*'),
+    os.path.expanduser('~/Library/Application Support/Firefox/Profiles/*/thumbnails/*'),
+    os.path.expanduser('~/Library/Application Support/Firefox/Crash Reports/*'),
+]
+
+# Safari-specific paths
+SAFARI_PATHS = [
+    os.path.expanduser('~/Library/Caches/com.apple.Safari/*'),
+    os.path.expanduser('~/Library/Caches/com.apple.Safari.SafeBrowsing/*'),
+    os.path.expanduser('~/Library/Safari/CloudTabs.db-wal'),
+    os.path.expanduser('~/Library/Safari/CloudTabs.db-shm'),
+    os.path.expanduser('~/Library/Caches/com.apple.WebKit.WebContent/*'),
+    os.path.expanduser('~/Library/Caches/com.apple.WebKit.Networking/*'),
+]
+
 # macOS cache directories based on user-provided list
 # Reference: User-provided list of 34 macOS cache paths
 MACOS_CACHE_PATHS = [
@@ -392,6 +490,141 @@ def clean_macos_cache(paths, colors):
         print(f"{BOLD}{CYAN}[{RED}!{CYAN}]{RESET} {RED}Failed to clean {errors} directories (permission denied){RESET}")
     
     print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}■{CYAN}]{RESET} {GREEN}Cache cleanup completed successfully.{RESET}")
+    
+    return freed_bytes
+
+
+def scan_application_cache(app_name, app_paths, colors, check_path=None):
+    """Generic function to scan application cache for cleanable files.
+    
+    Args:
+        app_name: Display name of the application
+        app_paths: List of glob patterns for cache directories
+        colors: Tuple of color codes (CYAN, MAGENTA, YELLOW, RESET, BOLD)
+        check_path: Optional path to check if app is installed
+    
+    Returns:
+        Total bytes freed if cleaning was performed, 0 otherwise
+    """
+    CYAN, MAGENTA, YELLOW, RESET, BOLD = colors
+    BRIGHT_CYAN = '\033[96m'
+    BRIGHT_MAGENTA = '\033[95m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}{app_name.upper()} SCANNER{CYAN}]{RESET} {YELLOW}Analyzing {app_name} cache...{RESET}")
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}▓▒░{CYAN}]{RESET} {BRIGHT_CYAN}Scanning {app_name}-specific cache and temporary files...{RESET}\n")
+    
+    # Check if app is installed (if check_path provided)
+    if check_path and not os.path.exists(os.path.expanduser(check_path)):
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}{app_name} is not installed or cache folder not found.{RESET}")
+        return 0
+    
+    # Collect cache items
+    cache_items = []
+    total_size = 0
+    
+    for pattern in app_paths:
+        try:
+            for path in glob.glob(pattern):
+                try:
+                    if os.path.isfile(path):
+                        size = os.path.getsize(path)
+                        cache_items.append((path, size, 'file'))
+                        total_size += size
+                    elif os.path.isdir(path):
+                        # Calculate directory size
+                        dir_size = 0
+                        for root, dirs, files in os.walk(path):
+                            for f in files:
+                                try:
+                                    dir_size += os.path.getsize(os.path.join(root, f))
+                                except (OSError, PermissionError):
+                                    pass
+                        if dir_size > 0:
+                            cache_items.append((path, dir_size, 'dir'))
+                            total_size += dir_size
+                except (OSError, PermissionError):
+                    continue
+        except Exception:
+            continue
+    
+    if not cache_items:
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}No {app_name} cache files found or accessible.{RESET}")
+        return 0
+    
+    # Sort by size (largest first)
+    cache_items.sort(key=lambda x: x[1], reverse=True)
+    
+    # Display results
+    print(f"{BOLD}{MAGENTA}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓{RESET}")
+    print(f"{BOLD}{MAGENTA}┃ {YELLOW}{app_name.upper()} CACHE ANALYSIS {CYAN}:: {BRIGHT_MAGENTA}TOTAL: {BRIGHT_CYAN}{human_readable(total_size):<10}{MAGENTA} ┃{RESET}")
+    print(f"{BOLD}{MAGENTA}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{RESET}")
+    
+    print(f"\n{BOLD}{CYAN}[{YELLOW}CACHE ITEMS FOUND{CYAN}]{RESET} {GREEN}({len(cache_items)} items){RESET}")
+    print(f"{CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+    
+    # Show top items (max 15)
+    for idx, (path, size, item_type) in enumerate(cache_items[:15], 1):
+        # Shorten path for display
+        display_path = path.replace(os.path.expanduser('~'), '~')
+        if len(display_path) > 60:
+            display_path = '...' + display_path[-57:]
+        
+        icon = '📁' if item_type == 'dir' else '📄'
+        print(f"{CYAN}[{BRIGHT_MAGENTA}{idx:02d}{CYAN}]{RESET} {icon} {human_readable(size):>10} {YELLOW}{display_path}{RESET}")
+    
+    if len(cache_items) > 15:
+        print(f"\n{CYAN}[{YELLOW}...{CYAN}]{RESET} {YELLOW}And {len(cache_items) - 15} more items{RESET}")
+    
+    # Show total and ask for confirmation
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}SUMMARY{CYAN}]{RESET}")
+    print(f"  {YELLOW}Total items:{RESET} {BRIGHT_CYAN}{len(cache_items)}{RESET}")
+    print(f"  {YELLOW}Total size:{RESET} {BRIGHT_MAGENTA}{human_readable(total_size)}{RESET}")
+    
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete all {app_name} cache items? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
+    
+    try:
+        response = input().strip().lower()
+    except KeyboardInterrupt:
+        print(f"\n{BOLD}{CYAN}[{RED}X{CYAN}]{RESET} {RED}Operation cancelled.{RESET}")
+        return 0
+    
+    if response != 'y':
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}{app_name} cleanup aborted.{RESET}")
+        return 0
+    
+    # Clean cache
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}►{CYAN}]{RESET} {BRIGHT_CYAN}CLEANING {app_name.upper()} CACHE...{RESET}\n")
+    
+    knight_rider_animation(f'Purging {app_name} cache...', colors=colors)
+    
+    freed_bytes = 0
+    errors = 0
+    
+    for path, size, item_type in cache_items:
+        try:
+            if item_type == 'dir' and os.path.isdir(path):
+                shutil.rmtree(path, ignore_errors=True)
+            elif item_type == 'file' and os.path.isfile(path):
+                os.remove(path)
+            freed_bytes += size
+        except Exception:
+            errors += 1
+    
+    # Clear animation
+    sys.stdout.write("\r" + " " * 100 + "\r")
+    sys.stdout.flush()
+    
+    # Display results
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}✓{CYAN}]{RESET} {BRIGHT_CYAN}{app_name.upper()} CACHE CLEANED{RESET}")
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}→{CYAN}]{RESET} {YELLOW}Space reclaimed:{RESET} {BRIGHT_MAGENTA}{human_readable(freed_bytes)}{RESET}")
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}→{CYAN}]{RESET} {YELLOW}Items cleaned:{RESET} {BRIGHT_CYAN}{len(cache_items) - errors}{RESET}")
+    
+    if errors > 0:
+        print(f"{BOLD}{CYAN}[{RED}!{CYAN}]{RESET} {RED}Failed to clean {errors} items (permission denied){RESET}")
+    
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}■{CYAN}]{RESET} {GREEN}{app_name} cleanup completed successfully.{RESET}")
     
     return freed_bytes
 
@@ -790,6 +1023,26 @@ Examples:
                         help='clean macOS cache directories (can be used with or without scanning)')
     parser.add_argument('--chrome', action='store_true',
                         help='scan Chrome Application Support for cleanable files')
+    parser.add_argument('--perplexity', action='store_true',
+                        help='scan Perplexity AI cache for cleanable files')
+    parser.add_argument('--dia', action='store_true',
+                        help='scan Dia diagram editor cache for cleanable files')
+    parser.add_argument('--slack', action='store_true',
+                        help='scan Slack cache for cleanable files')
+    parser.add_argument('--discord', action='store_true',
+                        help='scan Discord cache for cleanable files')
+    parser.add_argument('--spotify', action='store_true',
+                        help='scan Spotify cache for cleanable files')
+    parser.add_argument('--vscode', action='store_true',
+                        help='scan VS Code cache for cleanable files')
+    parser.add_argument('--zoom', action='store_true',
+                        help='scan Zoom cache and recorded meetings for cleanable files')
+    parser.add_argument('--teams', action='store_true',
+                        help='scan Microsoft Teams cache for cleanable files')
+    parser.add_argument('--firefox', action='store_true',
+                        help='scan Firefox cache for cleanable files')
+    parser.add_argument('--safari', action='store_true',
+                        help='scan Safari cache for cleanable files')
     parser.add_argument('path', nargs='?', default=None,
                         help='directory path to scan (default: current directory)')
     args = parser.parse_args()
@@ -871,6 +1124,52 @@ Examples:
             # User likely just wants to clean cache and exit
             print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}✓{CYAN}]{RESET} {GREEN}Operation completed successfully.{RESET}")
             return
+
+    # Setup colors for application scanning
+    if sys.stdout.isatty():
+        colors = ('\033[36m', '\033[35m', '\033[33m', '\033[0m', '\033[1m')
+    else:
+        colors = ('', '', '', '', '')
+    
+    # Handle Perplexity AI cache scanning if requested
+    if args.perplexity:
+        scan_application_cache('Perplexity', PERPLEXITY_PATHS, colors, check_path='~/Library/Application Support/Perplexity')
+    
+    # Handle Dia cache scanning if requested
+    if args.dia:
+        scan_application_cache('Dia', DIA_PATHS, colors, check_path='~/Library/Application Support/Dia')
+    
+    # Handle Slack cache scanning if requested
+    if args.slack:
+        scan_application_cache('Slack', SLACK_PATHS, colors, check_path='~/Library/Application Support/Slack')
+    
+    # Handle Discord cache scanning if requested
+    if args.discord:
+        scan_application_cache('Discord', DISCORD_PATHS, colors, check_path='~/Library/Application Support/discord')
+    
+    # Handle Spotify cache scanning if requested
+    if args.spotify:
+        scan_application_cache('Spotify', SPOTIFY_PATHS, colors, check_path='~/Library/Application Support/Spotify')
+    
+    # Handle VS Code cache scanning if requested
+    if args.vscode:
+        scan_application_cache('VS Code', VSCODE_PATHS, colors, check_path='~/Library/Application Support/Code')
+    
+    # Handle Zoom cache scanning if requested
+    if args.zoom:
+        scan_application_cache('Zoom', ZOOM_PATHS, colors, check_path='~/Library/Application Support/zoom.us')
+    
+    # Handle Teams cache scanning if requested
+    if args.teams:
+        scan_application_cache('Teams', TEAMS_PATHS, colors, check_path='~/Library/Application Support/Microsoft/Teams')
+    
+    # Handle Firefox cache cleaning if requested
+    if args.firefox:
+        scan_application_cache('Firefox', FIREFOX_PATHS, colors, check_path='~/Library/Application Support/Firefox')
+
+    # Handle Safari cache cleaning if requested
+    if args.safari:
+        scan_application_cache('Safari', SAFARI_PATHS, colors, check_path='~/Library/Caches/com.apple.Safari')
 
     # Determine scan path
     if args.interactive:
