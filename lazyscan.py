@@ -1131,6 +1131,12 @@ Examples:
     else:
         colors = ('', '', '', '', '')
     
+    # Track if any app-specific scanning was requested
+    app_scan_requested = any([
+        args.perplexity, args.dia, args.slack, args.discord, args.spotify,
+        args.vscode, args.zoom, args.teams, args.firefox, args.safari
+    ])
+    
     # Handle Perplexity AI cache scanning if requested
     if args.perplexity:
         scan_application_cache('Perplexity', PERPLEXITY_PATHS, colors, check_path='~/Library/Application Support/Perplexity')
@@ -1170,6 +1176,10 @@ Examples:
     # Handle Safari cache cleaning if requested
     if args.safari:
         scan_application_cache('Safari', SAFARI_PATHS, colors, check_path='~/Library/Caches/com.apple.Safari')
+    
+    # If app-specific scanning was requested and no path/interactive mode, exit
+    if app_scan_requested and not args.path and not args.interactive:
+        return
 
     # Determine scan path
     if args.interactive:
