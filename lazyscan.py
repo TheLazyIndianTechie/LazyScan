@@ -2,10 +2,11 @@
 """
 lazyscan: A lazy way to find what's eating your disk space.
 
+Includes a new feature to clean macOS cache directories seamlessly.
 Created by TheLazyIndianTechie - for the lazy developer in all of us.
-v0.1.9
+v0.2.0
 """
-__version__ = "0.1.9"
+__version__ = "0.2.0"
 import os
 import sys
 import argparse
@@ -109,37 +110,80 @@ def clean_macos_cache(paths, colors):
     cache_items = []
     total_size = 0
     
+    def is_safe_cache_path(path):
+        """Ensure path is a known cache path, preventing accidental deletions."""
+        # List of keywords or patterns typical for cache paths
+        cache_keywords = [
+            'cache', 'caches', 'tmp', 'temp', 'temporary',
+            'deriveddata', 'backup', 'log', 'logs',
+            'simulator', 'archives', 'crashreporter',
+            '_cacache', 'homebrew', 'npm', '.Spotlight'
+        ]
+        # Also check for specific file extensions that are safe to delete
+        safe_extensions = ['.dmg', '.pkg', '.log', '.crash']
+        
+        path_lower = path.lower()
+        
+        # Check if path contains cache keywords
+        has_cache_keyword = any(keyword in path_lower for keyword in cache_keywords)
+        
+        # Check if it's a safe file extension
+        has_safe_extension = any(path.endswith(ext) for ext in safe_extensions)
+        
+        # Additional safety checks - avoid critical system paths
+        dangerous_paths = [
+            '/Applications',
+            '/System/Library/CoreServices',
+            '/Users/' + os.path.expanduser('~').split('/')[-1] + '/Documents',
+            '/Users/' + os.path.expanduser('~').split('/')[-1] + '/Desktop',
+            '/Users/' + os.path.expanduser('~').split('/')[-1] + '/Pictures',
+            '/Users/' + os.path.expanduser('~').split('/')[-1] + '/Music',
+            '/Users/' + os.path.expanduser('~').split('/')[-1] + '/Movies'
+        ]
+        
+        is_dangerous = any(path.startswith(danger) for danger in dangerous_paths)
+        
+        return (has_cache_keyword or has_safe_extension) and not is_dangerous
+    
+    skipped_count = 0
+    
     for pattern in paths:
         try:
             for path in glob.glob(pattern):
                 if os.path.exists(path):
-                    try:
-                        # Calculate directory size using os.scandir
-                        dir_size = 0
-                        for entry in os.scandir(path):
-                            if entry.is_file(follow_symlinks=False):
-                                try:
-                                    dir_size += entry.stat(follow_symlinks=False).st_size
-                                except (OSError, PermissionError):
-                                    pass
-                            elif entry.is_dir(follow_symlinks=False):
-                                # Recursively calculate subdirectory size
-                                for root, dirs, files in os.walk(entry.path):
-                                    for f in files:
-                                        try:
-                                            dir_size += os.path.getsize(os.path.join(root, f))
-                                        except (OSError, PermissionError):
-                                            pass
-                        
-                        if dir_size > 0:  # Only add if directory has content
-                            cache_items.append((path, dir_size))
-                            total_size += dir_size
-                    except (OSError, PermissionError) as e:
-                        # Skip directories we can't access
-                        continue
+                    if is_safe_cache_path(path):
+                        try:
+                            # Calculate directory size using os.scandir
+                            dir_size = 0
+                            for entry in os.scandir(path):
+                                if entry.is_file(follow_symlinks=False):
+                                    try:
+                                        dir_size += entry.stat(follow_symlinks=False).st_size
+                                    except (OSError, PermissionError):
+                                        pass
+                                elif entry.is_dir(follow_symlinks=False):
+                                    # Recursively calculate subdirectory size
+                                    for root, dirs, files in os.walk(entry.path):
+                                        for f in files:
+                                            try:
+                                                dir_size += os.path.getsize(os.path.join(root, f))
+                                            except (OSError, PermissionError):
+                                                pass
+                            
+                            if dir_size > 0:  # Only add if directory has content
+                                cache_items.append((path, dir_size))
+                                total_size += dir_size
+                        except (OSError, PermissionError) as e:
+                            # Skip directories we can't access
+                            continue
+                    else:
+                        skipped_count += 1
         except Exception:
             # Skip invalid patterns
             continue
+    
+    if skipped_count > 0:
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}Skipped {skipped_count} non-cache paths for safety{RESET}")
     
     if not cache_items:
         print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}No cache directories found or accessible.{RESET}")
@@ -151,37 +195,137 @@ def clean_macos_cache(paths, colors):
     # Display cache directories in cyberpunk style
     print(f"{BOLD}{MAGENTA}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓{RESET}")
     print(f"{BOLD}{MAGENTA}┃ {YELLOW}CACHE TARGETS IDENTIFIED {CYAN}:: {BRIGHT_MAGENTA}TOTAL SIZE: {BRIGHT_CYAN}{human_readable(total_size):<10}{MAGENTA} ┃{RESET}")
-    print(f"{BOLD}{MAGENTA}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{RESET}\n")
+    print(f"{BOLD}{MAGENTA}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{RESET}")
+    
+    print(f"\n{BOLD}{CYAN}[{YELLOW}TIP{CYAN}]{RESET} {YELLOW}Review cache contents before deleting:{RESET}")
+    print(f"  {CYAN}• {RESET}Command+Click on the path to open in Finder")
+    print(f"  {CYAN}• {RESET}Or copy and run the 'open' command shown below each path\n")
 
     # Display each cache directory
     for idx, (path, size) in enumerate(cache_items[:20], 1):  # Show top 20
-        # Truncate long paths
-        display_path = path
-        if len(path) > 50:
-            display_path = "..." + path[-47:]
-
         # Size indicator bar
         bar_width = 20
         bar_filled = int((size / cache_items[0][1]) * bar_width) if cache_items[0][1] > 0 else 0
         bar = f"{BRIGHT_CYAN}{'█' * bar_filled}{MAGENTA}{'░' * (bar_width - bar_filled)}{RESET}"
 
-        print(f"{CYAN}[{BRIGHT_MAGENTA}{idx:02d}{CYAN}]{RESET} {bar} {BRIGHT_MAGENTA}{human_readable(size):>10}{RESET} {GREEN}{display_path}{RESET}")
+        # Display the entry
+        print(f"{CYAN}[{BRIGHT_MAGENTA}{idx:02d}{CYAN}]{RESET} {bar} {BRIGHT_MAGENTA}{human_readable(size):>10}{RESET}")
+        
+        # Display full path on its own line for clarity
+        print(f"     {GREEN}{path}{RESET}")
+        
+        # Show Finder command on a separate indented line
+        finder_link = path.replace(" ", "\\ ").replace("(", "\\(").replace(")", "\\)")  # Escape special chars
+        print(f"     {CYAN}→ {RESET}open {finder_link}")
+        print()  # Empty line for readability
 
     if len(cache_items) > 20:
         print(f"\n{CYAN}[{YELLOW}...{CYAN}]{RESET} {YELLOW}And {len(cache_items) - 20} more directories{RESET}")
+        print(f"\n{BOLD}{CYAN}[{YELLOW}OPTIONS{CYAN}]{RESET}")
+        print(f"  {CYAN}a{RESET} - Show all {len(cache_items)} cache directories")
+        print(f"  {CYAN}e{RESET} - Export full list to file")
+        print(f"  {CYAN}s{RESET} - Show summary by cache type")
+        print(f"  {CYAN}y{RESET} - Proceed with deletion")
+        print(f"  {CYAN}n{RESET} - Cancel (default)")
+        print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Your choice {BRIGHT_CYAN}[a/e/s/y/N]{RESET}: ", end="", flush=True)
+    else:
+        print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete these cache directories? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
 
-    # Prompt for confirmation
-    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete these cache directories? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
+    while True:
+        try:
+            response = input().strip().lower()
+        except KeyboardInterrupt:
+            print(f"\n{BOLD}{CYAN}[{RED}X{CYAN}]{RESET} {RED}Operation cancelled.{RESET}")
+            return 0
 
-    try:
-        response = input().strip().lower()
-    except KeyboardInterrupt:
-        print(f"\n{BOLD}{CYAN}[{RED}X{CYAN}]{RESET} {RED}Operation cancelled.{RESET}")
-        return 0
-
-    if response != 'y':
-        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}Cache cleanup aborted.{RESET}")
-        return 0
+        if response == 'a':
+            # Show all cache directories
+            print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}ALL CACHE DIRECTORIES{CYAN}]{RESET}\n")
+            for idx, (path, size) in enumerate(cache_items, 1):
+                print(f"{CYAN}[{BRIGHT_MAGENTA}{idx:03d}{CYAN}]{RESET} {BRIGHT_MAGENTA}{human_readable(size):>10}{RESET} {GREEN}{path}{RESET}")
+                if idx % 10 == 0:
+                    print()  # Add spacing every 10 items
+            
+            # Re-display the prompt
+            print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete these cache directories? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
+            continue
+            
+        elif response == 'e':
+            # Export to file
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            export_file = f"cache_list_{timestamp}.txt"
+            try:
+                with open(export_file, 'w') as f:
+                    f.write(f"LazyScan Cache Directory Report\n")
+                    f.write(f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    f.write(f"Total cache size: {human_readable(total_size)}\n")
+                    f.write(f"Total directories: {len(cache_items)}\n")
+                    f.write("=" * 80 + "\n\n")
+                    
+                    for idx, (path, size) in enumerate(cache_items, 1):
+                        f.write(f"{idx:3d}. {human_readable(size):>10} - {path}\n")
+                
+                print(f"\n{BOLD}{CYAN}[{GREEN}✓{CYAN}]{RESET} {GREEN}Cache list exported to: {BRIGHT_CYAN}{export_file}{RESET}")
+            except Exception as e:
+                print(f"\n{BOLD}{CYAN}[{RED}!{CYAN}]{RESET} {RED}Error exporting: {str(e)}{RESET}")
+            
+            # Re-display the prompt
+            print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete these cache directories? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
+            continue
+            
+        elif response == 's':
+            # Show summary by cache type
+            print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}CACHE SUMMARY BY TYPE{CYAN}]{RESET}\n")
+            
+            # Categorize cache items
+            categories = {
+                'Browser Caches': [],
+                'Development (Xcode/npm)': [],
+                'System/App Caches': [],
+                'Downloads (DMG/PKG)': [],
+                'Logs & Diagnostics': [],
+                'iOS Backups': [],
+                'Temporary Files': [],
+                'Other': []
+            }
+            
+            for path, size in cache_items:
+                path_lower = path.lower()
+                if any(browser in path_lower for browser in ['chrome', 'firefox', 'safari', 'browser']):
+                    categories['Browser Caches'].append((path, size))
+                elif any(dev in path_lower for dev in ['xcode', 'deriveddata', 'npm', 'node_modules', 'cocoapods']):
+                    categories['Development (Xcode/npm)'].append((path, size))
+                elif path.endswith('.dmg') or path.endswith('.pkg'):
+                    categories['Downloads (DMG/PKG)'].append((path, size))
+                elif any(log in path_lower for log in ['log', 'crashreporter', 'diagnostic']):
+                    categories['Logs & Diagnostics'].append((path, size))
+                elif 'mobilesync' in path_lower or 'backup' in path_lower:
+                    categories['iOS Backups'].append((path, size))
+                elif 'tmp' in path_lower or 'temp' in path_lower:
+                    categories['Temporary Files'].append((path, size))
+                elif 'cache' in path_lower:
+                    categories['System/App Caches'].append((path, size))
+                else:
+                    categories['Other'].append((path, size))
+            
+            # Display summary
+            for category, items in categories.items():
+                if items:
+                    total_cat_size = sum(size for _, size in items)
+                    print(f"{BRIGHT_CYAN}{category}:{RESET}")
+                    print(f"  {YELLOW}Count:{RESET} {len(items)} items")
+                    print(f"  {YELLOW}Size:{RESET} {BRIGHT_MAGENTA}{human_readable(total_cat_size)}{RESET}")
+                    print()
+            
+            # Re-display the prompt
+            print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete these cache directories? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
+            continue
+            
+        elif response == 'y':
+            break
+        else:
+            print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}Cache cleanup aborted.{RESET}")
+            return 0
 
     # Delete cache directories with Knight Rider animation
     print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}►{CYAN}]{RESET} {BRIGHT_CYAN}INITIATING CACHE PURGE SEQUENCE...{RESET}\n")
@@ -383,13 +527,29 @@ def show_logo():
         print(line)
     
     print(f"\n{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {YELLOW}The next-gen tool for the {GREEN}lazy{YELLOW} developer who wants results {GREEN}fast{RESET}")
-    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.1.8{RESET}\n")
+    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.2.0{RESET}\n")
 
 def main():
     parser = argparse.ArgumentParser(
-        description='A lazy way to find what\'s eating your disk space',
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
+        description='A lazy way to find what\'s eating your disk space with added support for macOS cache cleaning',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  Scan your home directory and show top 10 biggest files:
+    lazyscan ~ -n 10
+
+  Scan current directory with interactive selection:
+    lazyscan -i
+
+  Clean macOS cache directories (macOS only):
+    lazyscan --clean-macos-cache
+
+  Clean cache and then scan Downloads folder:
+    lazyscan --clean-macos-cache ~/Downloads
+
+  Scan without the fancy logo:
+    lazyscan --no-logo /path/to/scan
+""")
     parser.add_argument('-n', '--top', type=int, default=20,
                         help='number of top files to display (default: 20)')
     parser.add_argument('-w', '--width', type=int, default=40,

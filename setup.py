@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='lazyscan',
-    version='0.1.9',  # Incremented version: 0.1.7 → 0.1.8 (renamed module file)
+    version='0.2.0',  # Incremented version: 0.1.9 → 0.2.0 (added macOS cache cleaner)
     py_modules=['lazyscan'],
     entry_points={
         'console_scripts': [
