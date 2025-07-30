@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.1] - 2025-07-30
+### Fixed
+- Added missing `--version` argument to argparse configuration
+- Users can now check version using `lazyscan --version`
+
 ## [0.3.0] - 2023-11-07
 ### Added
 - Unity Hub integration for discovering Unity projects.
