@@ -1,6 +1,6 @@
 <h1 align="center">█▓▒░ 𝙻𝙰𝚉𝚈𝚂𝙲𝙰𝙽 ░▒▓█</h1>
 <p align="center">
-  <strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.2.1` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
+  <strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.3.0` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
 </p>
 
 <p align="center">
@@ -8,8 +8,17 @@
 </p>
 
 <p align="center">
-  🌐 **Created by [TheLazyIndianTechie](https://github.com/TheLazyIndianTechie)**<br>
+🌐 **Created by [TheLazyIndianTechie](https://github.com/TheLazyIndianTechie)**
   **For the lazy developer who still wants to look cool while being lazy.**
+
+## ☕ NEW IN v0.3.0
+
+- Add Unity Hub integration for discovering Unity projects
+- Implement cache size calculation for Unity projects:
+  - Library, Temp, obj, Logs
+- Interactive project selection with multiple options
+- Enhanced cache management and cleaning
+- 25 comprehensive tests added for Unity features
 </p>
 
 ## ▓▒░ NEURAL INTERFACE ░▒▓

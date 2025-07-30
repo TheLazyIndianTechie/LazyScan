@@ -43,9 +43,9 @@ lazyscan: A lazy way to find what's eating your disk space.
 
 Includes a new feature to clean macOS cache directories seamlessly.
 Created by TheLazyIndianTechie - for the lazy developer in all of us.
-v0.2.0
+v0.3.0
 """
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 import os
 import sys
 import argparse
@@ -5194,7 +5194,7 @@ def show_logo():
         print(line)
     
     print(f"\n{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {YELLOW}The next-gen tool for the {GREEN}lazy{YELLOW} developer who wants results {GREEN}fast{RESET}")
-    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.2.0{RESET}\n")
+    print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v0.3.0{RESET}\n")
 
 def main():
     parser = argparse.ArgumentParser(
