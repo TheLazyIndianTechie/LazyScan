@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 # Read the README file
@@ -7,8 +7,9 @@ with open("README_PYPI.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='lazyscan',
-    version='0.2.1',  # Incremented version for documentation update
+    version='0.3.0',  # Unity Hub integration and enhanced features
     py_modules=['lazyscan'],
+    packages=find_packages(),
     entry_points={
         'console_scripts': [
             'lazyscan=lazyscan:main',

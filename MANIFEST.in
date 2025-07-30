@@ -1,4 +1,6 @@
 include README_DISTRIBUTION.md
 include README.md
+include README_PYPI.md
 include LICENSE
 include lazyscan.py
+recursive-include helpers *.py

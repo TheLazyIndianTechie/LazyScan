@@ -5254,6 +5254,8 @@ Examples:
                         help='scan Safari cache for cleanable files')
     parser.add_argument('path', nargs='?', default=None,
                         help='directory path to scan (default: current directory)')
+    parser.add_argument('--version', action='version', version=f'%(prog)s {__version__}',
+                        help='show version number and exit')
     unity_group = parser.add_argument_group('Unity Flags', 'Unity-specific discovery options')
     unity_group.add_argument('--unity', action='store_true',
                              help='enter Unity-specific discovery logic')

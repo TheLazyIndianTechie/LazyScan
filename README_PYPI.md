@@ -10,6 +10,10 @@ Created by TheLazyIndianTechie - for the lazy developer in all of us.
 - **Visual progress bars** - See file sizes at a glance with cyberpunk-style bars
 - **Interactive mode** - Too lazy to type paths? Use `-i` to select directories
 - **macOS cache cleaner** - Clean system caches with `--macos`
+- **Unity Hub integration** - Automatically discover and manage Unity projects:
+  - Scan cache sizes for Unity projects
+  - Interactive project selection
+  - Targeted cache cleaning (Library, Temp, obj, Logs)
 - **App-specific cleaners** - Clean caches for:
   - Chrome (`--chrome`)
   - Safari (`--safari`)
@@ -75,6 +79,22 @@ lazyscan --zoom      # Zoom (includes recorded meetings)
 
 # Combine operations
 lazyscan --macos ~/Downloads  # Clean cache then scan Downloads
+```
+
+### Unity project management
+```bash
+# Scan and manage Unity projects
+lazyscan --unity              # Auto-discover projects from Unity Hub
+lazyscan --unity --no-unityhub  # Manual directory selection
+lazyscan --unity --build-dir  # Include build directories in scan
+lazyscan --unity --clean      # Clean Unity project caches
+
+# Clean specific Unity cache types:
+# a - All caches
+# l - Library folder (preserves essential files)
+# t - Temp folder
+# o - obj folder
+# g - Logs folder
 ```
 
 ## Requirements

@@ -67,6 +67,10 @@ $ lazyscan [-n TOP] [-w WIDTH] [-i] [--no-logo] [path]
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
 
+## Unity Hub Integration
+
+LazyScan now includes Unity Hub Integration, allowing you to discover and manage your Unity projects more efficiently. Simply select your projects and execute LazyScan to see detailed insights into your Unity project's cache and other directories.
+
 ## 📡 SYSTEM STATUS MESSAGES ░▒▓
 
 - `Converting caffeine into code...`
