@@ -1,6 +1,6 @@
 <h1 align="center">█▓▒░ 𝙻𝙰𝚉𝚈𝚂𝙲𝙰𝙽 ░▒▓█</h1>
 <p align="center">
-  <strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.4.1` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
+<strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.4.2` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
 </p>
 
 <p align="center">
@@ -30,8 +30,13 @@
 
 ---
 
-## ☕ NEW IN v0.4.1
+## ☕ NEW IN v0.4.2
 
+- **First-Run Disclaimer**: Disclaimer now shows only on first use with config management
+- **Config Persistence**: User acknowledgment saved in ~/.config/lazyscan/preferences.ini
+- **Better UX**: Less intrusive for regular users while maintaining safety awareness
+
+### v0.4.1 Features
 - **Version Update**: Resolved PyPI conflict. No new changes from v0.4.0
 
 ### v0.4.0 Features
@@ -96,13 +101,13 @@ $ lazyscan [-n TOP] [-w WIDTH] [-i] [--no-logo] [path]
 
 ## ▓▒░ DISCLAIMER NOTICE ░▒▓
 
-**Important**: LazyScan displays a disclaimer on every run to remind users about:
+**Important**: LazyScan displays a disclaimer on **first run only** to inform users about:
 - Cache deletion may affect application performance
 - Applications may need to rebuild caches after deletion
 - Always verify files before deletion
 - Use at your own risk
 
-The disclaimer appears automatically unless you use the `--no-logo` flag.
+The disclaimer requires acknowledgment on first use. After acknowledgment, it won't be shown again unless you reset the configuration (~/.config/lazyscan/preferences.ini). Using the `--no-logo` flag skips both the logo and disclaimer display.
 
 ## Unity Hub Integration
 

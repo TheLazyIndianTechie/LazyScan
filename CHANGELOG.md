@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.2] - 2025-07-31
+### Added
+- First-run disclaimer implementation with config management
+- Configuration file persistence at ~/.config/lazyscan/preferences.ini
+- Disclaimer acknowledgment tracking with timestamp and version
+
+### Changed
+- Disclaimer now only shows on first run instead of every run
+- Better user experience for regular users
+
+### Technical
+- Added configparser dependency for config management
+- Added datetime import for timestamp tracking
+- New functions: get_config(), save_config(), has_seen_disclaimer(), mark_disclaimer_acknowledged()
+
+## [0.4.1] - 2025-07-31
+### Fixed
+- Version update to resolve PyPI version conflict
+- No functional changes from v0.4.0
+
 ## [0.4.0] - 2025-07-31
 ### Added
 - Disclaimer display feature that shows usage warnings on every run

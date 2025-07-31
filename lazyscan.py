@@ -45,7 +45,7 @@ Includes a new feature to clean macOS cache directories seamlessly.
 Created by TheLazyIndianTechie - for the lazy developer in all of us.
 v0.3.0
 """
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 import os
 import sys
 import argparse
@@ -57,6 +57,8 @@ import glob
 import subprocess
 import json
 from pathlib import Path
+import configparser
+from datetime import datetime
 
 # Import Unity helpers
 from helpers.unity_cache_helpers import generate_unity_project_report
@@ -65,6 +67,39 @@ from helpers.unity_hub import read_unity_hub_projects
 
 # Import Chrome helpers
 from helpers.chrome_cache_helpers import scan_chrome_cache as scan_chrome_cache_helper
+
+# Configuration paths
+CONFIG_DIR = os.path.expanduser('~/.config/lazyscan')
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'preferences.ini')
+
+def get_config():
+    """Load lazyscan configuration."""
+    config = configparser.ConfigParser()
+    if os.path.exists(CONFIG_FILE):
+        config.read(CONFIG_FILE)
+    return config
+
+def save_config(config):
+    """Save lazyscan configuration."""
+    # Create config directory if it doesn't exist
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(CONFIG_FILE, 'w') as f:
+        config.write(f)
+
+def has_seen_disclaimer():
+    """Check if user has seen and acknowledged the disclaimer."""
+    config = get_config()
+    return config.getboolean('disclaimer', 'acknowledged', fallback=False)
+
+def mark_disclaimer_acknowledged():
+    """Mark the disclaimer as acknowledged with timestamp."""
+    config = get_config()
+    if not config.has_section('disclaimer'):
+        config.add_section('disclaimer')
+    config.set('disclaimer', 'acknowledged', 'true')
+    config.set('disclaimer', 'acknowledged_date', datetime.now().isoformat())
+    config.set('disclaimer', 'version', __version__)
+    save_config(config)
 
 # Chrome-specific paths for targeted cleaning
 CHROME_PATHS = [
@@ -5254,7 +5289,11 @@ Examples:
     
     if not args.no_logo:
         show_logo()
-        show_disclaimer()
+        # Check and display disclaimer only if not acknowledged
+        if not has_seen_disclaimer():
+            show_disclaimer()
+            input('Press Enter to acknowledge the disclaimer and continue...')
+            mark_disclaimer_acknowledged()
     
     # Handle Unity-specific discovery if requested
     if args.unity:
