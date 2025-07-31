@@ -11,6 +11,25 @@
 🌐 **Created by [TheLazyIndianTechie](https://github.com/TheLazyIndianTechie)**
   **For the lazy developer who still wants to look cool while being lazy.**
 
+
+<div align="center">
+
+## ⚠️ CRITICAL WARNING - USE AT YOUR OWN RISK ⚠️
+
+### 🚨 THIS TOOL PERMANENTLY DELETES FILES 🚨
+
+**BY USING THIS SOFTWARE, YOU ACKNOWLEDGE THAT:**
+- This tool will **PERMANENTLY DELETE** files from your system
+- You accept **FULL RESPONSIBILITY** for any data loss
+- You **WILL NOT SUE** or hold liable the authors for ANY damages
+- You have **READ AND AGREED** to the [FULL DISCLAIMER](DISCLAIMER.md)
+
+**[CLICK HERE TO READ THE FULL LEGAL DISCLAIMER](DISCLAIMER.md)**
+
+</div>
+
+---
+
 ## ☕ NEW IN v0.3.0
 
 - Add Unity Hub integration for discovering Unity projects

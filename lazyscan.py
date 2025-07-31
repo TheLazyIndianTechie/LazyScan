@@ -45,7 +45,7 @@ Includes a new feature to clean macOS cache directories seamlessly.
 Created by TheLazyIndianTechie - for the lazy developer in all of us.
 v0.3.0
 """
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 import os
 import sys
 import argparse
@@ -62,6 +62,9 @@ from pathlib import Path
 from helpers.unity_cache_helpers import generate_unity_project_report
 from helpers.unity_hub import read_unity_hub_projects
 
+
+# Import Chrome helpers
+from helpers.chrome_cache_helpers import scan_chrome_cache as scan_chrome_cache_helper
 
 # Chrome-specific paths for targeted cleaning
 CHROME_PATHS = [
@@ -753,202 +756,152 @@ def scan_application_cache(app_name, app_paths, colors, check_path=None):
     return freed_bytes
 
 
-def scan_chrome_cache(colors):
-    """Scan Chrome Application Support for cleanable files.
+def handle_chrome_discovery(args):
+    """Handle the discovery and processing of Chrome cache using the new helper."""
+    if sys.platform != 'darwin':
+        print("\nError: --chrome option is only available on macOS.")
+        return
     
-    Args:
-        colors: Tuple of color codes (CYAN, MAGENTA, YELLOW, RESET, BOLD)
-    """
-    CYAN, MAGENTA, YELLOW, RESET, BOLD = colors
+    # Setup colors
+    CYAN = '\033[36m'
     BRIGHT_CYAN = '\033[96m'
+    MAGENTA = '\033[35m'
     BRIGHT_MAGENTA = '\033[95m'
+    YELLOW = '\033[33m'
     GREEN = '\033[92m'
     RED = '\033[91m'
     BLUE = '\033[94m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    colors = (CYAN, MAGENTA, YELLOW, RESET, BOLD)
+
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}CHROME SCANNER{CYAN}]{RESET} {YELLOW}Discovering Chrome profiles and cache...{RESET}")
     
-    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}CHROME SCANNER{CYAN}]{RESET} {YELLOW}Analyzing Chrome Application Support...{RESET}")
-    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}▓▒░{CYAN}]{RESET} {BRIGHT_CYAN}Scanning Chrome-specific cache and temporary files...{RESET}\n")
+    # Get Chrome cache report
+    report = scan_chrome_cache_helper(include_profiles=True)
     
-    # Check if Chrome is installed
-    chrome_base = os.path.expanduser('~/Library/Application Support/Google/Chrome')
-    if not os.path.exists(chrome_base):
+    if not report["installed"]:
         print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}Chrome is not installed or Application Support folder not found.{RESET}")
         return
     
-    # Categorize Chrome data
-    chrome_categories = {
-        'Cache Files': {
-            'paths': [
-                'Default/Cache', 'Default/Code Cache', 'Default/GPUCache',
-                'Default/Service Worker/CacheStorage', 'Default/Service Worker/ScriptCache',
-                'Default/Media Cache', 'ShaderCache', 'GrShaderCache'
-            ],
-            'items': [],
-            'safe': True
-        },
-        'Extension Data': {
-            'paths': ['Default/Extensions/*/*/temp', 'Default/Extensions/*/*/cache'],
-            'items': [],
-            'safe': True
-        },
-        'Temporary Files': {
-            'paths': ['Default/.com.google.Chrome.*', 'Default/Temp', 'Temp'],
-            'items': [],
-            'safe': True
-        },
-        'Old Profile Backups': {
-            'paths': ['Backup*', 'Profile */Cache', 'Profile */Code Cache'],
-            'items': [],
-            'safe': True
-        },
-        'Crash Reports': {
-            'paths': ['CrashReports', 'Crashpad/completed'],
-            'items': [],
-            'safe': True
-        },
-        'Downloads Metadata': {
-            'paths': ['Default/Download Service', 'Default/Download Metadata'],
-            'items': [],
-            'safe': True
-        },
-        'Session Storage': {
-            'paths': ['Default/Session Storage', 'Default/Sessions'],
-            'items': [],
-            'safe': False  # Contains active session data
-        },
-        'History & Bookmarks': {
-            'paths': ['Default/History*', 'Default/Bookmarks*'],
-            'items': [],
-            'safe': False  # User data - should not delete
-        }
-    }
-    
-    # Scan Chrome directories
-    total_size = 0
-    safe_size = 0
-    
-    for category, info in chrome_categories.items():
-        for path_pattern in info['paths']:
-            full_pattern = os.path.join(chrome_base, path_pattern)
-            
-            # Handle both files and directories
-            for path in glob.glob(full_pattern):
-                try:
-                    if os.path.isfile(path):
-                        size = os.path.getsize(path)
-                        info['items'].append((path, size, 'file'))
-                        total_size += size
-                        if info['safe']:
-                            safe_size += size
-                    elif os.path.isdir(path):
-                        # Calculate directory size
-                        dir_size = 0
-                        for root, dirs, files in os.walk(path):
-                            for f in files:
-                                try:
-                                    dir_size += os.path.getsize(os.path.join(root, f))
-                                except (OSError, PermissionError):
-                                    pass
-                        if dir_size > 0:
-                            info['items'].append((path, dir_size, 'dir'))
-                            total_size += dir_size
-                            if info['safe']:
-                                safe_size += dir_size
-                except (OSError, PermissionError):
-                    continue
-    
-    # Display results
-    print(f"{BOLD}{MAGENTA}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓{RESET}")
-    print(f"{BOLD}{MAGENTA}┃ {YELLOW}CHROME DATA ANALYSIS {CYAN}:: {BRIGHT_MAGENTA}TOTAL: {BRIGHT_CYAN}{human_readable(total_size):<10}{MAGENTA} ┃{RESET}")
+    # Display overview
+    print(f"\n{BOLD}{MAGENTA}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓{RESET}")
+    print(f"{BOLD}{MAGENTA}┃ {YELLOW}CHROME CACHE ANALYSIS {CYAN}:: {BRIGHT_MAGENTA}TOTAL: {BRIGHT_CYAN}{human_readable(report['total_size']):<10}{MAGENTA} ┃{RESET}")
     print(f"{BOLD}{MAGENTA}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛{RESET}")
     
-    print(f"\n{BOLD}{CYAN}[{YELLOW}SAFE TO DELETE{CYAN}]{RESET} {GREEN}({human_readable(safe_size)}){RESET}")
-    print(f"{CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
+    # Show profile information
+    if report['profiles']:
+        print(f"\n{BOLD}{CYAN}[{YELLOW}PROFILES{CYAN}]{RESET} {GREEN}Found {len(report['profiles'])} Chrome profiles{RESET}")
+        for profile in report['profiles'][:5]:  # Show max 5 profiles
+            print(f"  {CYAN}•{RESET} {profile['name']}: {BRIGHT_MAGENTA}{human_readable(profile['total_size'])}{RESET}")
+        if len(report['profiles']) > 5:
+            print(f"  {CYAN}...and {len(report['profiles']) - 5} more{RESET}")
     
-    # Show safe-to-delete categories
-    for category, info in chrome_categories.items():
-        if info['safe'] and info['items']:
-            category_size = sum(size for _, size, _ in info['items'])
-            print(f"{BRIGHT_CYAN}{category}:{RESET} {BRIGHT_MAGENTA}{human_readable(category_size)}{RESET}")
-            
-            # Show top 3 items in each category
-            sorted_items = sorted(info['items'], key=lambda x: x[1], reverse=True)
-            for path, size, item_type in sorted_items[:3]:
-                # Shorten path for display
-                display_path = path.replace(chrome_base + '/', '')
-                if len(display_path) > 60:
-                    display_path = '...' + display_path[-57:]
+    # Display safe-to-delete categories
+    print(f"\n{BOLD}{CYAN}[{GREEN}SAFE TO DELETE{CYAN}]{RESET} {GREEN}({human_readable(report['safe_size'])}){RESET}")
+    print(f"{CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+    
+    safe_categories = {}
+    idx = 1
+    for category_name, items in report['categories']['safe'].items():
+        if items:
+            category_size = sum(size for _, size, _ in items)
+            safe_categories[str(idx)] = (category_name, items, category_size)
+            print(f"\n{CYAN}[{idx}]{RESET} {BRIGHT_CYAN}{category_name}:{RESET} {BRIGHT_MAGENTA}{human_readable(category_size)}{RESET}")
+            # Show top 3 items
+            for path, size, _ in sorted(items, key=lambda x: x[1], reverse=True)[:3]:
+                display_path = path.replace(report["chrome_base"] + '/', '')
+                if len(display_path) > 55:
+                    display_path = '...' + display_path[-52:]
                 print(f"  {GREEN}→{RESET} {human_readable(size):>10} {YELLOW}{display_path}{RESET}")
-            
-            if len(info['items']) > 3:
-                print(f"  {CYAN}...and {len(info['items']) - 3} more items{RESET}")
-            print()
+            if len(items) > 3:
+                print(f"  {CYAN}...and {len(items) - 3} more items{RESET}")
+            idx += 1
     
-    # Show items to preserve
-    preserve_size = total_size - safe_size
-    if preserve_size > 0:
-        print(f"\n{BOLD}{CYAN}[{RED}PRESERVE{CYAN}]{RESET} {RED}({human_readable(preserve_size)}){RESET}")
-        print(f"{CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}\n")
-        
-        for category, info in chrome_categories.items():
-            if not info['safe'] and info['items']:
-                category_size = sum(size for _, size, _ in info['items'])
-                print(f"{RED}{category}:{RESET} {BRIGHT_MAGENTA}{human_readable(category_size)}{RESET} {YELLOW}(Contains user data){RESET}")
+    # Show preserved data
+    if report['unsafe_size'] > 0:
+        print(f"\n{BOLD}{CYAN}[{RED}PRESERVE{CYAN}]{RESET} {RED}({human_readable(report['unsafe_size'])}){RESET}")
+        print(f"{CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{RESET}")
+        for category_name, items in report['categories']['unsafe'].items():
+            if items:
+                category_size = sum(size for _, size, _ in items)
+                print(f"  {RED}{category_name}:{RESET} {BRIGHT_MAGENTA}{human_readable(category_size)}{RESET} {YELLOW}(User data){RESET}")
     
-    # Collect all safe-to-delete items
-    safe_items = []
-    for category, info in chrome_categories.items():
-        if info['safe']:
-            safe_items.extend(info['items'])
+    # Interactive selection
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Select items to clean:{RESET}")
+    print(f"  {CYAN}a{RESET} - All safe categories")
+    print(f"  {CYAN}q{RESET} - Quit without cleaning")
+    if idx > 1:
+        print(f"  {CYAN}1-{idx-1}{RESET} - Individual categories (comma-separated)")
     
-    if not safe_items:
-        print(f"\n{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}No Chrome cache files found to clean.{RESET}")
+    selection = input(f"\n{YELLOW}Your choice:{RESET} ").strip().lower()
+    
+    if selection == 'q':
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}Chrome cleanup cancelled.{RESET}")
         return
     
-    # Ask for confirmation
-    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete {BRIGHT_CYAN}{len(safe_items)}{YELLOW} Chrome cache items ({BRIGHT_MAGENTA}{human_readable(safe_size)}{YELLOW})? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
+    # Determine items to clean
+    items_to_clean = []
+    if selection == 'a':
+        for category_name, items in report['categories']['safe'].items():
+            items_to_clean.extend(items)
+    else:
+        try:
+            for idx in selection.split(','):
+                idx = idx.strip()
+                if idx in safe_categories:
+                    _, items, _ = safe_categories[idx]
+                    items_to_clean.extend(items)
+        except:
+            print(f"{BOLD}{CYAN}[{RED}!{CYAN}]{RESET} {RED}Invalid selection.{RESET}")
+            return
     
-    try:
-        response = input().strip().lower()
-    except KeyboardInterrupt:
-        print(f"\n{BOLD}{CYAN}[{RED}X{CYAN}]{RESET} {RED}Operation cancelled.{RESET}")
+    if not items_to_clean:
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}No items selected.{RESET}")
         return
     
-    if response != 'y':
-        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}Chrome cleanup aborted.{RESET}")
+    # Calculate total to clean
+    total_to_clean = sum(size for _, size, _ in items_to_clean)
+    
+    # Confirm
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}?{CYAN}]{RESET} {YELLOW}Delete {BRIGHT_CYAN}{len(items_to_clean)}{YELLOW} items ({BRIGHT_MAGENTA}{human_readable(total_to_clean)}{YELLOW})? {BRIGHT_CYAN}[y/N]{RESET}: ", end="", flush=True)
+    
+    if input().strip().lower() != 'y':
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}Chrome cleanup cancelled.{RESET}")
         return
     
-    # Clean Chrome cache
-    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}►{CYAN}]{RESET} {BRIGHT_CYAN}CLEANING CHROME CACHE...{RESET}\n")
+    # Clean
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}►{CYAN}]{RESET} {BRIGHT_CYAN}CLEANING CHROME CACHE...{RESET}")
     
     knight_rider_animation('Purging Chrome cache...', colors=colors)
     
     freed_bytes = 0
     errors = 0
     
-    for path, size, item_type in safe_items:
+    for path, size, item_type in items_to_clean:
         try:
             if item_type == 'dir' and os.path.isdir(path):
                 shutil.rmtree(path, ignore_errors=True)
             elif item_type == 'file' and os.path.isfile(path):
                 os.remove(path)
             freed_bytes += size
-        except Exception:
+        except:
             errors += 1
     
     # Clear animation
     sys.stdout.write("\r" + " " * 100 + "\r")
     sys.stdout.flush()
     
-    # Display results
+    # Results
     print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}✓{CYAN}]{RESET} {BRIGHT_CYAN}CHROME CACHE CLEANED{RESET}")
     print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}→{CYAN}]{RESET} {YELLOW}Space reclaimed:{RESET} {BRIGHT_MAGENTA}{human_readable(freed_bytes)}{RESET}")
-    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}→{CYAN}]{RESET} {YELLOW}Items cleaned:{RESET} {BRIGHT_CYAN}{len(safe_items) - errors}{RESET}")
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}→{CYAN}]{RESET} {YELLOW}Items cleaned:{RESET} {BRIGHT_CYAN}{len(items_to_clean) - errors}{RESET}")
     
     if errors > 0:
-        print(f"{BOLD}{CYAN}[{RED}!{CYAN}]{RESET} {RED}Failed to clean {errors} items (permission denied){RESET}")
+        print(f"{BOLD}{CYAN}[{RED}!{CYAN}]{RESET} {RED}Failed to clean {errors} items{RESET}")
     
-    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}■{CYAN}]{RESET} {GREEN}Chrome cleanup completed successfully.{RESET}")
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}■{CYAN}]{RESET} {GREEN}Chrome cleanup completed!{RESET}")
+
 
 
 def knight_rider_animation(message, iterations=3, animation_chars="▮▯▯", delay=0.07, colors=None):
@@ -5293,7 +5246,7 @@ Examples:
             colors = ('', '', '', '', '')
         
         # Scan Chrome cache
-        scan_chrome_cache(colors)
+        handle_chrome_discovery(args)
         
         # If only Chrome scanning was requested, exit
         if not args.path and not args.interactive and not args.macos:

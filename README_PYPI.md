@@ -1,123 +1,119 @@
-# lazyscan 🚀
+# LazyScan - A lazy way to find what's eating your disk space
 
-A lazy way to find what's eating your disk space - now with powerful cache cleaning!
+[![PyPI version](https://badge.fury.io/py/lazyscan.svg)](https://badge.fury.io/py/lazyscan)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Created by TheLazyIndianTechie - for the lazy developer in all of us.
+## ⚠️ CRITICAL WARNING - USE AT YOUR OWN RISK ⚠️
+
+### 🚨 THIS TOOL PERMANENTLY DELETES FILES 🚨
+
+**LEGAL DISCLAIMER:**
+- This tool will **PERMANENTLY DELETE** files from your system
+- Deletions **CANNOT BE UNDONE**
+- You accept **FULL RESPONSIBILITY** for any data loss
+- The authors accept **NO LIABILITY** for any damages
+- By using this software, you agree to **NOT SUE** or hold liable the authors
+- **ALWAYS BACKUP YOUR DATA** before using this tool
+
+**BY INSTALLING AND USING THIS SOFTWARE, YOU AGREE TO THE FULL [LEGAL DISCLAIMER](https://github.com/TheLazyIndianTechie/lazyscan/blob/main/DISCLAIMER.md)**
+
+---
+
+## Overview
+
+LazyScan is a powerful disk space analyzer and cache cleaner for developers who want to reclaim disk space with minimal effort. Created by TheLazyIndianTechie.
 
 ## Features
 
-- **Fast disk scanning** - Find the biggest files in any directory
-- **Visual progress bars** - See file sizes at a glance with cyberpunk-style bars
-- **Interactive mode** - Too lazy to type paths? Use `-i` to select directories
-- **macOS cache cleaner** - Clean system caches with `--macos`
-- **Unity Hub integration** - Automatically discover and manage Unity projects:
-  - Scan cache sizes for Unity projects
-  - Interactive project selection
-  - Targeted cache cleaning (Library, Temp, obj, Logs)
-- **App-specific cleaners** - Clean caches for:
-  - Chrome (`--chrome`)
-  - Safari (`--safari`)
-  - Firefox (`--firefox`)
-  - Slack (`--slack`)
-  - Discord (`--discord`)
-  - Spotify (`--spotify`)
-  - VS Code (`--vscode`)
-  - Zoom (`--zoom`)
-  - Microsoft Teams (`--teams`)
-  - Perplexity AI (`--perplexity`)
-  - Dia (`--dia`)
+- 🚀 **Fast Scanning** - Multi-threaded file system analysis
+- 🎮 **Interactive Mode** - Select directories the lazy way
+- 🧹 **macOS Cache Cleaning** - Clean system caches safely
+- 🎯 **Unity Project Support** - Detect and clean Unity project caches
+- 🌐 **Chrome Cache Cleaning** - Smart Chrome browser cache management
+- 🎨 **Beautiful Output** - Cyberpunk-themed terminal interface
+- 💾 **Multiple App Support** - Clean caches for Slack, Discord, VS Code, and more
 
 ## Installation
 
-### From PyPI (Recommended)
 ```bash
 pip install lazyscan
 ```
 
-### Using pipx (Recommended for isolated installation)
-```bash
-pipx install lazyscan
-```
+## Quick Start
 
-### From GitHub (Latest development version)
-```bash
-pip install git+https://github.com/TheLazyIndianTechie/lazyscan.git
-```
-
-## Usage
-
-### Basic disk scanning
 ```bash
 # Scan current directory
 lazyscan
 
-# Scan specific directory
-lazyscan ~/Downloads
-
-# Interactive directory selection
+# Scan with interactive directory selection
 lazyscan -i
 
-# Show top 10 files instead of 20
-lazyscan -n 10
-
-# Hide the logo
-lazyscan --no-logo
-```
-
-### Cache cleaning (macOS only)
-```bash
-# Clean macOS system caches
+# Clean macOS caches (BE CAREFUL!)
 lazyscan --macos
 
-# Clean specific app caches
-lazyscan --chrome    # Chrome browser
-lazyscan --slack     # Slack
-lazyscan --discord   # Discord
-lazyscan --spotify   # Spotify
-lazyscan --vscode    # VS Code
-lazyscan --zoom      # Zoom (includes recorded meetings)
+# Clean Chrome browser cache
+lazyscan --chrome
 
-# Combine operations
-lazyscan --macos ~/Downloads  # Clean cache then scan Downloads
+# Scan Unity projects via Unity Hub
+lazyscan --unity
 ```
 
-### Unity project management
-```bash
-# Scan and manage Unity projects
-lazyscan --unity              # Auto-discover projects from Unity Hub
-lazyscan --unity --no-unityhub  # Manual directory selection
-lazyscan --unity --build-dir  # Include build directories in scan
-lazyscan --unity --clean      # Clean Unity project caches
+## Supported Cache Types
 
-# Clean specific Unity cache types:
-# a - All caches
-# l - Library folder (preserves essential files)
-# t - Temp folder
-# o - obj folder
-# g - Logs folder
+- **macOS System Caches**
+- **Chrome Browser** (with profile support)
+- **Unity Projects** (via Unity Hub integration)
+- **Developer Tools**: VS Code, Xcode
+- **Communication Apps**: Slack, Discord, Zoom, Teams
+- **Browsers**: Safari, Firefox, Chrome
+- **Package Managers**: Homebrew, npm
+
+## Command Options
+
+```
+usage: lazyscan [-h] [-n TOP] [-w WIDTH] [-i] [--no-logo] [--macos] [--chrome]
+                [--unity] [--clean] [path]
+
+Arguments:
+  path                  Directory to scan (default: current directory)
+
+Options:
+  -n, --top            Number of files to display (default: 20)
+  -w, --width          Bar width in characters (default: 40)
+  -i, --interactive    Interactive directory selection
+  --no-logo           Hide the LazyScan logo
+  --macos             Clean macOS cache directories
+  --chrome            Clean Chrome browser cache
+  --unity             Scan Unity projects via Unity Hub
+  --clean             Auto-clean without prompting (use with caution!)
 ```
 
-## Requirements
+## Safety Features
+
+- Categorizes data into "safe to delete" and "preserve"
+- Interactive confirmation before any deletion
+- Preserves user data, bookmarks, passwords
+- Clear indication of what will be deleted
+
+## System Requirements
 
 - Python 3.6 or higher
-- macOS (for cache cleaning features)
-- Terminal with color support (recommended)
-
-## Safety
-
-- All cache cleaning operations show what will be deleted before proceeding
-- User confirmation is required before any deletion
-- Only known cache directories are cleaned
-- User data (bookmarks, passwords, etc.) is preserved
+- Works best on ANSI-compatible terminals
+- macOS-specific features require macOS
+- Unity features require Unity Hub
 
 ## Contributing
 
-Feel free to open issues or submit pull requests on [GitHub](https://github.com/TheLazyIndianTechie/lazyscan)!
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT License - feel free to use this in your own projects!
+This project is licensed under the MIT License.
+
+## Author
+
+Created with 💜 by [TheLazyIndianTechie](https://github.com/TheLazyIndianTechie)
 
 ---
 
-Made with 💜 by TheLazyIndianTechie
+**⚠️ FINAL WARNING**: This tool deletes files permanently. Always backup your data first. Use at your own risk. The authors are not responsible for any data loss.
