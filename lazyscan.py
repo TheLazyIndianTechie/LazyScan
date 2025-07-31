@@ -5149,6 +5149,34 @@ def show_logo():
     print(f"\n{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {YELLOW}The next-gen tool for the {GREEN}lazy{YELLOW} developer who wants results {GREEN}fast{RESET}")
     print(f"{BOLD}{CYAN}[{MAGENTA}*{CYAN}]{RESET} {BLUE}Created by {MAGENTA}TheLazyIndianTechie{RESET} {YELLOW}// {GREEN}v{__version__}{RESET}\n")
 
+
+def show_disclaimer():
+    """Display the disclaimer for using lazyscan"""
+    # Define ANSI color codes for the disclaimer
+    CYAN = '\033[36m'
+    BRIGHT_CYAN = '\033[96m'
+    MAGENTA = '\033[35m'
+    BRIGHT_MAGENTA = '\033[95m'
+    YELLOW = '\033[33m'
+    RED = '\033[91m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    
+    print(f"{BOLD}{MAGENTA}╔═══════════════════════════════════════════════════════════════════════╗{RESET}")
+    print(f"{BOLD}{MAGENTA}║{BRIGHT_CYAN}                             DISCLAIMER                                 {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}╠═══════════════════════════════════════════════════════════════════════╣{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET} {YELLOW}This tool is provided AS-IS for disk space analysis and cache{RESET}         {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET} {YELLOW}management. By using this tool, you acknowledge that:{RESET}                  {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET}                                                                        {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET} {CYAN}• Deleting cache files may affect application performance{RESET}              {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET} {CYAN}• Some applications may need to rebuild caches after deletion{RESET}          {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET} {CYAN}• Always verify files before deletion{RESET}                                  {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET} {CYAN}• The author is not responsible for any data loss{RESET}                      {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET}                                                                        {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}║{RESET} {RED}⚠️  USE AT YOUR OWN RISK ⚠️{RESET}                                             {MAGENTA}║{RESET}")
+    print(f"{BOLD}{MAGENTA}╚═══════════════════════════════════════════════════════════════════════╝{RESET}")
+    print()
+
 def main():
     parser = argparse.ArgumentParser(
         description='A lazy way to find what\'s eating your disk space with added support for macOS cache cleaning',
@@ -5226,6 +5254,7 @@ Examples:
     
     if not args.no_logo:
         show_logo()
+        show_disclaimer()
     
     # Handle Unity-specific discovery if requested
     if args.unity:

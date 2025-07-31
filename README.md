@@ -77,6 +77,7 @@ $ lazyscan [-n TOP] [-w WIDTH] [-i] [--no-logo] [path]
 - **Maximum laziness**: `$ lazyscan --interactive`
 - **Targeted analysis**: `$ lazyscan -n 15 -w 60 ~/Downloads`
 - **Stealth mode**: `$ lazyscan`
+- **Skip disclaimer**: `$ lazyscan --no-logo` (also hides the disclaimer)
 
 ## ▓▒░ CYBER VISUALS ░▒▓
 
@@ -85,6 +86,16 @@ $ lazyscan [-n TOP] [-w WIDTH] [-i] [--no-logo] [path]
 ┃ TARGET ACQUIRED: TOP SPACE HOGS IDENTIFIED ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
+
+## ▓▒░ DISCLAIMER NOTICE ░▒▓
+
+**Important**: LazyScan displays a disclaimer on every run to remind users about:
+- Cache deletion may affect application performance
+- Applications may need to rebuild caches after deletion
+- Always verify files before deletion
+- Use at your own risk
+
+The disclaimer appears automatically unless you use the `--no-logo` flag.
 
 ## Unity Hub Integration
 
