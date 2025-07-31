@@ -7,7 +7,7 @@ with open("README_PYPI.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='lazyscan',
-    version='0.4.0',  # Bug fix: Added missing --version argument
+version='0.4.1',  # New release with disclaimer feature
     py_modules=['lazyscan'],
     packages=find_packages(),
     entry_points={

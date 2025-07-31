@@ -45,7 +45,7 @@ Includes a new feature to clean macOS cache directories seamlessly.
 Created by TheLazyIndianTechie - for the lazy developer in all of us.
 v0.3.0
 """
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 import os
 import sys
 import argparse

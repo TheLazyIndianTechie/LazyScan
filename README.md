@@ -1,6 +1,6 @@
 <h1 align="center">█▓▒░ 𝙻𝙰𝚉𝚈𝚂𝙲𝙰𝙽 ░▒▓█</h1>
 <p align="center">
-  <strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.4.0` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
+  <strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.4.1` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
 </p>
 
 <p align="center">
@@ -30,7 +30,11 @@
 
 ---
 
-## ☕ NEW IN v0.4.0
+## ☕ NEW IN v0.4.1
+
+- **Version Update**: Resolved PyPI conflict. No new changes from v0.4.0
+
+### v0.4.0 Features
 
 - **Disclaimer Display**: Automatic usage warnings shown on every run
 - **Enhanced Safety**: Clear indication of file deletion risks
