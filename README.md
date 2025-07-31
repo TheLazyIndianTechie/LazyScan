@@ -1,6 +1,6 @@
 <h1 align="center">█▓▒░ 𝙻𝙰𝚉𝚈𝚂𝙲𝙰𝙽 ░▒▓█</h1>
 <p align="center">
-  <strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.3.0` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
+  <strong><em>[𝚂𝚈𝚂𝚃𝙴𝙼::𝚁𝙴𝙰𝙳𝙾𝚄𝚃]</em> 𝚅𝙴𝚁𝚂𝙸𝙾𝙽 `v0.4.0` | 𝚂𝚃𝙰𝚃𝚄𝚂: `OPERATIONAL`</strong>
 </p>
 
 <p align="center">
@@ -30,14 +30,17 @@
 
 ---
 
-## ☕ NEW IN v0.3.0
+## ☕ NEW IN v0.4.0
 
-- Add Unity Hub integration for discovering Unity projects
-- Implement cache size calculation for Unity projects:
-  - Library, Temp, obj, Logs
+- **Disclaimer Display**: Automatic usage warnings shown on every run
+- **Enhanced Safety**: Clear indication of file deletion risks
+- **Legal Protection**: Comprehensive legal disclaimer added
+- **Skip Option**: Use `--no-logo` to bypass disclaimer display
+
+### Previous (v0.3.0)
+- Unity Hub integration for discovering Unity projects
+- Cache size calculation for Unity projects (Library, Temp, obj, Logs)
 - Interactive project selection with multiple options
-- Enhanced cache management and cleaning
-- 25 comprehensive tests added for Unity features
 </p>
 
 ## ▓▒░ NEURAL INTERFACE ░▒▓
