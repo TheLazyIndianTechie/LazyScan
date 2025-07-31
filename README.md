@@ -74,6 +74,10 @@ pip install lazyscan
 
 # Using pipx for isolated environments
 pipx install lazyscan
+
+# Using Homebrew (macOS)
+brew tap thelazyindiantechie/tap
+brew install lazyscan
 ```
 
 **[!] COMPATIBILITY NOTE**: Best with ANSI-compatible terminals (iTerm2, Konsole, Windows Terminal).
