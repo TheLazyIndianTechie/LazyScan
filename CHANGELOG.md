@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0] - 2025-08-02
+### Added
+- **Unreal Engine Support**: New `--unreal` flag for discovering and managing Unreal Engine projects
+- Automatic discovery of Unreal projects by scanning for `.uproject` files
+- Interactive selection of Unreal projects for cache management
+- Cleaning support for Unreal-specific cache directories:
+  - Intermediate (build artifacts and compiled shaders)
+  - Saved/Logs (editor and runtime logs)
+  - Saved/Crashes (crash reports and dumps)
+  - DerivedDataCache (cached asset data)
+  - Binaries (compiled binaries - optional)
+- Helper functions for Unreal project discovery and cache management
+- Unreal Launcher integration for project discovery
+
+### Enhanced
+- Documentation updated with Unreal Engine usage examples and troubleshooting tips
+- Added Unreal Engine to the list of supported features in README
+
 ## [0.4.2] - 2025-07-31
 ### Added
 - First-run disclaimer implementation with config management

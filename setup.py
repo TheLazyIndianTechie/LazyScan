@@ -7,7 +7,7 @@ with open("README_PYPI.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='lazyscan',
-version='0.4.2',  # First-run disclaimer with config management
+version='0.5.0',  # Unreal Engine support with automatic discovery
     py_modules=['lazyscan'],
     packages=find_packages(),
     entry_points={

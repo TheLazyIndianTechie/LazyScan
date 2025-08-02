@@ -29,6 +29,7 @@ LazyScan is a powerful disk space analyzer and cache cleaner for developers who 
 - 🎮 **Interactive Mode** - Select directories the lazy way
 - 🧹 **macOS Cache Cleaning** - Clean system caches safely
 - 🎯 **Unity Project Support** - Detect and clean Unity project caches
+- 🎮 **Unreal Engine Support** - Automatically discover and clean Unreal project caches
 - 🌐 **Chrome Cache Cleaning** - Smart Chrome browser cache management
 - 🎨 **Beautiful Output** - Cyberpunk-themed terminal interface
 - 💾 **Multiple App Support** - Clean caches for Slack, Discord, VS Code, and more
@@ -56,6 +57,9 @@ lazyscan --chrome
 
 # Scan Unity projects via Unity Hub
 lazyscan --unity
+
+# Scan Unreal Engine projects
+lazyscan --unreal
 ```
 
 ## Supported Cache Types
@@ -63,6 +67,7 @@ lazyscan --unity
 - **macOS System Caches**
 - **Chrome Browser** (with profile support)
 - **Unity Projects** (via Unity Hub integration)
+- **Unreal Engine Projects** (Intermediate, Saved/Logs, DerivedDataCache, etc.)
 - **Developer Tools**: VS Code, Xcode
 - **Communication Apps**: Slack, Discord, Zoom, Teams
 - **Browsers**: Safari, Firefox, Chrome
@@ -72,7 +77,7 @@ lazyscan --unity
 
 ```
 usage: lazyscan [-h] [-n TOP] [-w WIDTH] [-i] [--no-logo] [--macos] [--chrome]
-                [--unity] [--clean] [path]
+                [--unity] [--unreal] [--clean] [path]
 
 Arguments:
   path                  Directory to scan (default: current directory)
@@ -85,6 +90,7 @@ Options:
   --macos             Clean macOS cache directories
   --chrome            Clean Chrome browser cache
   --unity             Scan Unity projects via Unity Hub
+  --unreal            Scan Unreal Engine projects
   --clean             Auto-clean without prompting (use with caution!)
 ```
 

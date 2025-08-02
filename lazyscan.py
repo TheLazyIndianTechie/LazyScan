@@ -45,7 +45,7 @@ Includes a new feature to clean macOS cache directories seamlessly.
 Created by TheLazyIndianTechie - for the lazy developer in all of us.
 v0.3.0
 """
-__version__ = "0.4.2"
+__version__ = "0.5.0"
 import os
 import sys
 import argparse
@@ -63,6 +63,13 @@ from datetime import datetime
 # Import Unity helpers
 from helpers.unity_cache_helpers import generate_unity_project_report
 from helpers.unity_hub import read_unity_hub_projects
+
+# Import Unreal Engine helpers
+from helpers.unreal_cache_helpers import (
+    find_unreal_projects_in_directory,
+    scan_unreal_project,
+    generate_unreal_project_report
+)
 
 
 # Import Chrome helpers
@@ -1071,6 +1078,159 @@ def select_directory():
         print(f"Invalid choice: {choice}")
 
 
+def handle_unreal_discovery(args):
+    """Handle the discovery and processing of Unreal projects."""
+    from helpers.unreal_launcher import get_unreal_projects
+    import sys
+    import random
+    import threading
+
+    # Define colors for styled output
+    CYAN = '\033[36m'
+    BRIGHT_CYAN = '\033[96m'
+    MAGENTA = '\033[35m'
+    BRIGHT_MAGENTA = '\033[95m'
+    YELLOW = '\033[33m'
+    GREEN = '\033[92m'
+    RED = '\033[91m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+    
+    # Setup color pack for animation
+    colors = (CYAN, MAGENTA, YELLOW, RESET, BOLD)
+
+    # Discover Unreal projects using the launcher and custom paths
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}UNREAL ENGINE SCANNER{CYAN}]{RESET} {YELLOW}Searching for Unreal Engine projects...{RESET}")
+    
+    # Select a random funny message
+    funny_msg = random.choice(FUNNY_MESSAGES)
+    
+    # Show animation while discovering projects
+    projects = []
+    discovery_done = False
+    
+    def discover_projects():
+        nonlocal projects, discovery_done
+        projects = get_unreal_projects()
+        discovery_done = True
+    
+    # Run discovery in a thread
+    discovery_thread = threading.Thread(target=discover_projects)
+    discovery_thread.start()
+    
+    # Show animation while discovering
+    while discovery_thread.is_alive():
+        knight_rider_animation(funny_msg, iterations=1, colors=colors)
+        if not discovery_thread.is_alive():
+            break
+    
+    discovery_thread.join()
+
+    if not projects:
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}No Unreal Engine projects found.{RESET}")
+        return
+
+    print(f"{BOLD}{CYAN}[{BRIGHT_MAGENTA}✓{CYAN}]{RESET} {GREEN}Found {len(projects)} Unreal Engine projects.{RESET}")
+
+    # Prompt user to select projects
+    if sys.stdin.isatty():
+        selected_projects = prompt_unity_project_selection(projects)
+    else:
+        print("Non-interactive terminal. Using all projects.")
+        selected_projects = projects
+
+    if not selected_projects:
+        print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}No Unreal projects selected.{RESET}")
+        return
+
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}UNREAL SCANNER{CYAN}]{RESET} {YELLOW}Generating Unreal Project Reports...{RESET}")
+
+    total_size = 0
+    total_freed = 0
+    
+    for project in selected_projects:
+        report = generate_unreal_project_report(project['path'])
+        total_size += report['total_size']
+
+        # Display the report
+        print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}PROJECT{CYAN}]{RESET} {YELLOW}{report['name']}{RESET}")
+        print(f"{CYAN}Path:{RESET} {GREEN}{report['path']}{RESET}")
+        print(f"{CYAN}Total Cache Size:{RESET} {BRIGHT_MAGENTA}{human_readable(report['total_size'])}{RESET}")
+
+        # Display individual cache directories
+        print(f"\n{CYAN}Cache Directories:{RESET}")
+        for cache_name, cache_info in report['cache_dirs'].items():
+            if cache_info['exists']:
+                print(f"  {GREEN}✓{RESET} {cache_name}: {BRIGHT_MAGENTA}{human_readable(cache_info['size'])}{RESET}")
+            else:
+                print(f"  {YELLOW}✗{RESET} {cache_name}: {YELLOW}Not found{RESET}")
+
+        # Ask if the user wants to clean caches if in interactive mode and caches exist
+        if sys.stdin.isatty() and report['total_size'] > 0:
+            print(f"\n{CYAN}Would you like to clean cache directories for this project?{RESET}")
+            response = input("Clean caches? (y/N): ").strip().lower()
+            
+            if response == 'y':
+                # Options for clearing specific cache types
+                print("\nChoose which cache directories to clear:")
+                print("  a - All")
+                print("  i - Intermediate")
+                print("  s - Saved/Logs")
+                print("  c - Saved/Crashes")
+                print("  d - DerivedDataCache")
+                print("  b - Binaries")
+                print("  n - None (skip)")
+                
+                choices = input("Enter choices separated by commas (e.g., i,s,c): ").strip().lower().split(",")
+                
+                # Skip if 'n' is selected
+                if 'n' in choices:
+                    print(f"{YELLOW}Skipping cache cleaning for this project.{RESET}")
+                    continue
+                
+                # Determine directories to clear
+                directories_to_clear = []
+                if 'a' in choices:
+                    directories_to_clear = [name for name, info in report['cache_dirs'].items() if info['exists']]
+                else:
+                    available_choices = {
+                        'i': 'Intermediate',
+                        's': 'Saved/Logs',
+                        'c': 'Saved/Crashes',
+                        'd': 'DerivedDataCache',
+                        'b': 'Binaries'
+                    }
+                    for choice in choices:
+                        if choice in available_choices and available_choices[choice] in report['cache_dirs']:
+                            if report['cache_dirs'][available_choices[choice]]['exists']:
+                                directories_to_clear.append(available_choices[choice])
+                
+                # Clean selected directories
+                project_freed = 0
+                for cache_name in directories_to_clear:
+                    cache_info = report['cache_dirs'][cache_name]
+                    try:
+                        size_before = cache_info['size']
+                        shutil.rmtree(cache_info['path'])
+                        project_freed += size_before
+                        print(f"  {GREEN}✓ Cleared:{RESET} {cache_name} ({BRIGHT_MAGENTA}{human_readable(size_before)}{RESET} freed)")
+                    except PermissionError:
+                        print(f"  {RED}✗ Permission denied:{RESET} {cache_name}")
+                    except FileNotFoundError:
+                        print(f"  {YELLOW}✗ Already deleted:{RESET} {cache_name}")
+                    except Exception as e:
+                        print(f"  {RED}✗ Failed to clear {cache_name}:{RESET} {str(e)}")
+                
+                if project_freed > 0:
+                    total_freed += project_freed
+                    print(f"\n{GREEN}Space freed for this project:{RESET} {BRIGHT_MAGENTA}{human_readable(project_freed)}{RESET}")
+
+    print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}SUMMARY{CYAN}]{RESET}")
+    print(f"{CYAN}Total Cache Size for all selected projects:{RESET} {BRIGHT_MAGENTA}{human_readable(total_size)}{RESET}")
+    if total_freed > 0:
+        print(f"{GREEN}Total Space Freed:{RESET} {BRIGHT_MAGENTA}{human_readable(total_freed)}{RESET}")
+
+
 def handle_unity_discovery(args):
     """Handle the discovery and processing of Unity projects."""
     handle_unity_projects_integration(args)
@@ -1085,6 +1245,9 @@ def handle_unity_projects_integration(args):
 
 def scan_unity_project_via_hub(args, clean=False):
     """Scan Unity projects via Unity Hub and generate a report."""
+    import random
+    import threading
+    
     CYAN = '\033[36m'
     BRIGHT_CYAN = '\033[96m'
     MAGENTA = '\033[35m'
@@ -1099,9 +1262,41 @@ def scan_unity_project_via_hub(args, clean=False):
 
     print(f"\n{BOLD}{CYAN}[{BRIGHT_MAGENTA}UNITY HUB SCANNER{CYAN}]{RESET} {YELLOW}Discovering Unity projects via Unity Hub...{RESET}")
     
+    # Select a random funny message
+    funny_msg = random.choice(FUNNY_MESSAGES)
+    
+    # Show animation while discovering projects
+    projects = []
+    discovery_done = False
+    
+    def discover_unity_projects():
+        nonlocal projects, discovery_done
+        try:
+            unity_hub_json_path = args.unityhub_json if args.unityhub_json else None
+            projects = read_unity_hub_projects(unity_hub_json_path)
+        except Exception as e:
+            # Store exception to handle after animation
+            projects = e
+        discovery_done = True
+    
+    # Run discovery in a thread
+    discovery_thread = threading.Thread(target=discover_unity_projects)
+    discovery_thread.start()
+    
+    # Show animation while discovering
+    while discovery_thread.is_alive():
+        knight_rider_animation(funny_msg, iterations=1, colors=colors)
+        if not discovery_thread.is_alive():
+            break
+    
+    discovery_thread.join()
+    
+    # Check if an exception occurred
+    if isinstance(projects, Exception):
+        raise projects
+    
     try:
         unity_hub_json_path = args.unityhub_json if args.unityhub_json else None
-        projects = read_unity_hub_projects(unity_hub_json_path)
         
         if not projects:
             print(f"{BOLD}{CYAN}[{YELLOW}!{CYAN}]{RESET} {YELLOW}No Unity projects found in Unity Hub.{RESET}")
@@ -5232,6 +5427,9 @@ Examples:
 
   Scan Chrome browser cache (macOS only):
     lazyscan --chrome
+    
+  Scan Unreal Engine projects:
+    lazyscan --unreal
 
   Scan without the fancy logo:
     lazyscan --no-logo /path/to/scan
@@ -5285,6 +5483,12 @@ Examples:
                              help='suppress Unity Hub project discovery (used with --unity)')
     unity_group.add_argument('--unityhub-json', metavar='path', type=str,
                              help='override default Unity Hub JSON path')
+    unreal_group = parser.add_argument_group('Unreal Engine Flags', 'Unreal-specific discovery options')
+    unreal_group.add_argument('--unreal', action='store_true',
+                             help='enter Unreal-specific discovery logic')
+    unreal_group.add_argument('--unreal-pick', action='store_true',
+                             help='force GUI picker (used with --unreal)')
+
     args = parser.parse_args()
     
     if not args.no_logo:
@@ -5298,6 +5502,11 @@ Examples:
     # Handle Unity-specific discovery if requested
     if args.unity:
         handle_unity_discovery(args)
+        return
+
+    # Handle Unreal-specific discovery if requested
+    if args.unreal:
+        handle_unreal_discovery(args)
         return
 
     # Handle Chrome cache scanning if requested
