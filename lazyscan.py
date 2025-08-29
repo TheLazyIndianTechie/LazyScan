@@ -75,6 +75,14 @@ from helpers.unreal_cache_helpers import (
 # Import Chrome helpers
 from helpers.chrome_cache_helpers import scan_chrome_cache as scan_chrome_cache_helper
 
+# Import Security Framework
+from helpers.audit import audit_logger, EventType, Severity
+from helpers.secure_operations import (
+    secure_scan, secure_delete, configure_security
+)
+from helpers.recovery import get_recovery_stats
+from helpers.confirmation import get_confirmation, RiskLevel
+
 # Configuration paths
 CONFIG_DIR = os.path.expanduser('~/.config/lazyscan')
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'preferences.ini')
@@ -107,6 +115,32 @@ def mark_disclaimer_acknowledged():
     config.set('disclaimer', 'acknowledged_date', datetime.now().isoformat())
     config.set('disclaimer', 'version', __version__)
     save_config(config)
+
+def initialize_security_system():
+    """Initialize the comprehensive security framework for LazyScan."""
+    try:
+        # Log application startup
+        audit_logger.log_startup({
+            "version": __version__,
+            "security_enabled": True,
+            "backup_enabled": True,
+            "platform": sys.platform
+        })
+        
+        # Configure security settings
+        configure_security(enable_backups=True, enable_confirmations=True)
+        
+        # Show recovery statistics if available
+        stats = get_recovery_stats()
+        if stats['recoverable_operations'] > 0:
+            print(f"\n🔄 Recovery System: {stats['recoverable_operations']} operations can be recovered")
+            print(f"   Total recoverable: {stats['total_files_recoverable']:,} files ({stats['total_size_recoverable'] / (1024**3):.1f} GB)")
+        
+        return True
+    except Exception as e:
+        print(f"⚠️  Warning: Security system initialization failed: {e}")
+        print("   Continuing with basic safety measures...")
+        return False
 
 # Chrome-specific paths for targeted cleaning
 CHROME_PATHS = [
@@ -566,63 +600,24 @@ def clean_macos_cache(paths, colors):
         sys.stdout.write(f"{CYAN}[{idx+1}/{len(cache_items)}]{RESET} Processing: {YELLOW}{display_path}{RESET}")
         sys.stdout.flush()
 
-        # Actually delete the directory with robust error handling
+        # Use secure deletion with comprehensive safety checks
         try:
-            if os.path.isdir(path):
-                # Try standard removal first
-                try:
-                    shutil.rmtree(path)
-                    freed_bytes += size
-                    success_items.append((path, size))
-                except PermissionError as e:
-                    # Try to handle read-only files
-                    try:
-                        # Make all files writable
-                        for root, dirs, files in os.walk(path):
-                            for d in dirs:
-                                os.chmod(os.path.join(root, d), 0o755)
-                            for f in files:
-                                os.chmod(os.path.join(root, f), 0o644)
-                        # Retry removal
-                        shutil.rmtree(path)
-                        freed_bytes += size
-                        success_items.append((path, size))
-                    except Exception as retry_error:
-                        errors += 1
-                        error_details.append((path, f"Permission denied (read-only): {str(retry_error)}"))
-                except OSError as e:
-                    if e.errno == 16:  # Resource busy
-                        errors += 1
-                        error_details.append((path, "Resource busy - file in use"))
-                        skipped_items.append((path, size, "in use"))
-                    else:
-                        errors += 1
-                        error_details.append((path, f"OS error: {str(e)}"))
-                except Exception as e:
-                    errors += 1
-                    error_details.append((path, f"Unexpected error: {str(e)}"))
+            # Use secure_delete for safe removal with backups and audit trails
+            result = secure_delete([path], f"macOS Cache Cleanup - {os.path.basename(path)}")
+            
+            if result.success:
+                freed_bytes += size
+                success_items.append((path, size))
             else:
-                # Handle single files
-                try:
-                    os.remove(path)
-                    freed_bytes += size
-                    success_items.append((path, size))
-                except PermissionError:
-                    # Try to make writable and retry
-                    try:
-                        os.chmod(path, 0o644)
-                        os.remove(path)
-                        freed_bytes += size
-                        success_items.append((path, size))
-                    except Exception as retry_error:
-                        errors += 1
-                        error_details.append((path, f"Permission denied: {str(retry_error)}"))
-                except Exception as e:
-                    errors += 1
-                    error_details.append((path, f"Failed to remove file: {str(e)}"))
+                errors += 1
+                error_msg = result.error or "Unknown error during secure deletion"
+                error_details.append((path, error_msg))
+                if "in use" in error_msg.lower() or "busy" in error_msg.lower():
+                    skipped_items.append((path, size, "in use"))
+                    
         except Exception as e:
             errors += 1
-            error_details.append((path, f"Critical error: {str(e)}"))
+            error_details.append((path, f"Secure deletion failed: {str(e)}"))
     
     # Clear the status line
     sys.stdout.write("\r" + " " * 100 + "\r")
@@ -773,11 +768,13 @@ def scan_application_cache(app_name, app_paths, colors, check_path=None):
     
     for path, size, item_type in cache_items:
         try:
-            if item_type == 'dir' and os.path.isdir(path):
-                shutil.rmtree(path, ignore_errors=True)
-            elif item_type == 'file' and os.path.isfile(path):
-                os.remove(path)
-            freed_bytes += size
+            # Use secure deletion for safe removal with backups and audit trails
+            result = secure_delete([path], f"{app_name} Cache Cleanup - {os.path.basename(path)}")
+            
+            if result.success:
+                freed_bytes += size
+            else:
+                errors += 1
         except Exception:
             errors += 1
     
@@ -1211,13 +1208,20 @@ def handle_unreal_discovery(args):
                     cache_info = report['cache_dirs'][cache_name]
                     try:
                         size_before = cache_info['size']
-                        shutil.rmtree(cache_info['path'])
-                        project_freed += size_before
-                        print(f"  {GREEN}✓ Cleared:{RESET} {cache_name} ({BRIGHT_MAGENTA}{human_readable(size_before)}{RESET} freed)")
-                    except PermissionError:
-                        print(f"  {RED}✗ Permission denied:{RESET} {cache_name}")
-                    except FileNotFoundError:
-                        print(f"  {YELLOW}✗ Already deleted:{RESET} {cache_name}")
+                        # Use secure deletion for safe removal with backups and audit trails
+                        result = secure_delete([cache_info['path']], f"Unity Cache Cleanup - {cache_name}")
+                        
+                        if result.success:
+                            project_freed += size_before
+                            print(f"  {GREEN}✓ Cleared:{RESET} {cache_name} ({BRIGHT_MAGENTA}{human_readable(size_before)}{RESET} freed)")
+                        else:
+                            error_msg = result.error or "Unknown error during secure deletion"
+                            if "permission" in error_msg.lower():
+                                print(f"  {RED}✗ Permission denied:{RESET} {cache_name}")
+                            elif "not found" in error_msg.lower():
+                                print(f"  {YELLOW}✗ Already deleted:{RESET} {cache_name}")
+                            else:
+                                print(f"  {RED}✗ Failed to clear {cache_name}:{RESET} {error_msg}")
                     except Exception as e:
                         print(f"  {RED}✗ Failed to clear {cache_name}:{RESET} {str(e)}")
                 
@@ -1364,8 +1368,14 @@ def scan_unity_project_via_hub(args, clean=False):
                 cache_info = report['cache_dirs'][cache_name]
                 if cache_info['exists']:
                     try:
-                        shutil.rmtree(cache_info['path'])
-                        print(f"{GREEN}✓ Cleared: {cache_name}{RESET}")
+                        # Use secure deletion for safe removal with backups and audit trails
+                        result = secure_delete([cache_info['path']], f"Unreal Cache Cleanup - {cache_name}")
+                        
+                        if result.success:
+                            print(f"{GREEN}✓ Cleared: {cache_name}{RESET}")
+                        else:
+                            error_msg = result.error or "Unknown error during secure deletion"
+                            print(f"{RED}✗ Failed to clear {cache_name}: {error_msg}{RESET}")
                     except Exception as e:
                         print(f"{RED}✗ Failed to clear {cache_name}: {e}{RESET}")
 
@@ -5488,6 +5498,15 @@ Examples:
                              help='enter Unreal-specific discovery logic')
     unreal_group.add_argument('--unreal-pick', action='store_true',
                              help='force GUI picker (used with --unreal)')
+    
+    # Security and Recovery options
+    security_group = parser.add_argument_group('Security & Recovery', 'Security and recovery options')
+    security_group.add_argument('--recovery', action='store_true',
+                               help='show recovery menu for restoring deleted files')
+    security_group.add_argument('--audit-logs', action='store_true',
+                               help='display recent audit logs')
+    security_group.add_argument('--recovery-stats', action='store_true',
+                               help='show recovery system statistics')
 
     args = parser.parse_args()
     
@@ -5498,6 +5517,58 @@ Examples:
             show_disclaimer()
             input('Press Enter to acknowledge the disclaimer and continue...')
             mark_disclaimer_acknowledged()
+    
+    # Initialize security system
+    security_enabled = initialize_security_system()
+    
+    # Handle security and recovery options
+    if args.recovery:
+        print("\n=== Recovery System ===")
+        stats = get_recovery_stats()
+        print(f"Total recoverable operations: {stats.get('total_operations', 0)}")
+        print(f"Successful recoveries: {stats.get('successful_recoveries', 0)}")
+        print(f"Failed recoveries: {stats.get('failed_recoveries', 0)}")
+        print(f"Total files backed up: {stats.get('total_files_backed_up', 0)}")
+        print(f"Total backup size: {stats.get('total_backup_size_mb', 0):.2f} MB")
+        
+        from helpers.recovery import list_recent_operations
+        recent_ops = list_recent_operations(7)
+        if recent_ops:
+            print("\nRecent operations (last 7 days):")
+            for op in recent_ops[:10]:  # Show last 10
+                print(f"  {op['timestamp']}: {op['operation_type']} - {op['files_affected']} files")
+        else:
+            print("\nNo recent operations found.")
+        return
+    
+    if args.audit_logs:
+        from helpers.audit import get_audit_summary
+        summary = get_audit_summary(24)  # Last 24 hours
+        print(f"\n📋 Audit Log Summary (Last 24 Hours):")
+        print(f"   Total Events: {summary.get('total_events', 0)}")
+        print(f"   Scan Operations: {summary.get('scan_operations', 0)}")
+        print(f"   Delete Operations: {summary.get('delete_operations', 0)}")
+        print(f"   Security Events: {summary.get('security_events', 0)}")
+        print(f"   Errors: {summary.get('errors', 0)}")
+        if summary.get('session_id'):
+            print(f"   Session ID: {summary['session_id']}")
+        if summary.get('total_events', 0) == 0:
+            print("   No audit events found in the last 24 hours.")
+        return
+    
+    if args.recovery_stats:
+        stats = get_recovery_stats()
+        print(f"\n📊 Recovery System Statistics:")
+        print(f"   Recoverable Operations: {stats.get('recoverable_operations', 0)}")
+        print(f"   Total Files: {stats.get('total_files_recoverable', 0):,}")
+        print(f"   Total Size: {stats.get('total_size_recoverable', 0) / (1024**3):.2f} GB")
+        if stats.get('oldest_operation'):
+            print(f"   Oldest Operation: {stats['oldest_operation']}")
+        if stats.get('newest_operation'):
+            print(f"   Newest Operation: {stats['newest_operation']}")
+        if not stats.get('recoverable_operations', 0):
+            print("   No recovery operations available.")
+        return
     
     # Handle Unity-specific discovery if requested
     if args.unity:
@@ -5860,6 +5931,13 @@ Examples:
     print(f"\n{ACCENT_COLOR}[{BRIGHT_CYAN}SYS{ACCENT_COLOR}] {HEADER_COLOR}Total data volume: {SIZE_COLOR}{human_readable(total_size)}{RESET}")
     print(f"{ACCENT_COLOR}[{BRIGHT_CYAN}SYS{ACCENT_COLOR}] {HEADER_COLOR}Target directory: {PATH_COLOR}{scan_path}{RESET}")
     print(f"{ACCENT_COLOR}[{BRIGHT_CYAN}SYS{ACCENT_COLOR}] {YELLOW}Scan complete. {GREEN}Have a nice day.{RESET}")
+    
+    # Properly shutdown security system
+    try:
+        if 'security_enabled' in locals() and security_enabled:
+            audit_logger.log_shutdown({"clean_exit": True})
+    except Exception:
+        pass  # Don't let shutdown errors affect the main program
 
 
 if __name__ == '__main__':
