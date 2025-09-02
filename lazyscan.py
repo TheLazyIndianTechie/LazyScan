@@ -2,37 +2,18 @@
 """
 lazyscan: A lazy way to find what's eating your disk space.
 
-Includes a new feature to clean macOS cache directories seamlessly.
-Created by TheLazyIndianTechie - for the lazy developer in all of us.
-v0.3.0
+Backward compatibility wrapper for the refactored modular LazyScan.
+The main functionality has been moved to lazyscan.cli.main for better organization.
 """
+
+# Import the main CLI function for backward compatibility
+from lazyscan.cli.main import main, cli_main
+
 __version__ = "0.5.0"
+__all__ = ['main', 'cli_main']
 
-import os
-import sys
-import argparse
-import time
-import random
-import threading
-import shutil
-import glob
-import configparser
-from datetime import datetime
-
-# Import Unity helpers
-from helpers.unity_cache_helpers import generate_unity_project_report
-from helpers.unity_hub import read_unity_hub_projects
-
-# Import Unreal Engine helpers
-from helpers.unreal_cache_helpers import generate_unreal_project_report
-
-# Import Chrome helpers
-from helpers.chrome_cache_helpers import scan_chrome_cache as scan_chrome_cache_helper
-
-# Import Security Framework
-from helpers.audit import audit_logger
-from helpers.secure_operations import configure_security, secure_delete
-from helpers.recovery import get_recovery_stats
+if __name__ == '__main__':
+    main()
 
 
 def prompt_unity_project_selection(projects):
