@@ -15,7 +15,7 @@ def create_mock_unreal_project(tmp_path):
     """Create a mock Unreal Engine project with necessary directories"""
     project_path = tmp_path / "MockUnrealProject"
     project_path.mkdir()
-    
+
     # Create cache directories with dummy files
     intermediate_dir = project_path / "Intermediate"
     intermediate_dir.mkdir()
@@ -31,7 +31,7 @@ def create_mock_unreal_project(tmp_path):
 
 def test_cache_size_calculation(create_mock_unreal_project):
     project_path = create_mock_unreal_project
-    
+
     report = generate_unreal_project_report(str(project_path), "MockUnrealProject")
     assert report['total_size'] == 1024 + 512
 
@@ -53,13 +53,13 @@ def test_generate_unreal_project_report_permission_error(tmp_path):
     project_path = tmp_path / "PermissionErrorProject"
     project_path.mkdir()
     os.chmod(project_path, 0o000)  # No permissions
-    
+
     try:
         report = scan_unreal_project(str(project_path))
     except PermissionError:
         report = {}
-    
+
     assert report == {}
-    
+
     # Restore permissions for cleanup
     os.chmod(project_path, 0o755)

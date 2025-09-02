@@ -60,7 +60,7 @@ def generate_unity_project_report(project_path, project_name=None, include_build
 def scan_unity_project(project_path, include_build=False):
     """
     Scans a Unity project to generate a report of its cache and optionally build directory.
-    
+
     This is a cleaner interface for scanning Unity projects that can be reused
     in both picker and manual modes.
 

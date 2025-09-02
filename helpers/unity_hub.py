@@ -12,12 +12,12 @@ from typing import List, Dict, Any
 
 def read_unity_hub_projects(json_path: str = None) -> List[Dict[str, str]]:
     """Read Unity Hub projects from the projects JSON file.
-    
+
     Args:
         json_path: Optional path to the Unity Hub projects JSON file.
                   If not provided, uses the default location:
                   ~/Library/Application Support/UnityHub/projects-v1.json
-    
+
     Returns:
         List of dictionaries containing project information with keys:
         - 'name': The project name
@@ -56,11 +56,11 @@ def read_unity_hub_projects(json_path: str = None) -> List[Dict[str, str]]:
             for project_path, project_info in projects_data.items():
                 # Validate that the key looks like a file path
                 # Unity Hub uses absolute paths as keys
-                if not (project_path.startswith('/') or 
+                if not (project_path.startswith('/') or
                         (len(project_path) > 2 and project_path[1:3] == ':\\') or
                         (len(project_path) > 2 and project_path[1:3] == ':/')):  # Windows paths
                     continue
-                    
+
                 project_name = os.path.basename(project_path)
 
                 if isinstance(project_info, dict):

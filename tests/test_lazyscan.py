@@ -37,7 +37,7 @@ class TestLazyScan(TestCase):
 
         # Since we mocked input to 'n', nothing should be deleted
         self.assertEqual(total_freed, 0)
-        
+
         # Verify directories still exist
         for path in test_paths:
             self.assertTrue(os.path.exists(path))

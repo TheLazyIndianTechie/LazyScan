@@ -30,7 +30,7 @@ from .confirmation import (
 )
 from .audit import (
     AuditLogger, EventType, Severity,
-    log_scan, log_delete, log_security_violation, 
+    log_scan, log_delete, log_security_violation,
     log_user_confirmation, log_backup
 )
 
@@ -47,7 +47,7 @@ class OperationResult:
     backup_paths: List[str] = None
     operation_id: str = None
     duration: float = 0.0
-    
+
     def __post_init__(self):
         if self.errors is None:
             self.errors = []
@@ -63,27 +63,27 @@ class SecureOperationManager:
     Secure operation manager that wraps all LazyScan operations
     with comprehensive safety measures.
     """
-    
+
     def __init__(self, enable_backups: bool = True, enable_confirmations: bool = True):
         self.path_validator = PathValidator()
         self.input_sanitizer = InputSanitizer()
         self.backup_manager = BackupManager()
         self.confirmation_dialog = ConfirmationDialog()
         self.permission_checker = PermissionChecker()
-        
+
         self.enable_backups = enable_backups
         self.enable_confirmations = enable_confirmations
-        
+
         # Operation tracking
         self.active_operations = {}
         self.operation_history = []
-    
+
     @contextmanager
     def secure_operation(self, operation_name: str, paths: List[str]):
         """Context manager for secure operations with full audit trail"""
         operation_id = str(uuid.uuid4())[:8]
         start_time = time.time()
-        
+
         # Log operation start
         from .audit import audit_logger
         audit_logger.log_event(
@@ -96,17 +96,17 @@ class SecureOperationManager:
                 "paths": paths[:5]  # First 5 paths
             }
         )
-        
+
         self.active_operations[operation_id] = {
             'name': operation_name,
             'paths': paths,
             'start_time': start_time,
             'status': 'running'
         }
-        
+
         try:
             yield operation_id
-            
+
         except Exception as e:
             # Log operation failure
             audit_logger.log_event(
@@ -120,7 +120,7 @@ class SecureOperationManager:
                 }
             )
             raise
-            
+
         finally:
             # Clean up operation tracking
             if operation_id in self.active_operations:
@@ -128,24 +128,24 @@ class SecureOperationManager:
                 operation['duration'] = time.time() - start_time
                 operation['status'] = 'completed'
                 self.operation_history.append(operation)
-    
-    def secure_scan_directory(self, directory_path: str, 
+
+    def secure_scan_directory(self, directory_path: str,
                             scan_function: Callable[[str], Dict[str, Any]]) -> OperationResult:
         """
         Securely scan a directory with full validation and logging.
-        
+
         Args:
             directory_path: Path to scan
             scan_function: Function that performs the actual scanning
-        
+
         Returns:
             OperationResult: Results of the scan operation
         """
         start_time = time.time()
-        
+
         # Sanitize input
         directory_path = sanitize_input(directory_path, "path")
-        
+
         # Validate path
         is_safe, reason = validate_path(directory_path)
         if not is_safe:
@@ -158,7 +158,7 @@ class SecureOperationManager:
                 message=f"Security validation failed: {reason}",
                 details={"path": directory_path, "validation_error": reason}
             )
-        
+
         # Check permissions
         has_permission, permission_errors = check_permissions([directory_path])
         if not has_permission:
@@ -168,17 +168,17 @@ class SecureOperationManager:
                 details={"permission_errors": permission_errors},
                 errors=permission_errors
             )
-        
+
         # Add to allowed roots for this session
         self.path_validator.add_allowed_root(directory_path)
-        
+
         try:
             with self.secure_operation("Directory Scan", [directory_path]) as operation_id:
                 # Perform the scan
                 scan_results = scan_function(directory_path)
-                
+
                 duration = time.time() - start_time
-                
+
                 # Log successful scan
                 log_scan(
                     "directory_scan",
@@ -189,7 +189,7 @@ class SecureOperationManager:
                         "duration": duration
                     }
                 )
-                
+
                 return OperationResult(
                     success=True,
                     message="Scan completed successfully",
@@ -199,7 +199,7 @@ class SecureOperationManager:
                     operation_id=operation_id,
                     duration=duration
                 )
-                
+
         except Exception as e:
             return OperationResult(
                 success=False,
@@ -208,29 +208,29 @@ class SecureOperationManager:
                 errors=[str(e)],
                 duration=time.time() - start_time
             )
-    
-    def secure_delete_paths(self, paths: List[str], 
+
+    def secure_delete_paths(self, paths: List[str],
                           operation_type: str = "Cache Cleanup") -> OperationResult:
         """
         Securely delete paths with full validation, confirmation, and backup.
-        
+
         Args:
             paths: List of paths to delete
             operation_type: Description of the operation
-        
+
         Returns:
             OperationResult: Results of the deletion operation
         """
         start_time = time.time()
         operation_id = str(uuid.uuid4())[:8]
-        
+
         # Sanitize all paths
         sanitized_paths = [sanitize_input(path, "path") for path in paths]
-        
+
         # Validate all paths
         validation_results = validate_paths(sanitized_paths)
         unsafe_paths = [path for path, (is_safe, _) in validation_results.items() if not is_safe]
-        
+
         if unsafe_paths:
             # Log security violation
             for unsafe_path in unsafe_paths:
@@ -239,14 +239,14 @@ class SecureOperationManager:
                     f"Unsafe path in delete operation: {unsafe_path}",
                     {"type": "path_validation", "path": unsafe_path, "reason": reason, "blocked": True}
                 )
-            
+
             return OperationResult(
                 success=False,
                 message=f"Security validation failed for {len(unsafe_paths)} paths",
                 details={"unsafe_paths": unsafe_paths, "validation_results": validation_results},
                 errors=[f"Unsafe path: {path}" for path in unsafe_paths]
             )
-        
+
         # Check permissions
         has_permission, permission_errors = check_permissions(sanitized_paths)
         if not has_permission:
@@ -256,12 +256,12 @@ class SecureOperationManager:
                 details={"permission_errors": permission_errors},
                 errors=permission_errors
             )
-        
+
         # Calculate operation statistics
         total_size = 0
         file_count = 0
         existing_paths = []
-        
+
         for path in sanitized_paths:
             if os.path.exists(path):
                 existing_paths.append(path)
@@ -278,24 +278,24 @@ class SecureOperationManager:
                                 file_count += 1
                             except (OSError, IOError):
                                 continue
-        
+
         if not existing_paths:
             return OperationResult(
                 success=True,
                 message="No existing paths to delete",
                 details={"original_paths": paths, "existing_paths": existing_paths}
             )
-        
+
         # Get user confirmation if enabled
         if self.enable_confirmations:
             warnings = []
-            
+
             # Add warnings for large operations
             if total_size > 5 * 1024**3:  # > 5GB
                 warnings.append(f"Large deletion: {total_size / (1024**3):.1f} GB")
             if file_count > 50000:
                 warnings.append(f"Many files: {file_count:,} files")
-            
+
             confirmed = get_confirmation(
                 operation_type,
                 existing_paths,
@@ -303,7 +303,7 @@ class SecureOperationManager:
                 file_count,
                 warnings
             )
-            
+
             # Log user decision
             log_user_confirmation(
                 operation_type,
@@ -315,14 +315,14 @@ class SecureOperationManager:
                     "confirmation_method": "interactive"
                 }
             )
-            
+
             if not confirmed:
                 return OperationResult(
                     success=False,
                     message="Operation cancelled by user",
                     details={"user_cancelled": True, "paths": existing_paths}
                 )
-        
+
         # Create backups if enabled
         backup_paths = []
         if self.enable_backups:
@@ -343,12 +343,12 @@ class SecureOperationManager:
                         details={"backup_error": str(e), "path": path},
                         errors=[f"Backup failed: {str(e)}"]
                     )
-        
+
         # Perform deletion
         deleted_files = 0
         deleted_size = 0
         errors = []
-        
+
         try:
             with self.secure_operation(f"Delete Operation: {operation_type}", existing_paths) as op_id:
                 for path in existing_paths:
@@ -370,18 +370,18 @@ class SecureOperationManager:
                                         dir_files += 1
                                     except (OSError, IOError):
                                         continue
-                            
+
                             shutil.rmtree(path)
                             deleted_files += dir_files
                             deleted_size += dir_size
-                            
+
                     except Exception as e:
                         error_msg = f"Failed to delete {path}: {str(e)}"
                         errors.append(error_msg)
                         continue
-                
+
                 duration = time.time() - start_time
-                
+
                 # Log deletion results
                 log_delete(
                     existing_paths,
@@ -393,10 +393,10 @@ class SecureOperationManager:
                         "duration": duration
                     }
                 )
-                
+
                 success = len(errors) == 0
                 message = "Deletion completed successfully" if success else f"Deletion completed with {len(errors)} errors"
-                
+
                 return OperationResult(
                     success=success,
                     message=message,
@@ -413,12 +413,12 @@ class SecureOperationManager:
                     operation_id=op_id,
                     duration=duration
                 )
-                
+
         except Exception as e:
             # Critical error during deletion
             error_msg = f"Critical error during deletion: {str(e)}"
             log_delete(existing_paths, False, {"critical_error": str(e), "duration": time.time() - start_time})
-            
+
             return OperationResult(
                 success=False,
                 message=error_msg,
@@ -428,7 +428,7 @@ class SecureOperationManager:
                 operation_id=operation_id,
                 duration=time.time() - start_time
             )
-    
+
     def _get_path_size(self, path: str) -> int:
         """Get size of file or directory"""
         if os.path.isfile(path):
@@ -443,37 +443,37 @@ class SecureOperationManager:
                         continue
             return total
         return 0
-    
+
     def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
         """Get status of an operation"""
         if operation_id in self.active_operations:
             return self.active_operations[operation_id]
-        
+
         for operation in self.operation_history:
             if operation.get('operation_id') == operation_id:
                 return operation
-        
+
         return None
-    
+
     def list_active_operations(self) -> List[Dict[str, Any]]:
         """List all active operations"""
         return list(self.active_operations.values())
-    
+
     def emergency_stop_all(self) -> None:
         """Emergency stop all operations (best effort)"""
         from .audit import audit_logger
-        
+
         for operation_id in list(self.active_operations.keys()):
             operation = self.active_operations[operation_id]
             operation['status'] = 'emergency_stopped'
-            
+
             audit_logger.log_event(
                 EventType.ERROR,
                 Severity.CRITICAL,
                 f"Emergency stop requested for operation: {operation['name']}",
                 {"operation_id": operation_id}
             )
-        
+
         self.active_operations.clear()
 
 # Global secure operation manager

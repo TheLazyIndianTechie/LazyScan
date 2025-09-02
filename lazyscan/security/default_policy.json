@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "description": "Default security policy for LazyScan operations",
+  "behavior_flags": {
+    "require_trash_first": true,
+    "interactive_double_confirm": true,
+    "block_symlinks": true,
+    "fail_on_critical_paths": true,
+    "enable_size_limits": true
+  },
+  "size_limits": {
+    "large_directory_threshold_mb": 100,
+    "max_deletion_size_mb": 10000,
+    "require_confirmation_over_mb": 50
+  },
+  "allowed_roots": {
+    "unity": [
+      "~/Library/Application Support/Unity",
+      "~/Library/Caches/Unity",
+      "~/Projects",
+      "~/Documents/Unity Projects"
+    ],
+    "unreal": [
+      "/Volumes/LazyGameDevs/Applications/Unreal/UE_5.5/",
+      "/Volumes/LazyGameDevs/Applications/Unreal/UE_5.6",
+      "~/Documents/Unreal Projects",
+      "~/Library/Application Support/Epic",
+      "~/Library/Caches/UnrealEngine",
+      "/Applications/Epic Games",
+      "/Users/Shared/Epic Games"
+    ],
+    "chrome": [
+      "~/Library/Caches/Google/Chrome",
+      "~/Library/Application Support/Google/Chrome",
+      "~/Library/WebKit"
+    ],
+    "macos_caches": [
+      "~/Library/Caches",
+      "~/Library/Application Support",
+      "~/Library/WebKit",
+      "/var/folders",
+      "/tmp",
+      "/private/tmp"
+    ]
+  },
+  "deny_patterns": {
+    "macos": [
+      "^/$",
+      "^/System/",
+      "^/usr/",
+      "^/var/(?!folders)",
+      "^/etc/",
+      "^/bin/",
+      "^/sbin/",
+      "^/boot/",
+      "^/Applications/(?!Epic Games)",
+      "^/Library/",
+      "^/Users$",
+      "^/Volumes$"
+    ],
+    "windows": [
+      "^C:\\\\$",
+      "^[A-Z]:\\\\$",
+      "^C:\\\\Windows/",
+      "^C:\\\\Program Files/",
+      "^C:\\\\Program Files \\(x86\\)/",
+      "^C:\\\\Users$",
+      "^C:\\\\ProgramData/"
+    ],
+    "linux": [
+      "^/$",
+      "^/usr/",
+      "^/var/(?!cache)",
+      "^/etc/",
+      "^/bin/",
+      "^/sbin/",
+      "^/boot/",
+      "^/home$",
+      "^/root$",
+      "^/opt/",
+      "^/lib/",
+      "^/lib64/"
+    ]
+  },
+  "audit": {
+    "log_all_validations": true,
+    "log_policy_decisions": true,
+    "require_justification": false
+  }
+}

@@ -41,7 +41,7 @@ def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, st
                 if path.exists() and path.is_dir():
                     manifest_dir = path
                     break
-            
+
             # If no manifest directory found, default to the first one
             if manifest_dir is None:
                 manifest_dir = possible_paths[0]
@@ -62,7 +62,7 @@ def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, st
                     install_path = Path(data.get('InstallLocation', ''))
                     if not install_path.exists():
                         continue
-                    
+
                     # Search for .uproject files in the install location
                     for uproject in install_path.rglob("*.uproject"):
                         project_name = uproject.stem
@@ -113,13 +113,13 @@ def find_projects_in_paths(paths: List[Path]) -> List[Dict[str, str]]:
     for path in paths:
         if not path.exists():
             continue
-            
+
         # Look for .uproject files recursively
         for project_file in path.rglob('*.uproject'):
             if is_user_project(project_file):
                 project_name = project_file.stem
                 projects.append({
-                    'name': project_name, 
+                    'name': project_name,
                     'path': str(project_file.parent)
                 })
 
@@ -143,26 +143,26 @@ def get_unreal_projects() -> List[Dict[str, str]]:
         home / 'Projects/Unreal',                  # Developer-style organization
         Path('/Volumes')                           # External drives on macOS
     ]
-    
+
     # Add any currently open project from launcher manifests
     manifest_projects = read_unreal_launcher_projects()
     # Filter out non-user projects from manifests
-    manifest_projects = [p for p in manifest_projects 
-                        if not any(pattern in str(p['path']).lower() 
+    manifest_projects = [p for p in manifest_projects
+                        if not any(pattern in str(p['path']).lower()
                                   for pattern in ['engine/programs', 'engine/source', '/templates/', 'tp_'])]
-    
+
     # Find additional projects in search paths
     path_projects = find_projects_in_paths(search_paths)
-    
+
     # Combine and remove duplicates
     all_projects = manifest_projects + path_projects
     unique_projects = []
     seen_paths = set()
-    
+
     for project in all_projects:
         if project['path'] not in seen_paths:
             seen_paths.add(project['path'])
             unique_projects.append(project)
-    
+
     return unique_projects
 

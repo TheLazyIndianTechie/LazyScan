@@ -42,6 +42,6 @@ def test_prompt_unity_project_selection(mock_input, mock_isatty):
     ]
 
     selected = prompt_unity_project_selection(projects)
-    
+
     assert len(selected) == 1
     assert selected[0]['name'] == 'TestProject1'

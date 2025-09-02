@@ -7,7 +7,7 @@ def create_fake_project(directory, size):
     """Create a fake Unity project structure with specified Library folder size."""
     library_path = os.path.join(directory, 'Library')
     os.makedirs(library_path)
-    
+
     # Create dummy files to reach the specified size
     file_count = size // 1024
     for i in range(file_count):

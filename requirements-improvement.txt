@@ -1,0 +1,12 @@
+# Dependencies for LazyScan improvement plan
+send2trash>=1.8.0
+platformdirs>=3.0.0
+pytest>=7.0.0
+pytest-cov>=4.0.0
+hypothesis>=6.0.0
+
+# Development tools
+ruff>=0.0.280
+black>=23.0.0
+mypy>=1.0.0
+pre-commit>=3.0.0
