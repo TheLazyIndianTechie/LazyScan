@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/constraints.txt', '**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+          ${{ runner.os }}-pip-
+
+    - name: Install build tools and dependencies
+      run: |
+        python -m pip install --upgrade pip wheel setuptools
+        pip install -e .[dev] --constraint constraints.txt
+
+    - name: Lint with ruff
+      run: |
+        ruff check . --fix
+        ruff format . --check
+
+    - name: Type check with mypy
+      run: |
+        mypy lazyscan/ helpers/
+
+    - name: Run tests
+      run: |
+        python -m unittest discover tests/ -v
+
+    - name: Validate security audit schema
+      run: |
+        python -c "
+        from lazyscan.security.audit_encryption_schema import AuditEncryptionSchemaValidator
+        from pathlib import Path
+        import json
+
+        # Load default policy
+        default_policy_path = Path('lazyscan/security/default_policy.json')
+        with open(default_policy_path, 'r') as f:
+            policy = json.load(f)
+
+        # Validate audit schema
+        if 'audit' in policy:
+            is_valid, errors = AuditEncryptionSchemaValidator.validate_schema(policy['audit'])
+            if not is_valid:
+                print('❌ Audit schema validation failed:')
+                for error in errors:
+                    print(f'  - {error}')
+                exit(1)
+            else:
+                print('✅ Audit schema validation passed')
+        else:
+            print('❌ No audit configuration found in default policy')
+            exit(1)
+        "
+
+    - name: Test CLI functionality
+      run: |
+        python lazyscan.py --version
+        python lazyscan.py --no-disclaimer scan . --top 5
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-3.11-${{ hashFiles('**/constraints.txt', '**/setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-3.11-
+          ${{ runner.os }}-pip-
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip wheel setuptools
+        pip install build --constraint constraints.txt
+
+    - name: Build distribution
+      run: |
+        python -m build
+
+    - name: Store build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
