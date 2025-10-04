@@ -3,4 +3,5 @@ include README.md
 include README_PYPI.md
 include LICENSE
 include lazyscan.py
+include lazyscan/security/default_policy.json
 recursive-include helpers *.py

@@ -1,0 +1,43 @@
+# Task ID: 10
+# Title: Set up GitHub Actions CI/CD pipeline
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Establish automated testing, linting, and coverage reporting across supported platforms and Python versions.
+# Details:
+Create .github/workflows/ci.yml running on push and PR triggers with a matrix including ubuntu-latest, macos-latest, windows-latest and Python 3.8–3.12. Steps: checkout, setup-python, install dependencies with pip (using constraints file), run ruff lint, black --check, mypy, pytest with coverage, and upload coverage to Codecov. Add separate job for performance smoke tests gated on main branch, and configure caching for pip to reduce run time. Integrate pre-commit hook checks and security scanning via pip-audit.
+
+# Test Strategy:
+Verify pipeline locally with `act` for Linux and run manual macOS/Windows smoke tests; ensure CI passes on feature branches; add a canary PR to confirm failing tests block merges; monitor coverage reports from Codecov to confirm upload integration.
+
+# Subtasks:
+## 1. Define workflow triggers and matrix strategy [pending]
+### Dependencies: None
+### Description: Establish GitHub Actions workflow structure with push and pull-request triggers and define the OS/Python version matrix.
+### Details:
+Create ci.yml skeleton including name, on.push, on.pull_request, and jobs.test using a strategy matrix covering ubuntu-latest, macos-latest, windows-latest with Python versions 3.8 through 3.12. Include fail-fast configuration and matrix exclusion rules if needed.
+
+## 2. Set up environment preparation and caching [pending]
+### Dependencies: 10.1
+### Description: Implement dependency installation steps with pip constraints and enable caching to speed up repeated runs.
+### Details:
+Within the matrix job add actions/checkout, actions/setup-python using matrix value, install wheel/pip upgrades, and install project dependencies via constraints file. Add actions/cache (or setup-python cache) keyed on OS, Python, and lock/constraints hashes to cache pip downloads/venv artifacts.
+
+## 3. Implement linting, typing, and test execution stages [pending]
+### Dependencies: 10.2
+### Description: Add sequential steps for code quality gates and test execution with coverage collection.
+### Details:
+Execute pre-commit run --all-files, ruff check, black --check, mypy, and pytest with coverage flags. Ensure artifacts like coverage.xml are produced for later upload and handle platform-specific adjustments (e.g., shell differences on Windows).
+
+## 4. Integrate coverage upload, security scanning, and performance job [pending]
+### Dependencies: 10.3
+### Description: Upload coverage results to Codecov, run security scans, and configure a main-branch-only performance smoke test job.
+### Details:
+Add Codecov action with token handling, include pip-audit (with cache reuse) after tests, and define a separate performance job triggered only on main branch using needs:test and conditional if statements. Ensure job ordering and artifacts sharing are configured.
+
+## 5. Document CI pipeline and validate via sample runs [pending]
+### Dependencies: 10.3, 10.4
+### Description: Produce documentation and proof of pipeline correctness using representative runs.
+### Details:
+Update project documentation describing workflow triggers, matrix, tooling, and secret requirements. Run GitHub Actions workflow on feature branch and optionally locally via act to capture screenshots/logs demonstrating successful lint/test/security/coverage execution, noting any platform caveats.
+

@@ -21,15 +21,15 @@ from .core import formatting, scanner, config, ui
 from .apps import unity, unreal, chrome
 
 __all__ = [
-    'main',
-    'cli_main', 
-    '__version__',
-    '__author__',
-    'formatting',
-    'scanner', 
-    'config',
-    'ui',
-    'unity',
-    'unreal',
-    'chrome'
+    "main",
+    "cli_main",
+    "__version__",
+    "__author__",
+    "formatting",
+    "scanner",
+    "config",
+    "ui",
+    "unity",
+    "unreal",
+    "chrome",
 ]

@@ -9,6 +9,7 @@ and cross-platform profile discovery using platformdirs.
 
 import os
 import sys
+import asyncio
 import glob
 from pathlib import Path
 from typing import List, Dict, Any, Iterator, NamedTuple
@@ -146,6 +147,16 @@ class FirefoxPlugin:
                 "cleaned_items": 0,
                 "total_size": 0
             }
+
+    async def scan_async(self, **kwargs) -> Dict[str, Any]:
+        """Perform Firefox-specific scanning asynchronously."""
+        # Delegate to sync implementation since Firefox scanning is I/O bound
+        return await asyncio.get_event_loop().run_in_executor(None, self.scan, **kwargs)
+
+    async def clean_async(self, **kwargs) -> Dict[str, Any]:
+        """Perform Firefox-specific cleaning asynchronously."""
+        # Delegate to sync implementation since Firefox cleaning involves filesystem operations
+        return await asyncio.get_event_loop().run_in_executor(None, self.clean, **kwargs)
 
 
 # Firefox-specific paths for targeted cleaning

@@ -1,0 +1,89 @@
+# Task ID: 6
+# Title: Extend Unreal Engine integration with version and cache coverage
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Implement Unreal Editor version detection and support additional cache categories like shader cache and Marketplace assets.
+# Details:
+Augment apps.unreal to read engine association from the .uproject (EngineAssociation) and cross-reference Epic Launcher manifests to locate installed engine versions. Add handlers for DerivedDataCache, Intermediate, Saved/Logs, Saved/Crashes, Binaries, and Marketplace asset caches stored in %LOCALAPPDATA%\EpicGames and ~/Library/Application Support/Epic.
+Pseudo-code:
+```
+def discover_unreal_project(uproject: Path):
+    meta = json.loads(uproject.read_text())
+    engine_version = resolve_engine_version(meta.get("EngineAssociation"))
+    caches = [
+        CacheTarget("DerivedDataCache", project / "DerivedDataCache", warn_on_delete=True),
+        CacheTarget("Shaders", project / "Saved/ShaderCache"),
+        CacheTarget("MarketplaceAssets", resolve_marketplace_cache(engine_version))
+    ]
+    return UnrealProject(project, engine_version, caches)
+```
+Include warnings for rebuild-required directories and integrate with SecuritySentinel policies for large deletions.
+
+# Test Strategy:
+Construct integration tests with synthetic .uproject files and mocked Epic manifest data to validate version resolution; ensure each cache category is discoverable and deletions trigger backups; run end-to-end CLI tests covering selective cache deletion with dry-run confirmation.
+
+# Subtasks:
+## 1. Parse Unreal project metadata [done]
+### Dependencies: None
+### Description: Load .uproject files and capture EngineAssociation plus relevant metadata for downstream resolution.
+### Details:
+Implement JSON parsing for .uproject files, normalize paths, and surface errors when EngineAssociation or critical fields are missing; expose metadata via discover_unreal_project.
+<info added on 2025-10-04T05:00:27.389Z>
+Implemented helpers/unreal_version.py with utilities to parse .uproject metadata, resolve EngineAssociation to installed engine versions, and locate Epic manifest directories. Updated helpers/unreal_cache_helpers.py to incorporate the shared .uproject parsing for engine cache resolution. Added warning flags to mark rebuild-required cache directories when engine metadata indicates version mismatches.
+</info added on 2025-10-04T05:00:27.389Z>
+
+## 2. Resolve engine version from Epic manifests [done]
+### Dependencies: 6.1
+### Description: Map EngineAssociation values to installed Unreal Engine versions via Epic Launcher manifest data.
+### Details:
+Locate Epic manifest directories on supported platforms, parse manifest JSON to find engine install roots, handle custom engine paths, and return resolved version identifiers with fallbacks for missing entries.
+<info added on 2025-10-04T05:00:46.424Z>
+Implemented full engine version resolution in helpers/unreal_version.py, covering cross-platform Epic Launcher directory discovery, .item manifest parsing for install metadata, and accurate mapping from EngineAssociation values to install roots, verified against nine local engine installations.
+</info added on 2025-10-04T05:00:46.424Z>
+
+## 3. Inventory cache targets with rebuild warnings [done]
+### Dependencies: 6.1, 6.2
+### Description: Enumerate Unreal cache directories and annotate safety flags and rebuild requirements.
+### Details:
+Define CacheTarget objects for DerivedDataCache, Intermediate, Saved/Logs, Saved/Crashes, Binaries, Shader caches, and Marketplace asset caches in %LOCALAPPDATA%/EpicGames and ~/Library/Application Support/Epic; attach warnings for rebuild-required directories and optional deletion behavior.
+<info added on 2025-10-04T05:01:34.316Z>
+Implemented comprehensive inventory in helpers/unreal_cache_helpers.py covering DerivedDataCache, Intermediate, Binaries, Saved/Logs, Saved/Crashes, Plugins caches, MarketplaceAssets, LauncherCache, shader artifacts, and hotfix staging directories with structured metadata including rebuild_warning flags, backup_recommendations, and category classifications. Extended lazyscan/apps/unreal.py CLI output to surface resolved engine versions alongside per-target warnings and to expose enhanced cleanup actions gated by safety notifications and optional backups.
+</info added on 2025-10-04T05:01:34.316Z>
+
+## 4. Hook into SecuritySentinel policies [done]
+### Dependencies: 6.3
+### Description: Apply SecuritySentinel safeguards to Unreal cache deletions, especially large or sensitive directories.
+### Details:
+Integrate cache operations with SecuritySentinel policy checks, including size thresholds, approval prompts, and audit logging for high-impact targets before performing deletions.
+<info added on 2025-10-04T05:03:20.031Z>
+Added context-aware SecuritySentinel validation by updating helpers/secure_operations.py to accept a context parameter and enforce the Unreal policy set, and adjusted lazyscan/apps/unreal.py to supply the unreal context on secure_delete so Unreal cache targets receive allowed-root checks and audit logging automatically.
+</info added on 2025-10-04T05:03:20.031Z>
+
+## 5. Enhance CLI presentation for Unreal integrations [done]
+### Dependencies: 6.2, 6.3
+### Description: Update CLI outputs to display engine versions, cache targets, and warnings for Unreal projects.
+### Details:
+Extend command handlers to show resolved engine version, cache categories, rebuild warnings, and policy requirements in dry-run and execution modes, ensuring user prompts reflect new coverage.
+<info added on 2025-10-04T05:03:36.851Z>
+Leverage the presentation upgrades delivered in subtask 6.3 so the unreal.py CLI emits resolved engine version details, cache warnings with rebuild notifications, safety-tagged cleanup options, and context-aware prompts aligned with the expanded Unreal integration.
+</info added on 2025-10-04T05:03:36.851Z>
+
+## 6. Implement backup workflows for flagged caches [done]
+### Dependencies: 6.3, 6.4
+### Description: Provide optional backups for caches that require preservation before deletion.
+### Details:
+Add pre-delete backup routines for warning-flagged caches, configurable via settings to snapshot directories to a temp or user-defined path, and coordinate with SecuritySentinel approvals before final removal.
+<info added on 2025-10-04T05:04:19.906Z>
+Selective backup workflow now inspects cache metadata within lazyscan/apps/unreal.py for a requires_backup flag, limits snapshot creation to preservation targets such as DerivedDataCache and MarketplaceAssets, surfaces progress messages to the CLI while backups are generated, and records actions through the existing audit logging pipeline.
+</info added on 2025-10-04T05:04:19.906Z>
+
+## 7. Create integration tests with mocked manifests [done]
+### Dependencies: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6
+### Description: Validate Unreal discovery, cache handling, and policy enforcement using synthetic data.
+### Details:
+Develop tests using mocked .uproject files, fabricated Epic manifests, and simulated cache directories to assert version resolution accuracy, cache enumeration, backup hooks, SecuritySentinel gating, and CLI messaging.
+<info added on 2025-10-04T05:05:17.725Z>
+Implemented tests/test_unreal_integration.py with comprehensive integration coverage for .uproject parsing, engine version resolution, Epic manifest parsing, Unreal project discovery, enhanced cache report generation, and SecuritySentinel integration using mocked manifests and synthetic .uproject fixtures; all assertions pass, validating version resolution accuracy, cache enumeration, backup hooks, SecuritySentinel gating, and CLI messaging.
+</info added on 2025-10-04T05:05:17.725Z>
+

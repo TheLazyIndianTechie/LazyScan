@@ -960,4 +960,134 @@ print(f"Average scan time: {summary['average_duration_seconds']:.2f} seconds")
 print(f"Error rate: {summary['error_rate']:.2%}")
 ```
 
+---
+
+## 🔄 Async Directory Scanning
+
+### `scan_directory`
+
+High-performance asynchronous directory scanning with progress callbacks and concurrency control.
+
+```python
+from pathlib import Path
+from lazyscan.core.scan import scan_directory, scan_directory_sync
+
+# Async scanning (recommended)
+async def scan_with_progress():
+    """Scan directory asynchronously with progress updates"""
+
+    def progress_callback(path: Path, data: dict):
+        """Progress callback receives scan status updates"""
+        if 'files_processed' in data:
+            print(f"Scanning {path.name}: {data['files_processed']} files")
+        elif 'total_size' in data:
+            print(f"Scan complete: {data['file_count']} files, {data['total_size']} bytes")
+
+    result = await scan_directory(
+        Path("/home/user/projects"),
+        max_depth=3,                    # Limit directory depth
+        exclude_patterns=["*.tmp", "*.log"],  # Exclude patterns
+        progress_callback=progress_callback,
+        concurrency_limit=10           # Concurrent operations
+    )
+
+    return result
+
+# Synchronous wrapper (for backward compatibility)
+def scan_legacy_style():
+    """Synchronous scanning with deprecation warning"""
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+
+        result = scan_directory_sync(
+            Path("/home/user/projects"),
+            max_depth=2,
+            exclude_patterns=["node_modules"]
+        )
+
+    return result
+```
+
+#### Parameters
+
+- `path` (Path): Root directory to scan
+- `max_depth` (Optional[int]): Maximum directory depth (None = unlimited)
+- `exclude_patterns` (Optional[List[str]]): Glob patterns to exclude
+- `progress_callback` (Optional[Callable]): Progress update callback
+- `concurrency_limit` (int): Maximum concurrent filesystem operations
+
+#### Return Value
+
+```python
+{
+    'total_size': int,      # Total bytes of all files
+    'file_count': int,      # Number of files found
+    'dir_count': int,       # Number of directories found
+    'files': List[Tuple[str, int]],  # [(path, size), ...]
+    'errors': List[Tuple[str, str]]  # [(path, error), ...]
+}
+```
+
+#### AsyncProgressEmitter
+
+Manages progress callbacks with intelligent batching to prevent UI flooding.
+
+```python
+from lazyscan.core.scan import AsyncProgressEmitter
+
+# Custom progress emitter
+emitter = AsyncProgressEmitter(
+    callback=my_progress_callback,
+    batch_interval=0.2  # Batch updates every 200ms
+)
+
+# Manual progress emission
+await emitter.emit(Path("/some/dir"), {"status": "processing"})
+
+# Cleanup (automatically called by scan_directory)
+await emitter.shutdown()
+```
+
+### Migration Guide
+
+#### From Synchronous to Asynchronous Scanning
+
+**Before (v0.4.x):**
+```python
+from lazyscan.core.scanner import scan_directory_with_progress
+
+# Blocking synchronous scan
+file_sizes = scan_directory_with_progress(scan_path, colors)
+```
+
+**After (v0.5.x):**
+```python
+from lazyscan.core.scan import scan_directory
+
+# Non-blocking async scan
+result = await scan_directory(Path(scan_path), progress_callback=progress_func)
+file_sizes = result['files']
+```
+
+#### Backward Compatibility
+
+The synchronous `scan_directory_with_progress` function remains available but is deprecated. Use `scan_directory_sync` for new code requiring synchronous behavior:
+
+```python
+# New synchronous wrapper (recommended)
+from lazyscan.core.scan import scan_directory_sync
+
+result = scan_directory_sync(Path(scan_path))
+files = result['files']  # Same format as before
+```
+
+### Performance Benefits
+
+- **Concurrent I/O**: Multiple directories scanned simultaneously
+- **Non-blocking UI**: Progress updates don't freeze the interface
+- **Resource efficiency**: Controlled concurrency prevents system overload
+- **Scalability**: Handles large directory trees efficiently
+
 This comprehensive API documentation provides developers with all the necessary information to effectively use, extend, and integrate with LazyScan's enhanced architecture. The examples demonstrate real-world usage patterns and best practices for each component of the system.

@@ -1,0 +1,83 @@
+# Socket.dev configuration for LazyScan supply chain security scanning
+
+# Project settings
+project:
+  name: "lazyscan"
+  description: "A lazy way to find what's eating your disk space"
+  repository: "https://github.com/TheLazyIndianTechie/lazyscan"
+
+# Alert settings - customize which issues to flag
+alerts:
+  # Enable all security-related alerts
+  enabled:
+    - vulnerability
+    - malware
+    - typo-squat
+    - protestware
+    - obfuscated-code
+    - telemetry
+    - unstable-ownership
+    - ai-detected-malware
+    - ai-detected-security-risk
+    - native-code
+    - network-access
+    - non-existent-author
+    - potential-vulnerability
+    - shell-access
+    - trivial-package
+    - uses-eval
+    - ai-detected-anomaly
+    - environment-variable-access
+    - filesystem-access
+    - high-entropy-strings
+    - new-author
+    - npm-shrinkwrap
+    - install-scripts
+    - manifest-confusion
+    - debug-access
+    - dynamic-require
+
+  # Disable quality alerts that are less critical for this project
+  disabled:
+    - unpopular-package
+    - minified-code
+    - bad-dependency-semver
+    - wildcard-dependency
+
+# Package ecosystems to scan
+ecosystems:
+  - npm  # For Node.js dependencies used in CI
+  - pypi  # For Python dependencies
+
+# Scan settings
+scan:
+  # Include dev dependencies
+  include_dev: true
+
+  # Follow dependency tree
+  follow_dependencies: true
+
+  # Maximum depth to scan
+  max_depth: 10
+
+# Reporting settings
+report:
+  # Output format
+  format: json
+
+  # Include full dependency tree
+  include_tree: true
+
+  # Include package metadata
+  include_metadata: true
+
+# CI/CD integration settings
+ci:
+  # Fail build on critical issues
+  fail_on_critical: false
+
+  # Comment on pull requests
+  comment_pr: true
+
+  # Create security issues
+  create_issues: false

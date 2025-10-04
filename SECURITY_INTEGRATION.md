@@ -4,19 +4,20 @@ This guide explains how to integrate the comprehensive security framework into t
 
 ## Overview
 
-The security framework consists of five main components:
+The security framework consists of six main components:
 
-1. **Path Validation** (`helpers/security.py`) - Prevents path traversal attacks
-2. **Confirmation Dialogs** (`helpers/confirmation.py`) - Multi-level user confirmations
-3. **Audit Logging** (`helpers/audit.py`) - Comprehensive operation tracking
-4. **Secure Operations** (`helpers/secure_operations.py`) - Safe operation wrappers
-5. **Recovery System** (`helpers/recovery.py`) - Undo and restore functionality
+1. **Security Sentinel** (`lazyscan/security/sentinel.py`) - Policy enforcement engine with fail-closed validation
+2. **Safe Deletion** (`lazyscan/security/safe_delete.py`) - Policy-driven file deletion with safeguards
+3. **Path Validation** (`lazyscan/security/validators.py`) - Input sanitization and path validation
+4. **Confirmation Dialogs** (`helpers/confirmation.py`) - Multi-level user confirmations
+5. **Audit Logging** (`helpers/audit.py`) - Comprehensive operation tracking
+6. **Recovery System** (`helpers/recovery.py`) - Undo and restore functionality
 
 ## Quick Integration
 
 ### 1. Replace Unsafe Operations
 
-Replace direct file operations in `lazyscan.py` with secure wrappers:
+Replace direct file operations with secure wrappers from the modular security framework:
 
 ```python
 # OLD - Unsafe direct deletion
@@ -28,11 +29,16 @@ def delete_cache_files(paths):
             else:
                 shutil.rmtree(path)
 
-# NEW - Secure deletion with full safety measures
-from helpers.secure_operations import secure_delete
+# NEW - Secure deletion with policy-driven safety
+from lazyscan.security import safe_delete, guard_delete
 
-def delete_cache_files(paths):
-    result = secure_delete(paths, "Cache Cleanup")
+def delete_cache_files(paths, context="cache_cleanup"):
+    # Pre-validate all paths with security sentinel
+    for path in paths:
+        guard_delete(path, context=context, operation_mode="trash")
+
+    # Use safe deleter for actual operations
+    result = safe_delete(paths, "Cache Cleanup")
     if result.success:
         print(f"✅ Successfully deleted {result.files_processed} files ({result.size_processed} bytes)")
         if result.backup_paths:
@@ -46,7 +52,7 @@ def delete_cache_files(paths):
 
 ### 2. Secure Directory Scanning
 
-Replace direct directory scanning with validated scanning:
+Replace direct directory scanning with validated scanning from the core scanner:
 
 ```python
 # OLD - Direct scanning
@@ -61,9 +67,13 @@ def scan_directory(directory):
     return {"total_size": total_size, "file_count": file_count}
 
 # NEW - Secure scanning with validation
-from helpers.secure_operations import secure_scan
+from lazyscan.core.scanner import scan_directory_with_progress
+from lazyscan.security.validators import validate_user_supplied_path
 
 def scan_directory(directory):
+    # Validate path before scanning
+    validated_path = validate_user_supplied_path(directory, "scan")
+
     def scan_function(dir_path):
         total_size = 0
         file_count = 0

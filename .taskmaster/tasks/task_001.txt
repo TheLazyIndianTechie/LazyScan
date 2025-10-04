@@ -1,0 +1,66 @@
+# Task ID: 1
+# Title: Refactor scanning engine for asyncio support
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Convert the synchronous directory traversal into an asyncio-driven pipeline to keep the terminal UI responsive during long scans.
+# Details:
+Refactor core.scan.scan_directory into an async coroutine that schedules filesystem work on executors to preserve performance while enabling non-blocking progress updates.
+Pseudo-code:
+```
+async def scan_directory(path: Path, *, max_depth=None, exclude_patterns=None, progress_callback=None):
+    semaphore = asyncio.Semaphore(settings.scan.max_concurrency)
+    async def walk(dir_path: Path, depth: int = 0):
+        if max_depth is not None and depth > max_depth:
+            return
+        entries = await asyncio.to_thread(list, dir_path.iterdir)
+        sized_children = await asyncio.gather(*[
+            walk(child, depth + 1) if child.is_dir() else asyncio.to_thread(calculate_file_size, child)
+            for child in entries if not matches_excludes(child, exclude_patterns)
+        ])
+        await progress_callback(dir_path, sized_children)
+        return aggregate(dir_path, sized_children)
+    return await walk(path)
+```
+Introduce an AsyncProgressEmitter that batches UI updates every 100 ms, and ensure CLI entry points call asyncio.run when dispatching to the scan engine. Update tests and documentation to reflect the async signature, providing synchronous wrappers for plugin compatibility.
+
+# Test Strategy:
+Add unit tests that run the async scan on temporary directory fixtures with large file sets using pytest.mark.asyncio; include property-based tests with Hypothesis to verify deterministic aggregation under concurrent execution; create regression test to ensure progress callbacks fire without blocking the event loop.
+
+# Subtasks:
+## 1. Design asyncio-based scanning API [done]
+### Dependencies: None
+### Description: Specify the async scan_directory contract and supporting components.
+### Details:
+Draft the coroutine signature, parameter defaults, concurrency semantics with semaphores, and expected progress callback behaviors. Capture how aggregation results are structured and how errors propagate through the async pipeline.
+
+## 2. Integrate filesystem operations with executors [done]
+### Dependencies: 1.1
+### Description: Refactor traversal to offload blocking I/O using asyncio.to_thread and executors.
+### Details:
+Implement async walk logic that respects max_depth, exclusion filters, and concurrency limits while delegating directory listing and file sizing to executor threads. Ensure resource cleanup and configurable concurrency from settings.
+
+## 3. Implement AsyncProgressEmitter batching [done]
+### Dependencies: 1.1
+### Description: Create a progress emitter that buffers updates and flushes every 100 ms.
+### Details:
+Design an awaitable emitter managing an internal queue, batching updates, and invoking progress callbacks without overwhelming the UI. Handle cancellation, backpressure, and final flush on completion or error.
+
+## 4. Update CLI entrypoints for asyncio execution [done]
+### Dependencies: 1.1, 1.3
+### Description: Adapt command-line interfaces to run the async scan engine via asyncio.run.
+### Details:
+Revise CLI dispatchers to initialize AsyncProgressEmitter, invoke scan_directory inside asyncio.run, and maintain responsive terminal rendering. Ensure compatibility with existing argument parsing and progress display hooks.
+
+## 5. Provide legacy synchronous wrapper support [done]
+### Dependencies: 1.2, 1.4
+### Description: Expose sync-friendly adapters for plugins relying on the previous API.
+### Details:
+Implement wrapper functions that call the coroutine via asyncio.run when no event loop is active and manage loop reuse when embedded in async contexts. Document deprecation notices and maintain backward-compatible return types.
+
+## 6. Revise tests and documentation for async pipeline [done]
+### Dependencies: 1.2, 1.3, 1.4, 1.5
+### Description: Update test suites and guides to cover the new concurrency model.
+### Details:
+Add pytest.mark.asyncio coverage, property-based tests for aggregation determinism, and regression checks for progress callbacks. Refresh documentation with async usage examples, wrapper guidance, and upgrade notes for plugin authors.
+

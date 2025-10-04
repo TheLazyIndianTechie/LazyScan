@@ -22,35 +22,43 @@ def get_chrome_cache_targets(profile_path=None):
     Returns:
         Dictionary mapping cache category names to their paths.
     """
-    chrome_base = os.path.expanduser('~/Library/Application Support/Google/Chrome')
+    chrome_base = os.path.expanduser("~/Library/Application Support/Google/Chrome")
 
     if profile_path is None:
-        profile_path = os.path.join(chrome_base, 'Default')
+        profile_path = os.path.join(chrome_base, "Default")
 
     cache_targets = {
-        "Cache": os.path.join(profile_path, 'Cache'),
-        "Code Cache": os.path.join(profile_path, 'Code Cache'),
-        "GPUCache": os.path.join(profile_path, 'GPUCache'),
-        "Service Worker Cache": os.path.join(profile_path, 'Service Worker/CacheStorage'),
-        "Service Worker Scripts": os.path.join(profile_path, 'Service Worker/ScriptCache'),
-        "Media Cache": os.path.join(profile_path, 'Media Cache'),
-        "File System": os.path.join(profile_path, 'File System'),
-        "IndexedDB": os.path.join(profile_path, 'IndexedDB'),
-        "Local Storage": os.path.join(profile_path, 'Local Storage'),
-        "Session Storage": os.path.join(profile_path, 'Session Storage'),
-        "Web Storage": os.path.join(profile_path, 'WebStorage'),
+        "Cache": os.path.join(profile_path, "Cache"),
+        "Code Cache": os.path.join(profile_path, "Code Cache"),
+        "GPUCache": os.path.join(profile_path, "GPUCache"),
+        "Service Worker Cache": os.path.join(
+            profile_path, "Service Worker/CacheStorage"
+        ),
+        "Service Worker Scripts": os.path.join(
+            profile_path, "Service Worker/ScriptCache"
+        ),
+        "Media Cache": os.path.join(profile_path, "Media Cache"),
+        "File System": os.path.join(profile_path, "File System"),
+        "IndexedDB": os.path.join(profile_path, "IndexedDB"),
+        "Local Storage": os.path.join(profile_path, "Local Storage"),
+        "Session Storage": os.path.join(profile_path, "Session Storage"),
+        "Web Storage": os.path.join(profile_path, "WebStorage"),
     }
 
     # Add Chrome-wide cache directories
-    cache_targets.update({
-        "Shader Cache": os.path.join(chrome_base, 'ShaderCache'),
-        "GrShader Cache": os.path.join(chrome_base, 'GrShaderCache'),
-        "Component CRX Cache": os.path.join(chrome_base, 'component_crx_cache'),
-        "Screen AI": os.path.join(chrome_base, 'screen_ai'),
-        "Optimization Guide": os.path.join(chrome_base, 'optimization_guide_model_store'),
-        "Crash Reports": os.path.join(chrome_base, 'CrashReports'),
-        "Crashpad": os.path.join(chrome_base, 'Crashpad/completed'),
-    })
+    cache_targets.update(
+        {
+            "Shader Cache": os.path.join(chrome_base, "ShaderCache"),
+            "GrShader Cache": os.path.join(chrome_base, "GrShaderCache"),
+            "Component CRX Cache": os.path.join(chrome_base, "component_crx_cache"),
+            "Screen AI": os.path.join(chrome_base, "screen_ai"),
+            "Optimization Guide": os.path.join(
+                chrome_base, "optimization_guide_model_store"
+            ),
+            "Crash Reports": os.path.join(chrome_base, "CrashReports"),
+            "Crashpad": os.path.join(chrome_base, "Crashpad/completed"),
+        }
+    )
 
     return cache_targets
 
@@ -61,20 +69,22 @@ def get_chrome_profiles():
     Returns:
         List of tuples containing (profile_name, profile_path).
     """
-    chrome_base = os.path.expanduser('~/Library/Application Support/Google/Chrome')
+    chrome_base = os.path.expanduser("~/Library/Application Support/Google/Chrome")
     profiles = []
 
     if not os.path.exists(chrome_base):
         return profiles
 
     # Always include Default profile
-    default_path = os.path.join(chrome_base, 'Default')
+    default_path = os.path.join(chrome_base, "Default")
     if os.path.exists(default_path):
         profiles.append(("Default", default_path))
 
     # Find all Profile directories
     for item in os.listdir(chrome_base):
-        if item.startswith('Profile ') and os.path.isdir(os.path.join(chrome_base, item)):
+        if item.startswith("Profile ") and os.path.isdir(
+            os.path.join(chrome_base, item)
+        ):
             profiles.append((item, os.path.join(chrome_base, item)))
 
     return profiles
@@ -90,37 +100,50 @@ def categorize_chrome_cache(profile_path=None):
         Dictionary with categorized cache data.
     """
     categories = {
-        'safe': {
-            'Cache Files': [],
-            'Service Worker': [],
-            'Temporary Files': [],
-            'Developer Cache': [],
-            'Media Cache': [],
+        "safe": {
+            "Cache Files": [],
+            "Service Worker": [],
+            "Temporary Files": [],
+            "Developer Cache": [],
+            "Media Cache": [],
         },
-        'unsafe': {
-            'User Data': [],
-            'Extensions': [],
-            'Settings': [],
-        }
+        "unsafe": {
+            "User Data": [],
+            "Extensions": [],
+            "Settings": [],
+        },
     }
 
-    chrome_base = os.path.expanduser('~/Library/Application Support/Google/Chrome')
+    chrome_base = os.path.expanduser("~/Library/Application Support/Google/Chrome")
 
     # Safe patterns - can be deleted without losing user data
     safe_patterns = {
-        'Cache Files': ['*/Cache/*', '*/Code Cache/*', '*/GPUCache/*',
-                       'ShaderCache/*', 'GrShaderCache/*', 'component_crx_cache/*'],
-        'Service Worker': ['*/Service Worker/CacheStorage/*', '*/Service Worker/ScriptCache/*'],
-        'Temporary Files': ['*/Temp/*', '*/.com.google.Chrome.*', 'screen_ai/*'],
-        'Developer Cache': ['*/File System/*', '*/IndexedDB/*'],
-        'Media Cache': ['*/Media Cache/*', 'optimization_guide_model_store/*'],
+        "Cache Files": [
+            "*/Cache/*",
+            "*/Code Cache/*",
+            "*/GPUCache/*",
+            "ShaderCache/*",
+            "GrShaderCache/*",
+            "component_crx_cache/*",
+        ],
+        "Service Worker": [
+            "*/Service Worker/CacheStorage/*",
+            "*/Service Worker/ScriptCache/*",
+        ],
+        "Temporary Files": ["*/Temp/*", "*/.com.google.Chrome.*", "screen_ai/*"],
+        "Developer Cache": ["*/File System/*", "*/IndexedDB/*"],
+        "Media Cache": ["*/Media Cache/*", "optimization_guide_model_store/*"],
     }
 
     # Unsafe patterns - contains user data, bookmarks, passwords, etc.
     unsafe_patterns = {
-        'User Data': ['*/History*', '*/Bookmarks*', '*/Favicons*', '*/Login Data*'],
-        'Extensions': ['*/Extensions/*', '*/Extension State/*', '*/Local Extension Settings/*'],
-        'Settings': ['*/Preferences', '*/Secure Preferences', '*/Local State'],
+        "User Data": ["*/History*", "*/Bookmarks*", "*/Favicons*", "*/Login Data*"],
+        "Extensions": [
+            "*/Extensions/*",
+            "*/Extension State/*",
+            "*/Local Extension Settings/*",
+        ],
+        "Settings": ["*/Preferences", "*/Secure Preferences", "*/Local State"],
     }
 
     # Scan safe patterns
@@ -131,11 +154,11 @@ def categorize_chrome_cache(profile_path=None):
                 try:
                     if os.path.isfile(path):
                         size = os.path.getsize(path)
-                        categories['safe'][category].append((path, size, 'file'))
+                        categories["safe"][category].append((path, size, "file"))
                     elif os.path.isdir(path):
                         size = compute_directory_size(path)
                         if size > 0:
-                            categories['safe'][category].append((path, size, 'dir'))
+                            categories["safe"][category].append((path, size, "dir"))
                 except (OSError, PermissionError):
                     continue
 
@@ -147,11 +170,11 @@ def categorize_chrome_cache(profile_path=None):
                 try:
                     if os.path.isfile(path):
                         size = os.path.getsize(path)
-                        categories['unsafe'][category].append((path, size, 'file'))
+                        categories["unsafe"][category].append((path, size, "file"))
                     elif os.path.isdir(path):
                         size = compute_directory_size(path)
                         if size > 0:
-                            categories['unsafe'][category].append((path, size, 'dir'))
+                            categories["unsafe"][category].append((path, size, "dir"))
                 except (OSError, PermissionError):
                     continue
 
@@ -167,7 +190,7 @@ def generate_chrome_cache_report(include_profiles=True):
     Returns:
         Dictionary containing the cache report.
     """
-    chrome_base = os.path.expanduser('~/Library/Application Support/Google/Chrome')
+    chrome_base = os.path.expanduser("~/Library/Application Support/Google/Chrome")
 
     if not os.path.exists(chrome_base):
         return {
@@ -175,10 +198,14 @@ def generate_chrome_cache_report(include_profiles=True):
             "profiles": [],
             "total_size": 0,
             "safe_size": 0,
-            "categories": {}
+            "categories": {},
         }
 
-    profiles = get_chrome_profiles() if include_profiles else [("Default", os.path.join(chrome_base, "Default"))]
+    profiles = (
+        get_chrome_profiles()
+        if include_profiles
+        else [("Default", os.path.join(chrome_base, "Default"))]
+    )
     profile_reports = []
     total_size = 0
     safe_size = 0
@@ -191,7 +218,7 @@ def generate_chrome_cache_report(include_profiles=True):
         for category_name, items in category_data.items():
             for path, size, item_type in items:
                 total_size += size
-                if category_type == 'safe':
+                if category_type == "safe":
                     safe_size += size
 
     # Generate per-profile reports if requested
@@ -202,21 +229,34 @@ def generate_chrome_cache_report(include_profiles=True):
             cache_dirs = {}
 
             for cache_name, cache_path in profile_cache_targets.items():
-                if cache_name in ["Shader Cache", "GrShader Cache", "Component CRX Cache",
-                                 "Screen AI", "Optimization Guide", "Crash Reports", "Crashpad"]:
+                if cache_name in [
+                    "Shader Cache",
+                    "GrShader Cache",
+                    "Component CRX Cache",
+                    "Screen AI",
+                    "Optimization Guide",
+                    "Crash Reports",
+                    "Crashpad",
+                ]:
                     continue  # Skip Chrome-wide caches for individual profiles
 
                 exists = os.path.exists(cache_path)
                 size = compute_directory_size(cache_path) if exists else 0
                 profile_size += size
-                cache_dirs[cache_name] = {"exists": exists, "size": size, "path": cache_path}
+                cache_dirs[cache_name] = {
+                    "exists": exists,
+                    "size": size,
+                    "path": cache_path,
+                }
 
-            profile_reports.append({
-                "name": profile_name,
-                "path": profile_path,
-                "cache_dirs": cache_dirs,
-                "total_size": profile_size
-            })
+            profile_reports.append(
+                {
+                    "name": profile_name,
+                    "path": profile_path,
+                    "cache_dirs": cache_dirs,
+                    "total_size": profile_size,
+                }
+            )
 
     return {
         "installed": True,
@@ -225,7 +265,7 @@ def generate_chrome_cache_report(include_profiles=True):
         "total_size": total_size,
         "safe_size": safe_size,
         "unsafe_size": total_size - safe_size,
-        "categories": categories
+        "categories": categories,
     }
 
 

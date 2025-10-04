@@ -6,6 +6,7 @@ Discovers VSCode installations, analyzes cache sizes, and provides safe cleanup 
 
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Callable
+import asyncio
 
 from ..core.logging_config import get_logger, get_console
 from ..core.formatting import human_readable, get_terminal_colors
@@ -159,6 +160,16 @@ class VSCodePlugin:
                 "cleaned_items": 0,
                 "total_size": 0
             }
+
+    async def scan_async(self, **kwargs) -> Dict[str, Any]:
+        """Perform VSCode-specific scanning asynchronously."""
+        # Delegate to sync implementation since VSCode scanning is I/O bound
+        return await asyncio.get_event_loop().run_in_executor(None, self.scan, **kwargs)
+
+    async def clean_async(self, **kwargs) -> Dict[str, Any]:
+        """Perform VSCode-specific cleaning asynchronously."""
+        # Delegate to sync implementation since VSCode cleaning involves filesystem operations
+        return await asyncio.get_event_loop().run_in_executor(None, self.clean, **kwargs)
 
 
 def get_platform_vscode_paths() -> List[Path]:

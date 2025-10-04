@@ -21,6 +21,9 @@ wheel==0.44.0
 setuptools==74.1.2
 build==1.2.1
 
+# Security scanning
+pip-audit==2.7.3
+
 # Testing and linting extras
 pytest-asyncio==0.24.0
 click==8.1.7

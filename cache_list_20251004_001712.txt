@@ -1,0 +1,175 @@
+LazyScan Cache Directory Report
+Generated: 2025-10-04 00:17:12
+Total cache size: 8.8 GB
+Total directories: 169
+================================================================================
+
+  1.     5.1 GB - /Users/vinayvidyasagar/Library/Caches/Comet
+  2.     1.3 GB - /Users/vinayvidyasagar/.cache/puppeteer
+  3.   247.3 MB - /Users/vinayvidyasagar/.cache/uv
+  4.   222.1 MB - /Users/vinayvidyasagar/Library/Caches/SiriTTS
+  5.   152.8 MB - /Users/vinayvidyasagar/.cache/prisma
+  6.   139.0 MB - /Users/vinayvidyasagar/Library/Caches/company.thebrowser.dia
+  7.   126.3 MB - /Users/vinayvidyasagar/Library/Caches/ms-playwright-go
+  8.   117.6 MB - /Users/vinayvidyasagar/Library/Caches/JetBrains
+  9.   114.8 MB - /Users/vinayvidyasagar/Library/Application Support/Claude/Cache
+ 10.    92.9 MB - /Users/vinayvidyasagar/.cache/chrome-devtools-mcp
+ 11.    91.0 MB - /Users/vinayvidyasagar/Library/Application Support/Cursor/CachedData
+ 12.    85.2 MB - /Users/vinayvidyasagar/.cache/opencode
+ 13.    80.3 MB - /Users/vinayvidyasagar/.cache/pre-commit
+ 14.    75.1 MB - /Users/vinayvidyasagar/Library/Caches/com.epicgames.EpicGamesLauncher
+ 15.    73.6 MB - /Users/vinayvidyasagar/Library/Application Support/Trae/CachedData
+ 16.    72.0 MB - /Users/vinayvidyasagar/Library/Caches/Firefox
+ 17.    72.0 MB - /Users/vinayvidyasagar/Library/Caches/Firefox/Profiles
+ 18.    53.2 MB - /Library/Logs/DiagnosticReports
+ 19.    52.3 MB - /Users/vinayvidyasagar/Library/Caches/SharedImageCache
+ 20.    50.3 MB - /Users/vinayvidyasagar/Library/Caches/Unity
+ 21.    48.6 MB - /Users/vinayvidyasagar/Library/Caches/node-gyp
+ 22.    46.1 MB - /Users/vinayvidyasagar/.cache/n8n
+ 23.    38.4 MB - /Users/vinayvidyasagar/Library/Caches/GeoServices
+ 24.    35.0 MB - /Users/vinayvidyasagar/Library/Caches/Homebrew
+ 25.    33.5 MB - /Users/vinayvidyasagar/Library/Logs/Unreal Engine
+ 26.    31.0 MB - /Users/vinayvidyasagar/Library/Logs/JetBrains
+ 27.    30.3 MB - /Users/vinayvidyasagar/Library/Caches/Homebrew/api
+ 28.    29.4 MB - /Users/vinayvidyasagar/Library/Caches/com.raycast.macos
+ 29.    27.8 MB - /Users/vinayvidyasagar/Library/Caches/typescript
+ 30.    25.3 MB - /Users/vinayvidyasagar/Library/Application Support/UnityHub/Cache
+ 31.    24.1 MB - /private/var/log/powermanagement
+ 32.    23.8 MB - /Users/vinayvidyasagar/Library/Application Support/Perforce P4 One/Cache
+ 33.    20.2 MB - /private/var/log/com.apple.xpc.launchd
+ 34.    16.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.parsecd
+ 35.    16.0 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.helpd
+ 36.    12.8 MB - /Users/vinayvidyasagar/Library/Caches/com.trae.app.ShipIt
+ 37.    11.6 MB - /Users/vinayvidyasagar/Library/Caches/claude-cli-nodejs
+ 38.    10.8 MB - /Users/vinayvidyasagar/Library/Caches/com.pioneerdj.rekordboxdj
+ 39.     8.3 MB - /Users/vinayvidyasagar/Library/Caches/bun
+ 40.     7.9 MB - /Users/vinayvidyasagar/Library/Caches/com.hackemist.SDImageCache
+ 41.     7.7 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.appstoreagent
+ 42.     7.5 MB - /Library/Logs/CrashReporter
+ 43.     7.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.ctcategories.service
+ 44.     7.0 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.CloudTelemetry
+ 45.     6.5 MB - /Users/vinayvidyasagar/Library/Logs/Claude
+ 46.     6.3 MB - /private/var/log/asl
+ 47.     4.9 MB - /Users/vinayvidyasagar/Library/Logs/Unity
+ 48.     4.9 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.AppleMediaServices
+ 49.     4.7 MB - /Users/vinayvidyasagar/Library/Caches/Homebrew/bootsnap
+ 50.     4.5 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.tipsd
+ 51.     3.7 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.AMPLibraryAgent
+ 52.     3.5 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.amsengagementd
+ 53.     3.5 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.iCloudNotificationAgent
+ 54.     3.5 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.appstorecomponentsd
+ 55.     3.4 MB - /Users/vinayvidyasagar/.cache/amp
+ 56.     3.3 MB - /Users/vinayvidyasagar/Library/Application Support/Trae/Cache
+ 57.     2.9 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.amsaccountsd
+ 58.     2.5 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.Spotlight
+ 59.     2.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.akd
+ 60.     2.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.storekitagent
+ 61.     2.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.appleaccountd
+ 62.     2.1 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.iTunes
+ 63.     2.0 MB - /private/var/log/DiagnosticMessages
+ 64.     1.8 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.watchlistd
+ 65.     1.8 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.dt.Xcode
+ 66.     1.8 MB - /Users/vinayvidyasagar/Library/Logs/CoreSimulator
+ 67.     1.6 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.geoanalyticsd
+ 68.     1.5 MB - /Users/vinayvidyasagar/Library/Caches/Animoji
+ 69.     1.5 MB - /private/var/folders/_j/s2wqqyrd4tx7rj52yn51klr80000gn/T/node-compile-cache
+ 70.     1.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.amsondevicestoraged
+ 71.     1.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.itunescloudd
+ 72.     1.4 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.avkit.thumbnailCache
+ 73.     1.2 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.FileProviderDaemon.AppStoreService
+ 74.     1.1 MB - /Users/vinayvidyasagar/Library/Application Support/Trae/CachedProfilesData
+ 75.     1.0 MB - /Users/vinayvidyasagar/Library/Caches/com.electron.factory-bridge
+ 76.     1.0 MB - /Users/vinayvidyasagar/Library/Caches/com.colliderli.iina
+ 77.     1.0 MB - /Users/vinayvidyasagar/Library/Caches/com.apple.nbagent
+ 78.  1005.4 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.donotdisturbd
+ 79.   957.6 KB - /Users/vinayvidyasagar/Library/Caches/askpermissiond
+ 80.   888.0 KB - /Users/vinayvidyasagar/Library/Application Support/Cursor/CachedExtensionVSIXs
+ 81.   816.5 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.Family-Settings.extension
+ 82.   801.2 KB - /Users/vinayvidyasagar/Library/Application Support/Cursor/CachedProfilesData
+ 83.   757.0 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.feedbacklogger
+ 84.   667.5 KB - /Users/vinayvidyasagar/Library/Caches/com.anthropic.claudefordesktop
+ 85.   631.9 KB - /Users/vinayvidyasagar/Library/Logs/DiagnosticReports
+ 86.   595.8 KB - /Users/vinayvidyasagar/Library/Caches/JetPackCache
+ 87.   571.4 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.python
+ 88.   562.8 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.translationd
+ 89.   437.1 KB - /private/var/folders/_j/s2wqqyrd4tx7rj52yn51klr80000gn/C/com.apple.dt.IDECacheDeleteAppExtension
+ 90.   418.0 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.passd
+ 91.   391.6 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.proactive.eventtracker
+ 92.   342.8 KB - /private/var/log/com.apple.wifi.analytics
+ 93.   322.4 KB - /Users/vinayvidyasagar/Library/Logs/Zed
+ 94.   301.3 KB - /Users/vinayvidyasagar/Library/Caches/com.daisydiskapp.DaisyDiskStandAlone
+ 95.   293.3 KB - /Users/vinayvidyasagar/Library/Caches/com.todesktop.230313mzl4w4u92
+ 96.   281.2 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.betaenrollmentagent
+ 97.   277.2 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.cloudd
+ 98.   255.5 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.cache_delete
+ 99.   244.0 KB - /Users/vinayvidyasagar/Library/Caches/com.conductor.app
+100.   231.6 KB - /System/Library/Caches/com.apple.factorydata
+101.   216.8 KB - /Users/vinayvidyasagar/Library/Caches/com.figma.agent
+102.   216.1 KB - /Users/vinayvidyasagar/Library/Logs/DontGetFat
+103.   215.6 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.accountsd
+104.   212.0 KB - /Users/vinayvidyasagar/Library/Caches/org.swift.swiftpm
+105.   184.6 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.AuthenticationServicesCore.AuthenticationServicesAgent
+106.   184.6 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.Siri-Settings.extension
+107.   182.1 KB - /private/var/folders/_j/s2wqqyrd4tx7rj52yn51klr80000gn/C/com.apple.systempreferences.AppleIDSettings
+108.   172.6 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.SystemProfiler.AboutExtension
+109.   172.3 KB - /Users/vinayvidyasagar/Library/Caches/com.operasoftware.Opera
+110.   148.2 KB - /Users/vinayvidyasagar/Library/Caches/com.oracle.java.Java-Updater
+111.   143.9 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.remindd
+112.   140.6 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.dataaccess.dataaccessd
+113.   140.4 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.assistant_service
+114.   136.4 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.SoftwareUpdateNotificationManager
+115.   132.3 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.SystemProfiler
+116.   128.3 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.controlcenter
+117.   125.8 KB - /Users/vinayvidyasagar/Library/Logs/Factory Bridge
+118.   112.5 KB - /Users/vinayvidyasagar/Library/Application Support/Cursor/Cache
+119.    96.0 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.controlcenter.helper
+120.    80.5 KB - /Users/vinayvidyasagar/Library/Caches/pip
+121.    80.4 KB - /Users/vinayvidyasagar/Library/Caches/Blender
+122.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/familycircled
+123.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/com.google.GoogleUpdater
+124.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/com.unity3d.unityhub
+125.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/com.trae.app
+126.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/MiniLauncher
+127.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/com.trae.app.helper
+128.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/com.pioneer.Upmgr_rekordbox
+129.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.siri.SuggestionsBookkeepingService
+130.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.nsurlsessiond
+131.    80.0 KB - /Users/vinayvidyasagar/Library/Caches/chrome_crashpad_handler
+132.    74.3 KB - /Users/vinayvidyasagar/Library/Logs/Homebrew
+133.    64.8 KB - /private/var/folders/_j/s2wqqyrd4tx7rj52yn51klr80000gn/C/com.apple.SystemProfiler
+134.    52.6 KB - /Users/vinayvidyasagar/Library/Caches/black
+135.    42.8 KB - /Users/vinayvidyasagar/Library/Caches/GameKit
+136.    21.6 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.sirittsd
+137.    21.0 KB - /Users/vinayvidyasagar/Library/Caches/com.anthropic.claudefordesktop.ShipIt
+138.    18.4 KB - /Users/vinayvidyasagar/Library/Caches/Python Entry Points
+139.    16.5 KB - /private/var/log/Tunnelblick
+140.    16.3 KB - /private/var/folders/_j/s2wqqyrd4tx7rj52yn51klr80000gn/C/com.apple.loginwindow
+141.    12.8 KB - /Users/vinayvidyasagar/Library/Caches/com.todesktop.230313mzl4w4u92.ShipIt
+142.    12.2 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.VideoConference
+143.    10.4 KB - /Users/vinayvidyasagar/Library/Caches/checkpoint-nodejs
+144.     9.0 KB - /Users/vinayvidyasagar/Library/Caches/com.unity3d.unityhub.ShipIt
+145.     6.3 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.chrono
+146.     5.7 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.commerce
+147.     5.7 KB - /Users/vinayvidyasagar/.cache/yt-dlp
+148.     5.6 KB - /Users/vinayvidyasagar/.cache/gh
+149.     4.0 KB - /Users/vinayvidyasagar/Library/Logs/LazyGameDevs
+150.     3.9 KB - /Users/vinayvidyasagar/Library/Logs/Stealth Attack Inc
+151.     3.4 KB - /Users/vinayvidyasagar/Library/Logs/PioneerLog
+152.     3.2 KB - /Library/Caches/ColorSync
+153.     2.4 KB - /private/var/folders/_j/s2wqqyrd4tx7rj52yn51klr80000gn/C/com.apple.AssetCacheLocatorService
+154.     2.1 KB - /Users/vinayvidyasagar/Library/Logs/AppAnalytics
+155.     1.9 KB - /Users/vinayvidyasagar/Library/Caches/com.apple.DictionaryServices
+156.     1.5 KB - /Users/vinayvidyasagar/Library/Caches/SentryCrash
+157.     1.2 KB - /Users/vinayvidyasagar/Library/Caches/com.vercel.cli
+158.     1.1 KB - /Users/vinayvidyasagar/Library/Logs/Pioneer
+159.    851.0 B - /Users/vinayvidyasagar/Library/Caches/io.sentry
+160.    725.0 B - /Users/vinayvidyasagar/Library/Caches/PassKit
+161.    724.0 B - /private/var/log/Native Instruments
+162.    403.0 B - /Users/vinayvidyasagar/Library/Logs/Diversion Desktop
+163.    288.0 B - /Users/vinayvidyasagar/Library/Caches/com.apple.gamed
+164.    203.0 B - /Users/vinayvidyasagar/Library/Logs/Focusrite Control
+165.    192.0 B - /Users/vinayvidyasagar/Library/Caches/icloudmailagent
+166.    159.0 B - /Library/Logs/Focusrite Control
+167.     72.0 B - /Users/vinayvidyasagar/Library/Application Support/Factory Bridge/Cache
+168.     13.0 B - /Users/vinayvidyasagar/Library/Caches/prisma-nodejs
+169.      8.0 B - /Users/vinayvidyasagar/Library/Caches/org.webkit.Playwright

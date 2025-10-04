@@ -1,0 +1,67 @@
+# Task ID: 7
+# Title: Implement cross-browser cache management modules
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Add Firefox, Safari, Edge, and Brave profile discovery with safe cache cleanup routines aligned to their directory layouts.
+# Details:
+Create new modules under apps.browsers handling platform-specific profile enumeration:
+- Firefox: parse profiles.ini from profiles folder (platformdirs) and clean cache2, startupCache, shader-cache.
+- Safari: target ~/Library/Caches/com.apple.Safari and WebKit/Cache directories with root privileges check.
+- Edge/Brave: mirror Chrome logic but adjust base paths (%LOCALAPPDATA%\Microsoft\Edge\User Data, ~/Library/Application Support/BraveSoftware).
+Apply SAFE_TO_DELETE taxonomy and expose profile summaries in CLI with interactive selection.
+Pseudo-code:
+```
+def discover_profiles(browser: BrowserEnum):
+    for profile in browser.resolver():
+        caches = [p for p in profile.paths if p.name in SAFE_TO_DELETE]
+        yield BrowserProfile(name=profile.name, caches=caches)
+```
+Ensure dry-run and backup semantics remain consistent across browsers.
+
+# Test Strategy:
+Write unit tests with temporary profile structures for each browser, verifying profile enumeration and safe cache classification; add platform-marked tests (xfail on unsupported OS) to validate path resolution; include e2e CLI tests that run `lazyscan clean --app firefox --dry-run` and assert output correctness.
+
+# Subtasks:
+## 1. Implement Firefox profile discovery and cache mapping [done]
+### Dependencies: None
+### Description: Create Firefox-specific module to enumerate profiles via profiles.ini and surface safe cache directories.
+### Details:
+Use platformdirs to locate Firefox profile root, parse profiles.ini to build BrowserProfile instances, and include cache2, startupCache, and shader-cache directories flagged for SAFE_TO_DELETE handling while preserving dry-run hooks.
+
+## 2. Implement Safari cache module with permission safeguards [done]
+### Dependencies: None
+### Description: Add Safari cache discovery targeting macOS cache locations with privilege checks.
+### Details:
+Resolve ~/Library/Caches/com.apple.Safari and WebKit/Cache paths, verify root privileges where required, guard against missing directories, and wrap cleanup routines with permission-aware error messaging.
+
+## 3. Implement Edge and Brave profile discovery modules [done]
+### Dependencies: None
+### Description: Adapt Chromium-based discovery logic for Edge and Brave profile roots.
+### Details:
+Mirror existing Chrome resolver patterns while adjusting base paths to %LOCALAPPDATA%\Microsoft\Edge\User Data and ~/Library/Application Support/BraveSoftware, ensuring multiple profile support and cache directory selection consistent with SAFE_TO_DELETE.
+
+## 4. Align SAFE_TO_DELETE taxonomy with new browser caches [done]
+### Dependencies: 7.1, 7.2, 7.3
+### Description: Extend SAFE_TO_DELETE classifications to cover Firefox, Safari, Edge, and Brave cache targets.
+### Details:
+Catalog cache directories surfaced by each new module, update taxonomy metadata, document rationale for each entry, and confirm taxonomy exposure through shared validation utilities.
+
+## 5. Ensure dry-run and backup semantics cover new browsers [done]
+### Dependencies: 7.1, 7.2, 7.3, 7.4
+### Description: Propagate dry-run and backup workflows across all newly added browser modules.
+### Details:
+Audit cleanup execution paths to reuse existing dry-run output formatting and backup creation, add safeguards against accidental deletions, and update configuration toggles for browser-specific operations.
+
+## 6. Extend CLI profile summaries with interactive selection for new browsers [done]
+### Dependencies: 7.1, 7.2, 7.3, 7.4, 7.5
+### Description: Update CLI flows to list new browser profiles and support interactive cache selection.
+### Details:
+Integrate new BrowserProfile data into CLI summary rendering, ensure interactive prompts respect dry-run/backup states, and provide user-friendly labels for multi-profile scenarios across platforms.
+
+## 7. Build cross-platform test suites for browser cache modules and CLI flows [done]
+### Dependencies: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
+### Description: Create automated tests covering discovery, taxonomy, safety semantics, and CLI interactions for all browsers.
+### Details:
+Add unit tests with temporary profile structures per browser, include platform-marked cases for OS-specific paths, and implement CLI end-to-end dry-run scenarios verifying output alignment and safety reporting.
+

@@ -14,27 +14,22 @@ from .unity import (
     handle_unity_discovery,
     handle_unity_projects_integration,
     scan_unity_project_via_hub,
-    prompt_unity_project_selection
+    prompt_unity_project_selection,
 )
 
-from .unreal import (
-    handle_unreal_discovery
-)
+from .unreal import handle_unreal_discovery
 
-from .chrome import (
-    handle_chrome_discovery,
-    CHROME_PATHS
-)
+from .chrome import handle_chrome_discovery, CHROME_PATHS
 
 __all__ = [
-    'chrome', 
-    'unity', 
-    'unreal',
-    'handle_unity_discovery',
-    'handle_unity_projects_integration',
-    'scan_unity_project_via_hub',
-    'prompt_unity_project_selection',
-    'handle_unreal_discovery',
-    'handle_chrome_discovery',
-    'CHROME_PATHS'
+    "chrome",
+    "unity",
+    "unreal",
+    "handle_unity_discovery",
+    "handle_unity_projects_integration",
+    "scan_unity_project_via_hub",
+    "prompt_unity_project_selection",
+    "handle_unreal_discovery",
+    "handle_chrome_discovery",
+    "CHROME_PATHS",
 ]

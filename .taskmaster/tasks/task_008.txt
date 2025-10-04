@@ -1,0 +1,81 @@
+# Task ID: 8
+# Title: Expand system cache management across platforms
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Cover additional system cache targets including Homebrew, npm, pip, Docker, Linux package managers, and Windows temp locations.
+# Details:
+Extend platforms.macos, platforms.linux, and platforms.windows modules with new cache providers:
+- macOS: ~/Library/Caches/Homebrew, ~/.npm, ~/Library/Caches/pip, Docker.qcow2 pruning via `docker system prune --volumes` dry-run + prompt.
+- Linux: ~/.cache/*, /var/cache/{apt,apt/archives,yum,pacman/pkg}, /tmp pruning with aging policy.
+- Windows: %TEMP%, %WINDIR%\SoftwareDistribution\Download, AppData\Local\Temp, Prefetch.
+Use policy objects defining safety level, prerequisites (admin rights), and retention days from config.security.
+Pseudo-code:
+```
+@dataclass
+class CacheTarget:
+    path: Path
+    requires_admin: bool = False
+    retention_days: Optional[int] = None
+
+SYSTEM_TARGETS = load_targets_for_platform()
+for target in SYSTEM_TARGETS:
+    if target.requires_admin and not has_admin():
+        continue
+    if target.retention_days:
+        prune_older_than(target.path, target.retention_days)
+```
+Integrate with clean subcommand for platform-specific categories.
+
+# Test Strategy:
+Conduct platform-conditional unit tests mocking environment variables and filesystem layout to ensure targets are correctly enumerated; use integration tests in CI containers for macOS/Linux runners to simulate cleanup with dry-run; add regression tests to confirm admin-required targets are skipped gracefully when permissions are lacking.
+
+# Subtasks:
+## 1. Assess configuration requirements for new cache targets [in-progress]
+### Dependencies: None
+### Description: Review existing platform cache modules and configuration schemas to map required cache targets, retention policies, admin prerequisites, and safety levels.
+### Details:
+Inventory current cache provider abstractions, document gaps for Homebrew, npm, pip, Docker, Linux package managers, and Windows temp locations, and outline necessary config.security entries.
+
+## 2. Implement macOS cache provider extensions [in-progress]
+### Dependencies: 8.1
+### Description: Add macOS cache targets and Docker pruning hooks to the platforms.macos module.
+### Details:
+Define CacheTarget instances for Homebrew, npm, pip paths, wire Docker dry-run prompt handling, and ensure targets are categorized with appropriate safety levels and admin flags.
+
+## 3. Implement Linux cache provider extensions [pending]
+### Dependencies: 8.1
+### Description: Expand platforms.linux with cache targets for user and system package caches plus aging-based /tmp pruning.
+### Details:
+Register ~/.cache/* and /var/cache variants for apt, yum, pacman with retention configs and admin requirements, and implement retention-aware pruning for /tmp resources.
+
+## 4. Implement Windows cache provider extensions [pending]
+### Dependencies: 8.1
+### Description: Add Windows-specific cache locations to platforms.windows with correct privilege handling.
+### Details:
+Introduce CacheTarget definitions for %TEMP%, %WINDIR%\SoftwareDistribution\Download, AppData\Local\Temp, and Prefetch, annotating admin needs and retention settings.
+
+## 5. Enforce retention and safety policies across cache targets [pending]
+### Dependencies: 8.2, 8.3, 8.4
+### Description: Integrate configuration-driven retention days, safety levels, and admin checks into cache pruning routines.
+### Details:
+Update policy objects to pull retention_days and safety levels from config.security, ensure requires_admin checks gate execution, and adjust prune_older_than logic accordingly.
+
+## 6. Integrate Docker cleanup workflow [pending]
+### Dependencies: 8.2, 8.5
+### Description: Embed docker system prune dry-run and confirmation flow within cache management.
+### Details:
+Implement command orchestration respecting safety policies, capture dry-run summaries, and prompt users before executing volume pruning.
+
+## 7. Wire CLI, logging, and reporting for new cache categories [in-progress]
+### Dependencies: 8.2, 8.3, 8.4, 8.5, 8.6
+### Description: Expose new system cache targets through the clean subcommand and update observability outputs.
+### Details:
+Extend CLI options and category listings, ensure logging captures target actions and skipped admin-required items, and update reporting summaries for macOS, Linux, and Windows caches.
+
+## 8. Create platform tests and update documentation [pending]
+### Dependencies: 8.2, 8.3, 8.4, 8.5, 8.6, 8.7
+### Description: Add mocks and tests for platform-specific cache targets and revise user documentation for the expanded coverage.
+### Details:
+Develop unit tests with mocked filesystem/admin contexts, add integration scenarios for dry-run behavior, and update docs to describe new cache categories, safety policies, and Docker prompts.
+

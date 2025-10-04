@@ -1,5 +1,49 @@
 # Changelog
 
+## [Unreleased] - 2025-01-04
+### Documentation
+- **Product Requirements Document (PRD)**: Created comprehensive PRD.md covering:
+  - Executive summary with product vision and success metrics
+  - Detailed feature requirements for all integrations (Unity, Unreal, browsers, dev tools)
+  - Technical architecture and performance requirements
+  - Product roadmap from v0.6.0 through v1.0.0 (Q1-Q4 2025)
+  - Risk analysis and mitigation strategies
+  - Success criteria and KPIs for adoption, quality, and safety
+  - Open questions and decision points for future development
+
+## [0.6.0-beta] - 2024-10-01
+### Added
+- Full test suite with 80%+ coverage using pytest and hypothesis
+- Security-specific tests for safe deletion and validation
+- Platform integration tests for macOS, Linux, and Windows
+- Pre-commit hooks with ruff, black, and mypy enforcement
+- Subcommand structure: `lazyscan scan`, `lazyscan clean --app unity`
+- Basic plugin architecture with entry points for extensibility
+- Async scanning support in core/scanner.py for better performance
+- JSON output mode with `--json` flag
+- Advanced filtering: `--exclude`, `--min-size`
+- Expanded app integrations: Firefox, Safari, VSCode basics
+- TOML-based user configuration persistence
+- CI/CD pipeline stub with GitHub Actions for linting and testing
+- Enhanced recovery/audit UI with menu and summaries
+- Cross-platform cache paths for Windows and Linux
+- Merged logging configurations; removed duplications
+
+### Fixed
+- Unused imports and linting issues across modules
+- Inline comments and metadata in setup.py
+- Logging duplications between core and utils
+- Basic diagnostics and type checking passes
+
+### Security
+- Verified safe_delete.py with mocks and edge cases
+- Added symlinks and critical path blocks
+- Full audit logging for all operations
+
+### Other
+- Updated classifiers for Python 3.12
+- Improved docstrings and API documentation
+
 ## [0.5.0] - 2025-08-02
 ### Added
 - **Unreal Engine Support**: New `--unreal` flag for discovering and managing Unreal Engine projects

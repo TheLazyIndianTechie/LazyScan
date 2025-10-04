@@ -5,6 +5,7 @@ Contains platform abstractions for cross-platform compatibility.
 """
 
 from . import macos
+
 # Future: from . import windows, linux
 
-__all__ = ['macos']
+__all__ = ["macos"]

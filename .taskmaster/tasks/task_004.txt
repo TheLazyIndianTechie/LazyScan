@@ -1,0 +1,60 @@
+# Task ID: 4
+# Title: Introduce TOML-based configuration with migration
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Replace the INI configuration with TOML while migrating existing user preferences and expanding per-application settings.
+# Details:
+Implement ConfigManager that reads ~/.config/lazyscan/config.toml (platformdirs for path discovery). On startup, detect legacy preferences.ini, parse with configparser, transform keys to the new TOML schema, and write the new file once. Provide defaults for general, scan, unity, security sections and allow per-app overrides.
+Pseudo-code:
+```
+def load_config():
+    cfg_dir = platformdirs.user_config_dir("lazyscan")
+    toml_path = Path(cfg_dir) / "config.toml"
+    if not toml_path.exists() and legacy_ini.exists():
+        data = migrate_ini(legacy_ini)
+        toml_path.write_text(tomli_w.dumps(data))
+    return tomllib.loads(toml_path.read_text())
+```
+Expose strongly-typed accessors with dataclasses and cache the config in a singleton to avoid repeated IO. Update documentation and CLI `config` subcommand to manipulate TOML values safely.
+
+# Test Strategy:
+Add unit tests covering migration from representative INI files, ensuring defaults are applied when keys are missing; validate round-trip serialization with tomli-w; include concurrency test to ensure config writes are atomic via tempfile + replace semantics.
+
+# Subtasks:
+## 1. Establish configuration path discovery and bootstrap handling [done]
+### Dependencies: None
+### Description: Implement ConfigManager initialization to locate the TOML configuration directory using platformdirs, ensure the directory exists, and wire basic file loading hooks.
+### Details:
+Create utilities that resolve ~/.config/lazyscan/config.toml (respecting OS-specific paths), ensure directories are created, and stub load/save methods for subsequent subtasks to extend.
+
+## 2. Define TOML schema with section defaults and per-app overrides [done]
+### Dependencies: 4.1
+### Description: Design the TOML data model covering general, scan, unity, and security sections while supporting per-application overrides.
+### Details:
+Document the schema structure, enumerate default values, and formalize how nested per-application overrides are stored for downstream accessors and migration tooling.
+
+## 3. Implement legacy INI-to-TOML migration workflow [done]
+### Dependencies: 4.1, 4.2
+### Description: Detect existing preferences.ini files, parse them with configparser, translate values to the new TOML schema, and persist the migrated data.
+### Details:
+Create migrate_ini utilities, handle key normalization, apply defaults for missing entries, and ensure migration runs once before subsequent loads.
+
+## 4. Create typed configuration accessors with caching [done]
+### Dependencies: 4.2, 4.3
+### Description: Introduce dataclass-based typed views of the configuration and cache the loaded configuration in a singleton to minimize IO.
+### Details:
+Implement dataclasses mapping to schema sections, expose accessor methods, and integrate caching/invalidation logic within ConfigManager.
+
+## 5. Add atomic write safeguards and concurrency handling [done]
+### Dependencies: 4.1, 4.4
+### Description: Ensure configuration writes use tempfile-and-replace semantics and guard against concurrent modifications.
+### Details:
+Implement atomic write operations, lock or version checks as needed, and validate behavior under simulated concurrent updates.
+
+## 6. Update CLI tooling, documentation, and automated tests [done]
+### Dependencies: 4.3, 4.4, 4.5
+### Description: Revise CLI config subcommand to manipulate TOML data safely, refresh documentation, and expand tests to cover migration, defaults, and atomic writes.
+### Details:
+Document new workflow, adjust CLI interactions, and add unit/integration tests for migration scenarios, default enforcement, and write safety.
+

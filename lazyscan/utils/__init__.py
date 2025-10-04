@@ -9,22 +9,20 @@ Provides common utilities and helper functions:
 - Formatting helpers
 """
 
-from .logging_config import (
+from ..core.logging_config import (
     configure_logging,
     get_logger,
-    log_with_context,
-    get_console_adapter,
+    get_console,
     ConsoleAdapter,
-    StructuredFormatter,
-    ConsoleFormatter
+    JSONFormatter,
+    HumanFormatter,
 )
 
 __all__ = [
-    'configure_logging',
-    'get_logger', 
-    'log_with_context',
-    'get_console_adapter',
-    'ConsoleAdapter',
-    'StructuredFormatter',
-    'ConsoleFormatter'
+    "configure_logging",
+    "get_logger",
+    "get_console",
+    "ConsoleAdapter",
+    "JSONFormatter",
+    "HumanFormatter",
 ]

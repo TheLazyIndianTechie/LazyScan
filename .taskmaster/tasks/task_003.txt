@@ -1,0 +1,69 @@
+# Task ID: 3
+# Title: Implement configurable themes and responsive terminal layout
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Provide theme presets and terminal-width-aware rendering for the cyberpunk-styled UI.
+# Details:
+Introduce a ThemeRegistry in cli/ui.py that loads theme metadata (colors, glyphs, animations) from configuration and falls back to default cyberpunk values. Detect terminal dimensions using shutil.get_terminal_size and adapt table widths and progress bar lengths accordingly.
+Pseudo-code:
+```
+@dataclass
+class Theme:
+    primary: str
+    accent: str
+    warning: str
+    success: str
+    logo: List[str]
+
+class ThemeManager:
+    def load(theme_name: str) -> Theme:
+        data = config.get(f"themes.{theme_name}", DEFAULT_THEME)
+        return Theme(**data)
+
+width = shutil.get_terminal_size((120, 30)).columns
+bar_width = min(config.scan.bar_width, max(20, width - 40))
+render_progress(bar_width, theme.accent)
+```
+Add configuration schema validation, support future Unicode art toggle, and make progress animations rely on asyncio-friendly update timers introduced in task 1.
+
+# Test Strategy:
+Create snapshot tests for themed output using rich-style recorders to assert ANSI codes; mock terminal sizes to verify responsive layout adjustments; run manual smoke tests across macOS, Linux, Windows terminals to ensure no encoding regressions when Unicode art is enabled/disabled.
+
+# Subtasks:
+## 1. Implement ThemeRegistry and default fallback [done]
+### Dependencies: None
+### Description: Create a ThemeRegistry in cli/ui.py to load theme presets from configuration while defaulting to the existing cyberpunk theme.
+### Details:
+Define Theme dataclass, implement registry/manager that reads theme metadata (colors, glyphs, animations) from config, and ensure graceful fallback to DEFAULT_THEME when entries are missing.
+
+## 2. Add responsive layout calculations [done]
+### Dependencies: 3.1
+### Description: Make UI components adapt to terminal dimensions retrieved via shutil.get_terminal_size.
+### Details:
+Compute dynamic widths for tables and progress bars using configured limits and safe minimums, and apply them across rendering paths leveraging the chosen theme.
+
+## 3. Integrate asyncio-friendly progress animations [done]
+### Dependencies: 3.1, 3.2
+### Description: Update progress rendering to rely on the async timers introduced in task 1 while respecting new layout constraints.
+### Details:
+Refactor progress bar update loop to use asyncio-compatible scheduling, ensuring bar width and theme accent colors are applied consistently.
+
+## 4. Support configurable Unicode art toggle [done]
+### Dependencies: 3.1
+### Description: Introduce configuration-driven toggle to enable or disable Unicode art assets in themed output.
+### Details:
+Extend theme metadata loading to check a unicode_art flag, swap in ASCII-safe alternatives when disabled, and ensure logo/glyph rendering reacts accordingly.
+
+## 5. Validate theme configuration schema [done]
+### Dependencies: 3.1, 3.4
+### Description: Add schema validation covering theme presets, responsive settings, and Unicode art toggle.
+### Details:
+Define validation rules (e.g., via pydantic or custom checks) to ensure required color keys, glyph structures, and boolean flags are present and well-typed before themes are consumed.
+
+## 6. Create snapshot tests for themes and layouts [done]
+### Dependencies: 3.1, 3.2, 3.3, 3.4, 3.5
+### Description: Implement automated tests verifying themed output and responsive behavior across terminal sizes.
+### Details:
+Use rich-style recorders and mocked terminal dimensions to capture ANSI snapshots, cover both Unicode-on/off modes, and assert progress animation behavior with async timers.
+

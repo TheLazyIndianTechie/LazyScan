@@ -78,6 +78,12 @@ lazyscan -n 10 -w 50 ~/Downloads
 # Interactive directory selection
 lazyscan --interactive
 
+# Advanced filtering: exclude patterns and minimum size
+lazyscan --exclude "*.log" --exclude "node_modules" --min-size 1MB ~/projects
+
+# JSON output for scripting and automation
+lazyscan --json --top 5 /var/log | jq '.files[0].path'
+
 # Unity project discovery and cache management
 lazyscan --unity
 
@@ -96,6 +102,36 @@ lazyscan cache --force    # Clean all safe cache targets
 lazyscan cache --include-docker  # Include Docker cleanup
 ```
 
+### 🔧 CLI Options Reference
+
+```bash
+lazyscan [OPTIONS] [PATH]
+
+Arguments:
+  [PATH]  Directory path to scan (default: current directory)
+
+Options:
+  -n, --top INTEGER          Number of top files to display (default: 20)
+  -w, --width INTEGER        Bar width in characters (default: 40)
+  -i, --interactive          Prompt to choose directory (for the truly lazy)
+  --no-logo                  Hide the lazyscan logo
+  --json                     Output results in machine-readable JSON format
+  --exclude TEXT             Glob patterns to exclude (can be used multiple times)
+  --min-size TEXT            Minimum file size filter (e.g., '1MB', '500KB', '2GB')
+  --unity                    Scan Unity projects and cache
+  --unreal                   Scan Unreal Engine projects
+  --chrome                   Scan Chrome Application Support for cleanable files
+  --firefox                  Scan Firefox cache for cleanable files
+  --vscode                   Scan VS Code cache for cleanable files
+  --version                  Show version number and exit
+  --help                     Show this message and exit
+```
+
+**New in v0.6.0-beta:**
+- `--json`: Perfect for scripting and CI/CD pipelines
+- `--exclude`: Filter out unwanted files/directories with glob patterns
+- `--min-size`: Only show files above a certain size threshold
+
 ---
 
 ## ✨ Features
@@ -105,6 +141,8 @@ lazyscan cache --include-docker  # Include Docker cleanup
 - **🎨 Beautiful terminal UI** with color-coded output and progress bars
 - **📊 Human-readable sizes** (B, KB, MB, GB, TB)
 - **🎛️ Customizable output** (number of files, bar width)
+- **🤖 JSON output** for automation and scripting
+- **🔍 Advanced filtering** with exclude patterns and size thresholds
 - **💻 Cross-platform** support (macOS, Linux, Windows)
 
 ### 🎮 **Application Integrations**

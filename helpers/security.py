@@ -12,11 +12,10 @@ Version: 1.0.0
 import os
 import re
 import shutil
-import tempfile
 import json
 import hashlib
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional, Set
+from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 import logging
 
@@ -24,21 +23,30 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class SecurityError(Exception):
     """Base exception for security-related errors"""
+
     pass
+
 
 class PathValidationError(SecurityError):
     """Raised when path validation fails"""
+
     pass
+
 
 class PermissionError(SecurityError):
     """Raised when permission checks fail"""
+
     pass
+
 
 class BackupError(SecurityError):
     """Raised when backup operations fail"""
+
     pass
+
 
 class PathValidator:
     """
@@ -56,10 +64,8 @@ class PathValidator:
             "/System/Library/Caches",
             "/Library/Caches",
             "/private/var/folders",  # System temp directories
-
             # Development cache directories
             os.path.expanduser("~/Library/Developer"),
-
             # User-specified project directories (will be added dynamically)
         }
 
@@ -84,8 +90,19 @@ class PathValidator:
 
         # Safe cache keywords that indicate cache directories
         self.safe_cache_keywords = {
-            'cache', 'temp', 'tmp', 'log', 'logs', 'crash', 'crashes',
-            'intermediate', 'derived', 'build', 'obj', 'bin', 'library'
+            "cache",
+            "temp",
+            "tmp",
+            "log",
+            "logs",
+            "crash",
+            "crashes",
+            "intermediate",
+            "derived",
+            "build",
+            "obj",
+            "bin",
+            "library",
         }
 
     def add_allowed_root(self, path: str) -> None:
@@ -112,7 +129,9 @@ class PathValidator:
             # Check against forbidden paths
             for forbidden in self.forbidden_paths:
                 forbidden_real = os.path.realpath(os.path.expanduser(forbidden))
-                if normalized_path == forbidden_real or normalized_path.startswith(forbidden_real + os.sep):
+                if normalized_path == forbidden_real or normalized_path.startswith(
+                    forbidden_real + os.sep
+                ):
                     return False, f"Path is in forbidden directory: {forbidden}"
 
             # Check if path is within allowed roots
@@ -126,10 +145,15 @@ class PathValidator:
             if not is_within_allowed:
                 # Check if path contains safe cache keywords
                 path_lower = normalized_path.lower()
-                has_cache_keyword = any(keyword in path_lower for keyword in self.safe_cache_keywords)
+                has_cache_keyword = any(
+                    keyword in path_lower for keyword in self.safe_cache_keywords
+                )
 
                 if not has_cache_keyword:
-                    return False, f"Path is not within allowed roots and doesn't contain cache keywords"
+                    return (
+                        False,
+                        "Path is not within allowed roots and doesn't contain cache keywords",
+                    )
 
             # Additional safety checks
             if self._is_system_critical(normalized_path):
@@ -143,14 +167,14 @@ class PathValidator:
     def _is_system_critical(self, path: str) -> bool:
         """Check if path contains system-critical files"""
         critical_patterns = [
-            r'/System/',
-            r'/usr/bin',
-            r'/usr/sbin',
-            r'/bin/',
-            r'/sbin/',
-            r'/etc/',
-            r'kernel',
-            r'boot',
+            r"/System/",
+            r"/usr/bin",
+            r"/usr/sbin",
+            r"/bin/",
+            r"/sbin/",
+            r"/etc/",
+            r"kernel",
+            r"boot",
         ]
 
         path_lower = path.lower()
@@ -162,6 +186,7 @@ class PathValidator:
         for path in paths:
             results[path] = self.is_safe_path(path)
         return results
+
 
 class InputSanitizer:
     """
@@ -178,10 +203,10 @@ class InputSanitizer:
         sanitized = user_input[:max_length]
 
         # Remove dangerous characters but keep path separators
-        sanitized = re.sub(r'[^\w\s\-_./~]', '', sanitized)
+        sanitized = re.sub(r"[^\w\s\-_./~]", "", sanitized)
 
         # Remove multiple consecutive dots (potential path traversal)
-        sanitized = re.sub(r'\.{2,}', '.', sanitized)
+        sanitized = re.sub(r"\.{2,}", ".", sanitized)
 
         # Strip whitespace
         sanitized = sanitized.strip()
@@ -195,7 +220,7 @@ class InputSanitizer:
             return ""
 
         # Only allow numbers, commas, spaces, and basic separators
-        sanitized = re.sub(r'[^0-9,\s\-]', '', user_input)
+        sanitized = re.sub(r"[^0-9,\s\-]", "", user_input)
 
         return sanitized.strip()
 
@@ -203,6 +228,7 @@ class InputSanitizer:
     def validate_input_length(user_input: str, max_length: int = 256) -> bool:
         """Validate input length"""
         return len(user_input) <= max_length
+
 
 class BackupManager:
     """
@@ -223,7 +249,7 @@ class BackupManager:
         """Load backup index from file"""
         if self.backup_index_file.exists():
             try:
-                with open(self.backup_index_file, 'r') as f:
+                with open(self.backup_index_file, "r") as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"Failed to load backup index: {e}")
@@ -232,7 +258,7 @@ class BackupManager:
     def _save_backup_index(self) -> None:
         """Save backup index to file"""
         try:
-            with open(self.backup_index_file, 'w') as f:
+            with open(self.backup_index_file, "w") as f:
                 json.dump(self.backup_index, f, indent=2)
         except Exception as e:
             logger.error(f"Failed to save backup index: {e}")
@@ -275,7 +301,7 @@ class BackupManager:
                 "original_path": str(source),
                 "backup_path": str(backup_target),
                 "size": self._get_size(source),
-                "checksum": self._calculate_checksum(source)
+                "checksum": self._calculate_checksum(source),
             }
 
             self.backup_index["backups"].append(backup_record)
@@ -294,7 +320,7 @@ class BackupManager:
             return path.stat().st_size
         else:
             total = 0
-            for item in path.rglob('*'):
+            for item in path.rglob("*"):
                 if item.is_file():
                     total += item.stat().st_size
             return total
@@ -302,15 +328,15 @@ class BackupManager:
     def _calculate_checksum(self, path: Path) -> str:
         """Calculate checksum for verification"""
         if path.is_file():
-            with open(path, 'rb') as f:
+            with open(path, "rb") as f:
                 return hashlib.md5(f.read()).hexdigest()
         else:
             # For directories, create checksum of file list and sizes
             file_info = []
-            for item in sorted(path.rglob('*')):
+            for item in sorted(path.rglob("*")):
                 if item.is_file():
                     file_info.append(f"{item.relative_to(path)}:{item.stat().st_size}")
-            return hashlib.md5('\n'.join(file_info).encode()).hexdigest()
+            return hashlib.md5("\n".join(file_info).encode()).hexdigest()
 
     def restore_backup(self, backup_id: str) -> bool:
         """Restore a backup by ID"""
@@ -324,9 +350,13 @@ class BackupManager:
                         if backup_path.is_file():
                             shutil.copy2(backup_path, original_path)
                         else:
-                            shutil.copytree(backup_path, original_path, dirs_exist_ok=True)
+                            shutil.copytree(
+                                backup_path, original_path, dirs_exist_ok=True
+                            )
 
-                        logger.info(f"Restored backup: {backup_path} -> {original_path}")
+                        logger.info(
+                            f"Restored backup: {backup_path} -> {original_path}"
+                        )
                         return True
                     else:
                         logger.error(f"Backup file not found: {backup_path}")
@@ -349,7 +379,9 @@ class BackupManager:
 
         backups_to_remove = []
         for backup in self.backup_index["backups"]:
-            backup_time = datetime.strptime(backup["timestamp"], "%Y%m%d_%H%M%S").timestamp()
+            backup_time = datetime.strptime(
+                backup["timestamp"], "%Y%m%d_%H%M%S"
+            ).timestamp()
             if backup_time < cutoff_date:
                 backups_to_remove.append(backup)
 
@@ -370,19 +402,23 @@ class BackupManager:
 
         self._save_backup_index()
 
+
 # Global instances
 path_validator = PathValidator()
 input_sanitizer = InputSanitizer()
 backup_manager = BackupManager()
+
 
 # Convenience functions
 def validate_path(path: str) -> Tuple[bool, str]:
     """Validate a single path for safety"""
     return path_validator.is_safe_path(path)
 
+
 def validate_paths(paths: List[str]) -> Dict[str, Tuple[bool, str]]:
     """Validate multiple paths"""
     return path_validator.validate_paths(paths)
+
 
 def sanitize_input(user_input: str, input_type: str = "path") -> str:
     """Sanitize user input based on type"""
@@ -393,9 +429,11 @@ def sanitize_input(user_input: str, input_type: str = "path") -> str:
     else:
         return user_input.strip()
 
+
 def create_backup(path: str, operation_id: str) -> Optional[str]:
     """Create backup of path"""
     return backup_manager.create_backup(path, operation_id)
+
 
 def restore_backup(backup_id: str) -> bool:
     """Restore a backup"""

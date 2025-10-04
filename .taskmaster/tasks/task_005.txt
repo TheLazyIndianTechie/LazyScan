@@ -1,0 +1,79 @@
+# Task ID: 5
+# Title: Enhance Unity integration for version-aware cache management
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Add Unity Editor version detection, package cache handling, and configurable build directory cleanup within the Unity integration module.
+# Details:
+Expand apps.unity module to parse ProjectSettings/ProjectVersion.txt and detect editor versions installed via Unity Hub. Surface version info in the CLI list view and use it to resolve package cache paths in ~/.cache/unity3d (Linux), ~/Library/Unity (macOS), and %APPDATA%\Unity (Windows). Implement optional build directory cleanup controlled via config.unity.include_build_dir and ensure backups are created before deletion.
+Pseudo-code:
+```
+def load_unity_project(project_path: Path):
+    version = parse_version(project_path / "ProjectSettings/ProjectVersion.txt")
+    caches = {
+        "Library": project_path / "Library",
+        "PackageCache": resolve_package_cache(version),
+        "Build": project_path / "Build" if config.unity.include_build_dir else None,
+    }
+    return CacheReport(project_path, version, filter(None, caches.items()))
+```
+Add safety checks for Library/ rebuild warnings and update the interactive prompt to display impact per category.
+
+# Test Strategy:
+Use pytest fixtures with temporary Unity project structures to validate version parsing, cache path resolution across OS-specific cases, and ensure build directory cleanup honors config flags; verify audit logs include new categories and that backups restore correctly via recovery workflow.
+
+# Subtasks:
+## 1. Implement Unity editor version discovery [done]
+### Dependencies: None
+### Description: Parse project metadata and detect installed editor versions.
+### Details:
+Extend apps.unity loader to read ProjectSettings/ProjectVersion.txt, parse semantic version and revision identifiers, and reconcile them with Unity Hub installation manifests to map to local editor install paths. Handle missing/legacy format files with graceful fallbacks and warnings.
+<info added on 2025-10-04T04:54:00.229Z>
+Created unity_version.py helper encapsulating ProjectVersion parsing, Unity Hub manifest detection, and platform-specific cache path resolution; wired unity_cache_helpers.py to consume the helper and surface the detected editor version in CLI output.
+</info added on 2025-10-04T04:54:00.229Z>
+
+## 2. Resolve cross-platform Unity cache locations [done]
+### Dependencies: 5.1
+### Description: Map Unity cache directories per OS using detected editor version.
+### Details:
+Leverage the resolved Unity editor version to identify cache directories under ~/.cache/unity3d (Linux), ~/Library/Unity (macOS), and %APPDATA%\Unity (Windows). Implement path resolution utilities that account for version-specific subfolders, roaming/local distinctions on Windows, and handle absent directories safely.
+<info added on 2025-10-04T04:54:49.245Z>
+Added version-aware cache path detection to unity_version.py, extended configuration with include_global_cache and version_aware_cache flags, and wired unity_cache_helpers.py plus apps/unity.py to discover global caches and surface grouped cache categories within the CLI output.
+</info added on 2025-10-04T04:54:49.245Z>
+
+## 3. Add configurable build directory cleanup with backups [done]
+### Dependencies: None
+### Description: Provide optional build directory pruning governed by configuration.
+### Details:
+Honor config.unity.include_build_dir to include Build (and custom build outputs) in cleanup plans. Before deletion, create timestamped backups, verify sufficient disk space, and expose recovery hooks. Emit warnings when skipping due to disabled flag or backup issues.
+<info added on 2025-10-04T04:56:18.983Z>
+Updated the cleanup executor to recognize Unity Build outputs, honor config.unity.include_build_dir before scheduling deletion, automatically stage timestamped backups with space verification, and emit rebuild-time warnings while skipping removal when the flag or backup preflight fails.
+</info added on 2025-10-04T04:56:18.983Z>
+
+## 4. Surface Unity version and cache impact in CLI/UI [done]
+### Dependencies: 5.1, 5.2
+### Description: Expose version-aware data in interactive and list views.
+### Details:
+Augment CLI list/interactive prompts to show detected Unity editor version, associated cache categories, and estimated impact per category. Ensure formatting works for --json output and interactive prompts, and update documentation strings accordingly.
+<info added on 2025-10-04T04:57:10.577Z>
+Display the detected Unity editor version prominently in CLI and interactive output headers, group cache directories into project-specific and global sections, attach human-readable estimated cleanup impact descriptions to each category, and compute plus surface total impact summaries for both project and global caches across interactive and --json outputs.
+</info added on 2025-10-04T04:57:10.577Z>
+
+## 5. Expand audit logging for Unity cache operations [done]
+### Dependencies: 5.2, 5.3
+### Description: Capture detailed logging for new cleanup categories.
+### Details:
+Update audit trail mechanisms to record Unity cache and build directory operations, including version context, targeted paths, backup locations, and outcome status. Ensure logs integrate with existing SAFE_TO_DELETE taxonomy and include rebuild warnings for Library actions.
+<info added on 2025-10-04T04:57:51.407Z>
+Add audit annotations capturing Unity editor version, cache scope classification (project vs global), rebuild impact assessments, explicit Library directory rebuild warnings, and per-operation success/failure outcomes including backup creation and validation status.
+</info added on 2025-10-04T04:57:51.407Z>
+
+## 6. Implement fixture-driven tests for Unity integration [done]
+### Dependencies: 5.1, 5.2, 5.3, 5.4, 5.5
+### Description: Add automated coverage for new Unity behaviors.
+### Details:
+Create pytest fixtures that emulate Unity project structures, ProjectVersion.txt variations, and platform-specific cache layouts. Validate version parsing, cache path resolution, CLI output, backup creation, and audit log entries. Include recovery workflow tests using generated backups.
+<info added on 2025-10-04T04:58:41.737Z>
+Added fixture-backed pytest coverage for UnityVersion class semantics, ProjectVersion.txt parsing edge cases, cross-platform Unity installation discovery, cache path resolution and version matching logic, cache impact description rendering, and unity_cache_helpers integration to confirm version-aware reporting outputs correct audit metadata.
+</info added on 2025-10-04T04:58:41.737Z>
+

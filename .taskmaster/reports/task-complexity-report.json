@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-10-04T09:44:39.296Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 21,
+			"taskTitle": "Implement asyncio-based scanning engine upgrade",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Outline 7 subtasks covering async filesystem best-practice research, scan_directory_async API design, asyncio Queue producer/consumer implementation, progress renderer scheduling updates, backward-compatible sync wrapper retention, plugin/type-hint adjustments for mypy strict, and comprehensive async vs sync benchmarking and property-based tests.",
+			"reasoning": "Core engine refactor demands correct async orchestration, compatibility layers, performance constraints, and high-confidence testing."
+		},
+		{
+			"taskId": 22,
+			"taskTitle": "Enhance CLI with JSON output and advanced filtering",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down into 6 subtasks detailing Typer migration planning, filter/validator implementation, serialization layer with orjson, dual rendering pathway integration, help/README content updates, and automated CLI/unit/end-to-end test coverage.",
+			"reasoning": "Requires adopting new CLI patterns, implementing robust validation and serialization, and keeping UX/documentation aligned."
+		},
+		{
+			"taskId": 23,
+			"taskTitle": "Expand Unity cache management capabilities",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Create 6 subtasks addressing Unity version detection logic, configurable target collection including Build and package caches, safety metadata enhancement, interactive picker sizing updates, documentation refresh, and multi-platform unit/integration/regression tests.",
+			"reasoning": "Multiple Unity-specific behaviors, optional paths, and safety metadata must work across platforms with strong testing."
+		},
+		{
+			"taskId": 24,
+			"taskTitle": "Extend Unreal Engine integration for advanced cache categories",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Define 6 subtasks for Unreal version and path discovery, cache category mapping with safety hints, optional CLI flag handling, size aggregation and audit logging, plugin entry point registration, and targeted unit/property/end-to-end tests.",
+			"reasoning": "Expands Unreal support with complex directory resolution, configurable cleanups, and plugin ecosystem alignment."
+		},
+		{
+			"taskId": 25,
+			"taskTitle": "Implement multi-browser cache management",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Plan 7 subtasks covering cross-platform browser path research, profile discovery per browser, safety classification and breakdown logic, permission handling (Safari/TCC etc.), UI/JSON integration updates, documentation guidance, and unit/integration/schema validation tests.",
+			"reasoning": "Cross-browser feature set demands diverse platform expertise, safety controls, detailed reporting, and broad testing."
+		},
+		{
+			"taskId": 26,
+			"taskTitle": "Add developer tool cache integrations",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "List 6 subtasks including per-tool cache discovery design, optional deletion and safety prompt handling, modular registration architecture updates, CLI flag/help additions, documentation on rebuild implications, and pyfakefs-driven plus integration/regression testing.",
+			"reasoning": "Multiple IDE ecosystems with optional destructive actions require careful modular design and verification."
+		},
+		{
+			"taskId": 27,
+			"taskTitle": "Broaden system cache cleanup coverage",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Map 7 subtasks for platform-specific resolver implementations, sensitive command wrappers with confirmation policies, grouping and reporting enhancements, configuration guardrail enforcement, backup/logging integration, documentation of platform behaviors, and multi-platform dry-run/security regression testing.",
+			"reasoning": "High-risk system-level cleanups across OSes need careful command handling, policy enforcement, and rigorous validation."
+		},
+		{
+			"taskId": 28,
+			"taskTitle": "Upgrade security framework with encrypted audit logs",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Detail 7 subtasks spanning encryption/key management design, audit schema extension, encrypted logger implementation, recovery command updates, failure-handling safeguards, documentation of key rotation/recovery, and comprehensive unit/integration/security testing.",
+			"reasoning": "Introducing encryption with key lifecycle management and compliance logging raises security-critical complexity."
+		},
+		{
+			"taskId": 29,
+			"taskTitle": "Introduce TOML-based configuration management",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Enumerate 6 subtasks covering schema/pydantic model definition, load/save pipeline using tomllib/tomli-w, legacy INI migration tooling, application integration for new toggles, CLI/docs updates including theme previews, and validation plus migration regression tests.",
+			"reasoning": "Config system overhaul with schema validation, migration, and wide integration touchpoints necessitates structured planning."
+		},
+		{
+			"taskId": 30,
+			"taskTitle": "Establish CI/CD pipeline with coverage and security gates",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Lay out 5 subtasks for GitHub Actions workflow definition, dependency caching and environment setup, test/coverage/lint/security job configuration with thresholds, nightly performance workflow creation, and contributor documentation plus pipeline verification.",
+			"reasoning": "Standard multi-matrix CI setup with tooling integration is moderately complex but follows well-known patterns."
+		}
+	]
+}

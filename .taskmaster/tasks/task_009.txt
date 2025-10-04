@@ -1,0 +1,83 @@
+# Task ID: 9
+# Title: Enable encrypted audit logging in SecuritySentinel
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Encrypt audit trail entries at rest to satisfy safety requirements while preserving recovery workflows.
+# Details:
+Augment security.audit module to encrypt log payloads before writing to disk using AES-256-GCM with per-installation keys stored in OS-specific secure storage (Keychain on macOS, Credential Manager on Windows, Secret Service on Linux). Introduce key rotation support and ensure recovery routines can decrypt logs on demand.
+Pseudo-code:
+```
+class AuditLogger:
+    def __init__(self, key_provider: KeyProvider):
+        self.cipher = AESGCM(key_provider.get_key())
+
+    def write(entry: AuditEntry):
+        nonce = os.urandom(12)
+        payload = json.dumps(entry.to_dict()).encode()
+        ciphertext = self.cipher.encrypt(nonce, payload, associated_data=b"LazyScanAudit")
+        logfile.write(base64.b64encode(nonce + ciphertext))
+```
+Update configuration to allow enabling/disabling encryption (default on) and handle migration of plaintext logs by re-encrypting on first run.
+
+# Test Strategy:
+Implement unit tests with deterministic keys to validate encrypt/decrypt round-trips and integrity failure handling; add regression tests ensuring plaintext logs migrate successfully; perform fuzz-style tests to ensure tampered entries raise alerts without compromising recovery operations.
+
+# Subtasks:
+## 1. Define encryption configuration and migration strategy [pending]
+### Dependencies: None
+### Description: Document and implement the audit encryption configuration surface, including default-on toggle and migration plan for existing plaintext logs.
+### Details:
+Review current security.audit settings, add config flag to enable/disable encryption with default enabled, specify schema updates, and outline first-run detection steps for plaintext log directories to trigger re-encryption workflow. Capture edge cases for partially migrated logs and document operational guidance.
+<info added on 2025-10-04T06:19:32.647Z>
+Subtask 1: Design and validate the expanded security.audit encryption schema, including default-on toggle, per-OS key source references, backward-compatible parsing of legacy values, rejection rules for unsupported combinations, and automated validation hooks in CI. Subtask 2: Implement cross-platform detection logic for plaintext audit directories, plan re-encryption sequencing with resumable checkpoints, and define rollback safeguards so legacy deployments continue to read existing logs until migration completes. Subtask 3: Produce operational runbooks covering standard procedures, partially migrated edge cases, recovery playbooks, and OS-specific contingencies, ensuring support teams have backward-compatible guidance for mixed plaintext/encrypted environments.
+</info added on 2025-10-04T06:19:32.647Z>
+
+## 2. Implement per-OS secure key management [pending]
+### Dependencies: 9.1
+### Description: Create KeyProvider abstraction backed by Keychain, Credential Manager, and Secret Service for retrieving and storing AES-256 keys.
+### Details:
+Design a cross-platform key provider interface, integrate OS-native secure storage APIs for key retrieval/creation, ensure per-installation key persistence, and handle secure random generation, access control, caching, and error propagation when storage is unavailable.
+<info added on 2025-10-04T06:19:42.496Z>
+Subtask 9.2.1 macOS Keychain integration: Implement a SecKeychain-backed provider that generates or retrieves a persistent AES-256 key scoped to the application access group, enforces kSecAttrAccessibleAfterFirstUnlock security class, handles keychain prompts or unavailable states gracefully, and validates secure random generation plus ACL compliance.
+Subtask 9.2.2 Windows Credential Manager integration: Use CredRead/CredWrite with CRED_TYPE_GENERIC to store the AES-256 key in the current user vault under a namespace unique to the installation, ensure DPAPI services are accessible, implement retry/backoff for transient logon session issues, and verify key persistence across reboots and profile migrations.
+Subtask 9.2.3 Linux Secret Service integration: Leverage D-Bus Secret Service (with libsecret fallback) to create a collection entry for the AES-256 key, request strong random material and a lock-safe schema, handle headless or locked session states by queuing access attempts, and confirm persistence despite daemon restarts or keyring password changes.
+Subtask 9.2.4 Cross-platform abstraction and error handling: Extend the KeyProvider interface to dispatch to platform-specific adapters, normalize error codes into actionable categories (missing key, permission denied, storage offline), add caching with secure memory hygiene, perform best-effort key rotation detection, and emit telemetry hooks for security auditing without leaking key material.
+</info added on 2025-10-04T06:19:42.496Z>
+
+## 3. Integrate AES-256-GCM audit logging pipeline [pending]
+### Dependencies: 9.2
+### Description: Wire encrypted write/read paths in the audit logger using the secure key provider and nonce handling.
+### Details:
+Update AuditLogger to request keys via the abstraction, generate 96-bit nonces, encrypt JSON payloads with AESGCM using associated data, base64 encode persisted entries, and support decrypting entries for read paths. Ensure log format versioning and compatibility with existing recovery routines.
+<info added on 2025-10-04T06:19:51.541Z>
+Define four execution tracks for this work: 1) Encryption write path implementation that pulls the AES-256-GCM key via the key abstraction, derives a fresh 96-bit nonce per entry, attaches associated data, base64 encodes the ciphertext, and preserves the ability to emit legacy plaintext during staged rollouts. 2) Decryption read path implementation that rehydrates AES-256-GCM with the stored key, validates the stored 96-bit nonce, processes associated data, and gracefully falls back to legacy log formats when ciphertext markers are absent. 3) Log format versioning and compatibility that stamps entries with an incremented version header, documents AES-256-GCM and nonce expectations, and keeps the recovery routines capable of auto-detecting and handling pre-encryption records. 4) Integration with existing audit logger infrastructure that wires the new AES-256-GCM paths into rotation, flushing, and transport pipelines, ensures nonce lifecycle bookkeeping across shards, and verifies end-to-end backward compatibility in mixed-version deployments.
+</info added on 2025-10-04T06:19:51.541Z>
+
+## 4. Implement key rotation and log re-encryption tooling [pending]
+### Dependencies: 9.2, 9.3
+### Description: Provide mechanisms to rotate encryption keys and re-encrypt both legacy plaintext and previously encrypted logs.
+### Details:
+Design CLI or background task to generate new keys, rewrap existing logs using streaming or chunked approach, manage rotation metadata (key IDs, timestamps), and ensure atomic updates with rollback on failure. Include migration of plaintext logs on first run and scheduled rotation hooks.
+<info added on 2025-10-04T06:20:01.524Z>
+Key rotation scheduling and execution subtask: implement a scheduler-aware rotation policy that generates candidate keys, validates secure storage placement, updates rotation metadata atomically, and commits only after post-rotation integrity checks, with automatic retries and runtime recovery hooks if validation fails. Log re-encryption tooling implementation subtask: build streaming rewrap tooling that decrypts with the retiring key, re-encrypts with the active key in chunked batches, persists per-batch integrity proofs, and finalizes via atomic file swaps while maintaining resumable checkpoints for interrupted runs. Migration handling for plaintext logs subtask: detect legacy plaintext segments, encrypt them into a staging area using the current key set, verify cryptographic hashes against the source before atomically replacing originals, and capture recovery manifests enabling idempotent reruns. Rollback and atomic update mechanisms subtask: design transactional write protocols that stage outputs alongside audit trails, verify completeness before committing, and on error trigger automated rollback routines that restore prior keys, metadata, and log state while emitting recovery diagnostics for operators.
+</info added on 2025-10-04T06:20:01.524Z>
+
+## 5. Develop recovery decryption and tamper detection workflows [pending]
+### Dependencies: 9.3
+### Description: Ensure recovery routines can decrypt logs on demand and detect tampering or integrity failures gracefully.
+### Details:
+Extend recovery tools to iterate encrypted log entries, verify AES-GCM tags, surface meaningful errors on authentication failures, and add alerting/logging when tampering is detected. Define fallback procedures for corrupted entries without compromising remaining log access.
+<info added on 2025-10-04T06:20:09.028Z>
+1. Recovery Decryption Workflow Implementation: Design and code a recovery pipeline that securely acquires rotation-aware AES-GCM keys, streams log entries through authenticated decryption, and records success/failure metrics for auditability while preserving access continuity. 2. Tamper Detection and Integrity Verification: Integrate parallel integrity checks that validate GCM tags, compare hash digests against expected manifests, flag anomalies with high-severity alerts, and quarantine suspicious entries without blocking legitimate recovery. 3. Error Handling and Graceful Degradation: Implement structured error classes for authentication, corruption, and IO failures, emit actionable diagnostics to observability channels, and automatically downgrade to read-only recovery modes that preserve intact data. 4. Fallback Procedures for Corrupted Entries: Define secure isolation routines for damaged segments, provide operator-approved reprocessing or vaulting flows, and document safe bypass mechanisms that maintain availability of uncompromised logs along with comprehensive incident reports.
+</info added on 2025-10-04T06:20:09.028Z>
+
+## 6. Create deterministic crypto test suite and validation coverage [pending]
+### Dependencies: 9.3, 9.5
+### Description: Build automated tests covering encryption, decryption, tamper handling, and migration scenarios with reproducible keys.
+### Details:
+Introduce fixtures that inject deterministic keys/nonces, verify encrypt-decrypt round trips, simulate tampered ciphertext/tag failures, test key rotation and migration workflows, and add regression tests for plaintext-to-encrypted transitions. Include fuzz-style inputs to confirm resilience.
+<info added on 2025-10-04T06:20:18.586Z>
+Define Subtask 9.6.1 for unit-level encryption/decryption round-trip coverage using deterministic key and nonce fixtures, exercising edge cases such as zero-length payloads, maximum allowed payload size, multi-block entries, and ensuring ciphertext integrity and deterministic metadata validation metrics for comprehensive coverage. Define Subtask 9.6.2 for integration verification of key management, rotation, and migration workflows with deterministic key derivation, seeded key hierarchy simulations, concurrent rotation scenarios, and validation of rollback and forward migration paths under error injection to ensure comprehensive validation coverage. Define Subtask 9.6.3 for fuzz-driven tamper detection using deterministic seeds to mutate ciphertext, authentication tags, associated data, and metadata, recording false-positive/negative rates across boundary conditions and ensuring alert propagation remains consistent for comprehensive validation coverage. Define Subtask 9.6.4 for regression validation that legacy plaintext logs and previous encrypted formats remain readable after upgrades using deterministic key archives, covering mixed-version datasets, partial migrations, incremental reprocessing, and ensuring schema compatibility and checksum verification to maintain comprehensive validation coverage.
+</info added on 2025-10-04T06:20:18.586Z>
+

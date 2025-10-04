@@ -1,0 +1,56 @@
+# Task ID: 2
+# Title: Enhance CLI with JSON output and advanced filtering
+# Status: done
+# Dependencies: None
+# Priority: medium
+# Description: Add --json, --exclude, and --min-size options to the scan command to improve scripting support and targeted scans.
+# Details:
+Extend the CLI parser (Typer/Click) to register new options and funnel them into the scan engine and result formatter.
+Pseudo-code:
+```
+@app.command()
+def scan(path: Path = typer.Argument(...), json_output: bool = typer.Option(False, '--json'), exclude: List[str] = typer.Option([], '--exclude'), min_size: str = typer.Option('0B', '--min-size')):
+    min_bytes = parse_size(min_size)
+    results = asyncio.run(scan_directory(path, exclude_patterns=exclude))
+    filtered = [item for item in results if item.size >= min_bytes]
+    if json_output:
+        typer.echo(orjson.dumps([item.to_dict() for item in filtered], option=orjson.OPT_INDENT_2).decode())
+    else:
+        render_table(filtered)
+```
+Implement glob-style exclusion using fnmatch (case-insensitive on Windows) and reuse size parsing helpers across modules. Update help text, documentation, and ensure clean command output when JSON mode is enabled (suppress ASCII art unless explicitly requested).
+
+# Test Strategy:
+Author CLI-level integration tests with pytest invoking the Typer runner to verify JSON payload validity, exclusion filtering, and size threshold handling; add unit tests for size parsing edge cases (decimal, binary units); include golden snapshot tests ensuring interactive output remains unchanged when --json is absent.
+
+# Subtasks:
+## 1. Register new scan command options [done]
+### Dependencies: None
+### Description: Extend the Typer-based scan command signature to accept --json, --exclude, and --min-size flags and plumb their values into the scan invocation.
+### Details:
+Update CLI option definitions with appropriate defaults, help text, and type hints while ensuring backward compatibility with existing arguments.
+
+## 2. Share size parsing utilities [done]
+### Dependencies: None
+### Description: Refactor the existing size parsing logic into a reusable helper so the CLI and scan engine share consistent minimum size handling.
+### Details:
+Move or expose parse_size functionality in a common module, add error handling for invalid units, and ensure both CLI and scanning components import the shared helper.
+
+## 3. Implement exclusion and size filtering [done]
+### Dependencies: 2.1, 2.2
+### Description: Wire exclude pattern support and minimum size filtering into the async scan pipeline using the new CLI inputs.
+### Details:
+Apply glob-style matching with fnmatch (case-insensitive on Windows), skip excluded paths during traversal, and filter results by computed min_bytes before formatting.
+
+## 4. Finalize JSON output and UX modes [done]
+### Dependencies: 2.1, 2.3
+### Description: Adjust output rendering to produce clean JSON when requested and preserve rich table formatting otherwise.
+### Details:
+Serialize filtered results with orjson, suppress ASCII art and extra messaging in JSON mode, and gate decorative output behind explicit flags or conditions.
+
+## 5. Validate and document new behaviors [done]
+### Dependencies: 2.1, 2.2, 2.3, 2.4
+### Description: Author automated tests and documentation updates covering the new CLI options, filtering logic, and output modes.
+### Details:
+Add Typer runner integration tests for JSON payloads, exclusion patterns, and size thresholds; include unit tests for edge cases; refresh CLI help/docs to describe the new flags and usage patterns.
+

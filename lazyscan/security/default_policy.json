@@ -82,9 +82,24 @@
       "^/lib64/"
     ]
   },
-  "audit": {
-    "log_all_validations": true,
-    "log_policy_decisions": true,
-    "require_justification": false
-  }
+   "audit": {
+     "log_all_validations": true,
+     "log_policy_decisions": true,
+     "require_justification": false,
+     "encryption": {
+       "enabled": true,
+       "algorithm": "AES-256-GCM",
+       "key_provider": "auto",
+       "key_rotation_days": 90,
+       "migration_mode": "auto",
+       "tamper_detection": true,
+       "recovery_decryption": true
+     },
+     "compatibility": {
+       "allow_plaintext_fallback": true,
+       "migration_timeout_seconds": 300,
+       "max_migration_attempts": 3,
+       "plaintext_retention_days": 30
+     }
+   }
 }
