@@ -2,7 +2,7 @@
 
 **The lazy developer's disk space scanner with cyberpunk style**
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/TheLazyIndianTechie/lazyscan)
+[![Version](https://img.shields.io/badge/version-0.6.0--beta-blue.svg)](https://github.com/TheLazyIndianTechie/lazyscan)
 [![Python](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://python.org)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](https://github.com/TheLazyIndianTechie/lazyscan)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -11,15 +11,17 @@
 
 ---
 
-## 🎉 What's New in v0.5.0 - Major Architecture Refactor!
+## 🎉 What's New in v0.6.0-beta - Enterprise System Cache Management!
 
-**We've completely rewritten LazyScan from a monolithic 5,918-line script into a clean, maintainable modular architecture:**
+**Introducing comprehensive cross-platform system cache management with enterprise-grade safety and retention policies:**
 
-### 🏗️ **New Modular Architecture**
-- **21 focused modules** across 4 main packages
-- **37% code reduction** with better organization
-- **Complete backward compatibility** - your scripts still work!
-- **Enhanced maintainability** and extensibility
+### 🗂️ **System Cache Management**
+- **Cross-platform cache cleanup** for macOS, Linux, and Windows
+- **Intelligent retention policies** with age-based file management
+- **Safety classification system** (Safe, Caution, Dangerous operations)
+- **Package manager integration** (Homebrew, npm, pip, APT, YUM, Pacman)
+- **Docker container cleanup** with dry-run and safety prompts
+- **Admin privilege handling** with automatic detection and user confirmation
 
 ### 📦 **Package Structure**
 ```
@@ -37,6 +39,13 @@ lazyscan/
 ├── 📁 security/     # Security framework & safe deletion
 └── 📁 utils/        # Shared utilities
 ```
+
+### 🔒 **Security First Architecture**
+- **SecuritySentinel**: Policy-driven validation with fail-closed design
+- **Safe Deletion**: Trash-first approach with comprehensive safeguards
+- **Path Validation**: Input sanitization and critical path protection
+- **Audit Logging**: Complete operation tracking for compliance
+- **Recovery System**: Undo functionality for accidental deletions
 
 ---
 
@@ -80,6 +89,11 @@ lazyscan --chrome
 
 # macOS system cache cleanup
 lazyscan --macos
+
+# System-wide cache management with retention policies
+lazyscan cache --dry-run  # Preview what would be cleaned
+lazyscan cache --force    # Clean all safe cache targets
+lazyscan cache --include-docker  # Include Docker cleanup
 ```
 
 ---
@@ -98,6 +112,14 @@ lazyscan --macos
 - **Unreal Engine Support**: Find .uproject files, clean Intermediate/Saved/DerivedDataCache
 - **Chrome Cache Analysis**: Profile-aware cache discovery and cleanup (macOS)
 - **macOS System Cache**: Clean system-wide cache directories safely
+
+### 🗂️ **System Cache Management**
+- **Cross-Platform Support**: macOS, Linux, and Windows cache cleanup
+- **Retention Policies**: Age-based cleanup with configurable retention periods
+- **Safety Classification**: Safe, Caution, and Dangerous operation categories
+- **Package Manager Caches**: Homebrew, npm, pip, APT, YUM, Pacman support
+- **Docker Integration**: Container cleanup with dry-run and safety prompts
+- **Admin Privilege Handling**: Automatic detection and user prompting for privileged operations
 
 ### 🛡️ **Security & Safety**
 - **Comprehensive audit logging** of all operations
@@ -126,6 +148,9 @@ Options:
   -w, --width NUMBER    Progress bar width (default: 40)
   -i, --interactive     Interactive directory selection
   --no-logo            Skip logo and disclaimer display
+  --json               Output results in JSON format (machine-readable)
+  --exclude PATTERN    Exclude files matching pattern (can be used multiple times)
+  --min-size SIZE      Minimum file size to include (e.g., '1MB', '500KB', '2GB')
   --version            Show version information
 ```
 
@@ -154,10 +179,55 @@ Options:
 # macOS System Cache Cleanup
 --macos              Clean macOS system cache directories
 
+# Cross-Platform System Cache Management
+lazyscan cache       System-wide cache cleanup with retention policies
+  --dry-run         Show what would be cleaned without deleting
+  --force           Skip safety confirmations for dangerous operations
+  --include-docker  Include Docker container cleanup
+  --targets TARGET  Clean specific cache targets (homebrew, npm, pip, apt, yum, etc.)
+  --platform PLAT   Target platform (macos, linux, windows, auto)
+
 # Security & Recovery
 --recovery           Show recovery menu for deleted files
---audit-logs         Display recent audit logs  
+--audit-logs         Display recent audit logs
 --recovery-stats     Show recovery system statistics
+```
+
+### Advanced Features
+
+#### JSON Output for Scripting
+```bash
+# Machine-readable JSON output
+lazyscan --json /path/to/scan
+
+# Example output:
+{
+  "scan_path": "/path/to/scan",
+  "total_files": 1250,
+  "total_dirs": 89,
+  "total_size_bytes": 2147483648,
+  "top_files_count": 20,
+  "files": [
+    {
+      "path": "/path/to/large/file.dat",
+      "size_bytes": 1073741824,
+      "size_human": "1 GB"
+    }
+  ],
+  "errors": []
+}
+```
+
+#### Advanced Filtering
+```bash
+# Exclude specific patterns
+lazyscan --exclude "*.log" --exclude "*.tmp" /var/log
+
+# Only show files larger than 100MB
+lazyscan --min-size 100MB ~/Downloads
+
+# Combine filters for targeted analysis
+lazyscan --min-size 50MB --exclude "node_modules" --json ~/projects
 ```
 
 ---
@@ -310,8 +380,8 @@ lazyscan --recovery-stats
 ## 📋 Roadmap
 
 ### 🚀 Planned Enhancements
-- [ ] **Unit & Integration Testing** - Comprehensive test coverage
-- [ ] **CI/CD Pipeline** - GitHub Actions for automated testing
+- [x] **Unit & Integration Testing** - Comprehensive test coverage
+- [x] **CI/CD Pipeline** - GitHub Actions for automated testing
 - [ ] **Plugin Architecture** - Extensible app integration system
 - [ ] **Subcommand Structure** - `lazyscan scan`, `lazyscan clean`, etc.
 - [ ] **JSON Output Mode** - Machine-readable output format
