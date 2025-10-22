@@ -153,8 +153,7 @@ jobs:
           echo "Running semgrep for static analysis..."
           semgrep --config=auto lazyscan helpers \
             --json --output=security-reports/semgrep.json || true
-          semgrep --config=auto lazyscan helpers \
-            --text --output=security-reports/semgrep.txt || true
+          semgrep --config=auto lazyscan helpers > security-reports/semgrep.txt || true
 
       - name: Check for secrets in code
         run: |

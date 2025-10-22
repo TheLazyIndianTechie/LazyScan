@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "lazyscan"
 version = "0.5.0"
 authors = [
-    {name = "TheLazyIndianTechie", email = ""},
+    {name = "TheLazyIndianTechie"},
 ]
 description = "A lazy way to find what's eating your disk space - by TheLazyIndianTechie"
 readme = "README.md"

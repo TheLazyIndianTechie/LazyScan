@@ -125,7 +125,7 @@ jobs:
 
       - name: Lint with ruff
         run: |
-          ruff check lazyscan helpers tests --output-format=text
+          ruff check lazyscan helpers tests --output-format=full
 
       - name: Check formatting with black
         run: |
