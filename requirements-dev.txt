@@ -32,6 +32,7 @@ build>=0.10.0
 twine>=4.0.0
 setuptools>=65.0.0
 wheel>=0.38.0
+check-manifest>=0.49
 
 # Documentation
 sphinx>=5.0.0

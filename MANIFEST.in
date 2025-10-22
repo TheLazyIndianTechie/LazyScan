@@ -1,6 +1,33 @@
-include README_DISTRIBUTION.md
+# Include documentation files
 include README.md
-include README_PYPI.md
+include CHANGELOG.md
 include LICENSE
+
+# Include main module
 include lazyscan.py
+
+# Include configuration files
+include pyproject.toml
+include requirements.txt
+
+# Include helper modules
 recursive-include helpers *.py
+recursive-include lazyscan *.py
+
+# Include tests for source distribution
+recursive-include tests *.py
+
+# Exclude development and build artifacts
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude htmlcov
+global-exclude dist
+global-exclude build
+global-exclude *.egg-info
+global-exclude .git*
+global-exclude .venv
+global-exclude venv
+global-exclude .DS_Store
