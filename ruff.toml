@@ -1,0 +1,98 @@
+# Ruff configuration for LazyScan
+
+# Target Python 3.9+ (minimum supported version)
+target-version = "py39"
+
+# Line length to match Black's default
+line-length = 88
+
+# Directories to exclude from linting
+exclude = [
+    ".git",
+    ".tox",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    "build",
+    "dist",
+    "*.egg-info",
+    "reports",
+]
+
+# Enable specific rule sets
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "D",    # pydocstyle
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "PTH",  # flake8-use-pathlib
+    "RUF",  # Ruff-specific rules
+]
+
+# Disable specific rules that are too strict or conflict with our style
+ignore = [
+    "D100",  # Missing docstring in public module
+    "D101",  # Missing docstring in public class
+    "D102",  # Missing docstring in public method
+    "D103",  # Missing docstring in public function
+    "D104",  # Missing docstring in public package
+    "D105",  # Missing docstring in magic method
+    "D107",  # Missing docstring in __init__
+    "D200",  # One-line docstring should fit on one line
+    "D203",  # 1 blank line required before class docstring
+    "D212",  # Multi-line docstring summary should start at the first line
+    "D213",  # Multi-line docstring summary should start at the second line
+    "D400",  # First line should end with a period
+    "D401",  # First line should be in imperative mood
+    "D415",  # First line should end with a period, question mark, or exclamation point
+    "E501",  # Line too long (handled by Black)
+    "W503",  # Line break before binary operator (conflicts with Black)
+]
+
+# Allow unused variables when they start with an underscore
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[per-file-ignores]
+# Tests can use assert statements and have missing docstrings
+"tests/**/*.py" = [
+    "D",      # All docstring checks
+    "S101",   # Use of assert
+    "B011",   # Do not use assert False
+]
+
+# __init__.py files can have unused imports
+"**/__init__.py" = ["F401"]
+
+# Setup files can have specific ignores
+"setup.py" = ["D", "N806"]
+
+[isort]
+# Configure isort to be compatible with Black
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["lazyscan"]
+known_third_party = ["pytest", "pyfakefs"]
+
+[pydocstyle]
+# Use Google-style docstrings
+convention = "google"
+
+[mccabe]
+# Complexity threshold
+max-complexity = 10
+
+[flake8-type-checking]
+# Allow runtime imports in type checking blocks for forward references
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "sqlalchemy.orm.DeclarativeBase",
+]
