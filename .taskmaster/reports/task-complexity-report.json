@@ -1,0 +1,101 @@
+{
+	"meta": {
+		"generatedAt": "2025-10-22T04:28:28.908Z",
+		"tasksAnalyzed": 11,
+		"totalTasks": 11,
+		"analysisCount": 11,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 11,
+			"taskTitle": "Comprehensive Test Suite Implementation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 11,
+			"expansionPrompt": "Propose ~11 subtasks to set up a robust testing stack: pytest/pytest-cov initialization and pytest.ini markers; tox (v4) envs for py39–py312; pre-commit hooks integrating tests and ruff/black; pyfakefs and pytest-mock fixtures; unit tests per module (scanner, validators, path handlers); integration tests for Unity/Unreal/Chrome discovery and cache calc; E2E workflows covering deletion, backups, audit, recovery; cross-platform parametrization (Windows/macOS/Linux) for path and permissions; coverage thresholds and XML (Cobertura) report generation; CI integration to run layers selectively; documentation on running/debugging tests and flake mitigation. For each subtask include goal, deliverables, and acceptance criteria.",
+			"reasoning": "High effort due to multi-layer testing, cross-platform behaviors, filesystem mocking, and 80%+ coverage with critical safety paths. Requires tooling integration (tox, pre-commit, CI) and stable E2E flows."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "CI/CD Pipeline Setup and GitHub Actions Configuration",
+			"complexityScore": 8,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Define ~10 subtasks: repository prerequisites and branch protection; Lint & Format workflow with ruff and black via pre-commit; Test Matrix across Python 3.9–3.12 and ubuntu/macos/windows with cache strategy; coverage report generation and Codecov v4 upload; security jobs (bandit, pip-audit) with SARIF uploads; build and twine check; release workflow using OIDC trusted publishing to TestPyPI then PyPI on tags; environment/secrets setup and OIDC configuration; README badges and status checks; documentation and dry-run validation. Include acceptance criteria and rollback plan.",
+			"reasoning": "Multiple workflows, multi-OS Python matrix, security scanning, and OIDC trusted publishing introduce non-trivial config, secrets, and compliance steps. Depends on tests from Task 11."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Cross-Platform Path Discovery and Cache Location Mapping",
+			"complexityScore": 8,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Break into ~10 subtasks: platform detection module; CacheLocationRegistry design with dataclasses; per-OS base path resolution (XDG, AppData/LocalAppData/TEMP, macOS Library); app mappings for Unity, Unreal, Chrome; env/user expansion and tilde/vars handling; path existence/permission validation and error reporting; TTL caching of discovered paths; TOML-based overrides and schema for future apps; logging/metrics for discovery outcomes; comprehensive tests with pyfakefs and CI matrix. Provide acceptance criteria per OS and app.",
+			"reasoning": "Non-trivial cross-platform path logic, environment expansion, permissions, and caching with TTL; must be extensible and well-tested across OSes."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "TOML Configuration System Migration and Schema Validation",
+			"complexityScore": 9,
+			"recommendedSubtasks": 12,
+			"expansionPrompt": "Create ~12 subtasks: Pydantic v2 models for ScannerConfig, DeletionConfig, UIConfig, AppConfig with strict types; TOML parsing via tomllib/tomli and writing via tomli_w; discovery precedence for system/user/CLI; migration tool from INI with mapping and validation; merge logic and conflict resolution; custom validators (paths, ranges, patterns); hot-reload mechanism and file watchers; default template generation and first-run behavior; backward-compatibility deprecation notices; CLI --config support; docs and examples; unit/integration tests for parsing, merging, and migration. Include acceptance criteria for failure messages and rollback.",
+			"reasoning": "Complex due to schema design, migration from legacy format, hot-reload, merging precedence, and cross-platform discovery locations. High testing burden and user-facing reliability requirements."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Enhanced Error Handling and User Guidance System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Propose ~9 subtasks: define exception hierarchy; central ErrorHandler with context capture; error code catalog and mapping to guidance; rich-based formatting with verbosity and --debug; structured JSON logging with rotating handlers; retry/backoff utilities for transient errors; opt-in telemetry plumbing and privacy controls; integration points across CLI operations; tests covering messages, recovery hints, logging, and retries. Include acceptance criteria for clarity and usefulness of guidance.",
+			"reasoning": "Moderate-high complexity: unified error taxonomy, user guidance, structured logging, and retries across code paths; must balance UX with maintainability and privacy."
+		},
+		{
+			"taskId": 16,
+			"taskTitle": "JSON Output Format Implementation for Automation",
+			"complexityScore": 7,
+			"recommendedSubtasks": 9,
+			"expansionPrompt": "Lay out ~9 subtasks: define Pydantic models for ScanResult, DeletionReport, CacheItem; JSON Schema generation and embedding; custom encoders (Path, datetime) and pretty printing; --output-format flag (text/json/csv) and --pretty/--output-file; streaming output implementation (ijson or jsonlines) for large scans; CSV serializer for tabular views; metadata (version, command, args, durations); example outputs and docs; validation tests and large-dataset performance checks. Include acceptance criteria for schema validation and CLI flags.",
+			"reasoning": "Requires schema design, serialization across types, streaming for scale, and CLI integration; testing must validate schema conformance and performance."
+		},
+		{
+			"taskId": 17,
+			"taskTitle": "Performance Optimization and Scan Speed Enhancement",
+			"complexityScore": 9,
+			"recommendedSubtasks": 12,
+			"expansionPrompt": "Define ~12 subtasks: establish baseline benchmarks and datasets; introduce ThreadPoolExecutor with configurable workers; adopt os.scandir and minimize syscalls; implement size cache with mtime invalidation; early pruning for excludes/symlinks/system dirs; incremental scan index for repeated runs; adaptive worker tuning; memory-efficient generators and backpressure; lightweight progress with optional disable; fast-mode semantics and accuracy tests; profiling (cProfile, memory_profiler) and regression benchmarks in CI; error handling for I/O churn. Provide measurable acceptance criteria (<30s on 100GB dataset).",
+			"reasoning": "High algorithmic and systems complexity: concurrency, caching correctness, I/O bottlenecks, and measurable performance targets with cross-environment variability."
+		},
+		{
+			"taskId": 18,
+			"taskTitle": "Knight Rider UI Animation and Visual Enhancement",
+			"complexityScore": 6,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Plan ~8 subtasks: theme and color palette definition; rich progress animation with custom BarColumn for KITT effect; color coding by cache severity; responsive layout and panels; animation controls (--animation-speed, --no-animation) and TTY detection; performance safeguards to avoid CPU spikes; compatibility testing across terminals/OS; documentation with GIFs and accessibility notes. Include acceptance criteria for smoothness and responsiveness.",
+			"reasoning": "UI-focused with Rich; moderate complexity around animation performance, responsiveness, and cross-terminal behavior; lower risk to core correctness."
+		},
+		{
+			"taskId": 19,
+			"taskTitle": "Safe Deletion Testing and Recovery Mechanism Validation",
+			"complexityScore": 9,
+			"recommendedSubtasks": 12,
+			"expansionPrompt": "Create ~12 subtasks: pre-deletion validation rules and exclusions; atomic backup creation with tarfile and compression; backup metadata and SHA-256 integrity; audit logging (JSON) and append-only safeguards; recovery command and restore workflows; backup retention policy and pruning; dry-run mode and diff preview; optional encryption path; error handling and rollback; CLI UX for backups list/verify; tests with pyfakefs and selective real FS integration; documentation and safety checklist. Define acceptance criteria for zero data loss and full recovery.",
+			"reasoning": "Safety-critical workflow with backups, integrity checks, retention, and recovery commands; high testing rigor and transactional correctness required. Depends on CI/test infra."
+		},
+		{
+			"taskId": 20,
+			"taskTitle": "Documentation, Examples, and User Onboarding",
+			"complexityScore": 7,
+			"recommendedSubtasks": 11,
+			"expansionPrompt": "Outline ~11 subtasks: docs IA and navigation; MkDocs + Material setup and theme; README and quickstart; installation guides (pip, pipx, Homebrew if applicable); CLI usage and examples per app; configuration reference with TOML examples; troubleshooting guide and flowchart; API docs generation (pdoc or Sphinx); examples repo snippets and automation use-cases (JSON, jq); man page and --help polish; CI link checking and docs publishing to Pages/RTD. Include acceptance criteria for accuracy and runnable examples.",
+			"reasoning": "Broad scope across content, site generation, examples, and CI publishing; dependency on finalized CLI, config, and JSON output to avoid churn."
+		},
+		{
+			"taskId": 21,
+			"taskTitle": "Additional App Integrations (VS Code, Node.js, Docker, Git, Xcode)",
+			"complexityScore": 9,
+			"recommendedSubtasks": 14,
+			"expansionPrompt": "Propose ~14 subtasks: define AppHandler ABC and common interfaces; VS Code cache discovery and cleanup; Node.js handler (npm/yarn caches, recursive node_modules discovery with safety rules); Docker handler (buildx cache, OS/root checks, guarded operations); Git handler (objects, gc guidance); Xcode handler (DerivedData, caches, DeviceSupport); per-app configuration options and exclusions; safe deletion validators to avoid breaking projects; size calculation and warnings for rebuild costs; CLI --apps filtering and UX; cross-platform conditionals; tests with pyfakefs and integration probes; performance considerations for large node_modules; documentation for each app. Include acceptance criteria for safe defaults and reversibility.",
+			"reasoning": "High complexity and risk across diverse ecosystems and platforms; requires careful discovery, safety checks, and extensive testing per app, plus a consistent abstraction layer."
+		}
+	]
+}

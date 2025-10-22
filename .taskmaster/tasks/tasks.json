@@ -1,0 +1,1629 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 11,
+        "title": "Comprehensive Test Suite Implementation",
+        "description": "Establish unit, integration, and end-to-end tests for all P0 features with 80%+ code coverage. This is critical for v1.0 launch criteria and ensures safe deletion operations don't cause data loss.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "details": "Use pytest (latest 7.x) as the testing framework with pytest-cov for coverage reporting. Implement fixtures for mock file systems using pyfakefs (latest 4.x) to safely test deletion operations without touching real files. Structure tests in three layers: (1) Unit tests for individual scanner modules, deletion validators, and path handlers; (2) Integration tests for Unity/Unreal/Chrome discovery and cache calculation; (3) E2E tests simulating real workflows. Use pytest-mock for mocking external dependencies. Target 80%+ coverage with focus on critical paths: safe deletion validation, backup creation, audit logging, and recovery mechanisms. Implement parametrized tests for cross-platform path handling (macOS, Linux, Windows). Use tox (latest 4.x) for testing across Python 3.9-3.12. Configure pytest.ini with markers for unit/integration/e2e tests. Add pre-commit hooks using pre-commit framework to run tests before commits. For CI/CD integration, generate coverage reports in XML format (Cobertura) for GitHub Actions/GitLab CI.",
+        "testStrategy": "Run full test suite with coverage threshold enforcement (minimum 80%). Validate that all P0 features pass tests. Verify safe deletion tests confirm no data loss in mock scenarios. Test error handling paths with intentional failures. Use coverage reports to identify untested code paths and iteratively improve coverage.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Document layered testing strategy and coverage roadmap",
+            "description": "Goal: Define layered testing scope and priorities; Deliverables: Strategy document outlining unit, integration, and E2E coverage targets with tooling and milestone timelines; Acceptance Criteria: Document reviewed and approved by QA lead and committed to docs/testing-plan.md.",
+            "dependencies": [],
+            "details": "Analyze existing modules, map them to the three testing layers, highlight critical safety paths (safe deletion, backups, audit, recovery), note fixture/data requirements, and outline sequencing with owner assignments.",
+            "status": "pending",
+            "testStrategy": "Circulate the document for stakeholder sign-off and capture approval in project tracker."
+          },
+          {
+            "id": 2,
+            "title": "Initialize pytest configuration with layered markers",
+            "description": "Goal: Establish pytest project structure with clear markers; Deliverables: pytest.ini and tests package scaffold defining unit, integration, and e2e markers plus default options; Acceptance Criteria: Running pytest --markers lists the new markers and baseline test discovery succeeds without warnings.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create pytest.ini to register custom markers, set addopts for verbosity and coverage plugin, configure testpaths, and add initial conftest scaffolding for global options.",
+            "status": "pending",
+            "testStrategy": "Execute pytest -m unit -k smoke to ensure marker-based selection works and no deselection warnings appear."
+          },
+          {
+            "id": 3,
+            "title": "Configure coverage enforcement and Cobertura reporting",
+            "description": "Goal: Enforce minimum coverage and emit Cobertura reports; Deliverables: coverage configuration, pytest-cov integration, and generated coverage.xml artifact; Acceptance Criteria: Test runs fail when coverage <80% and produce Cobertura XML stored under reports/coverage.xml.",
+            "dependencies": [
+              2
+            ],
+            "details": "Update pytest configuration with --cov flags, set branch coverage tracking, configure coverage.xml output path, and document threshold expectations for contributors and CI usage.",
+            "status": "pending",
+            "testStrategy": "Run pytest --cov-report=xml --cov-fail-under=80 and verify nonzero exit on threshold breach plus creation of coverage.xml."
+          },
+          {
+            "id": 4,
+            "title": "Set up tox environments for Python 3.9-3.12",
+            "description": "Goal: Provide tox automation for supported Python versions; Deliverables: tox.ini with envlist py39, py310, py311, py312 and layer-specific commands; Acceptance Criteria: tox -e py39 and matrix runs succeed across interpreters with consistent options.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Configure tox with factor-based commands to invoke pytest markers, share dependencies through requirements files, pass environment variables for CI, and enable isolated builds for reproducibility.",
+            "status": "pending",
+            "testStrategy": "Execute tox -p auto ensuring each environment installs dependencies and runs targeted tests without failures."
+          },
+          {
+            "id": 5,
+            "title": "Install pre-commit hooks for tests, ruff, and black",
+            "description": "Goal: Automate local quality checks; Deliverables: .pre-commit-config.yaml adding ruff, black, and pytest hooks plus documentation updates; Acceptance Criteria: pre-commit run --all-files passes and rejects commits when linting or tests fail.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "Define hook revisions for ruff and black, add local pytest invocation (unit suite) with coverage disable, ensure dependency installation hints provided, and integrate with CI via pre-commit.ci or repo scripts.",
+            "status": "pending",
+            "testStrategy": "Simulate a failing lint/test change to confirm pre-commit blocks the commit and reports actionable messages."
+          },
+          {
+            "id": 6,
+            "title": "Implement shared fixtures with pyfakefs and pytest-mock",
+            "description": "Goal: Provide reusable isolation utilities; Deliverables: conftest.py fixtures leveraging pyfakefs and pytest-mock, including factory helpers for deletion scenarios; Acceptance Criteria: Unit tests consume fixtures to manipulate fake files and mocks without touching real resources.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create fixtures for mock caches, backup directories, audit logs, environment configuration, and external service mocks; ensure fixtures are parametrizable for different platforms and documented via docstrings.",
+            "status": "pending",
+            "testStrategy": "Author a sample test using the fixtures and run pytest -k fixtures_example to verify functionality."
+          },
+          {
+            "id": 7,
+            "title": "Develop scanner module unit tests",
+            "description": "Goal: Achieve high-confidence coverage for scanner logic; Deliverables: tests/unit/scanner suite verifying discovery, error handling, and caching behaviors; Acceptance Criteria: Tests pass, cover critical branches, and raise coverage contribution for scanner package.",
+            "dependencies": [
+              2,
+              3,
+              6
+            ],
+            "details": "Write parametrized tests for directory traversal, parallel execution, exclusion handling, and caching interactions using pyfakefs data and mocked dependencies for external calls.",
+            "status": "pending",
+            "testStrategy": "Run pytest -m unit -- tests/unit/scanner and inspect coverage to confirm scanner modules meet thresholds."
+          },
+          {
+            "id": 8,
+            "title": "Develop validator and path handler unit tests",
+            "description": "Goal: Validate deletion safeguards and path normalization; Deliverables: tests/unit/validators and tests/unit/paths suites covering success and failure scenarios; Acceptance Criteria: Tests pass, assert correct exceptions/logging, and elevate coverage for validation modules.",
+            "dependencies": [
+              2,
+              3,
+              6
+            ],
+            "details": "Construct parametrized cases for invalid paths, permission issues, exclusion rules, and platform-specific separators; ensure mocks capture audit logging and recovery triggers.",
+            "status": "pending",
+            "testStrategy": "Execute pytest -m unit -- tests/unit/validators tests/unit/paths and verify coverage reports include new lines."
+          },
+          {
+            "id": 9,
+            "title": "Build integration tests for discovery and cache calculation",
+            "description": "Goal: Verify multi-application flows across modules; Deliverables: tests/integration cases for Unity, Unreal, and Chrome discovery plus cache size aggregation; Acceptance Criteria: Integration suite passes using representative datasets and ensures module cooperation.",
+            "dependencies": [
+              6,
+              7,
+              8
+            ],
+            "details": "Assemble fixture datasets per application, mock external APIs/services, validate aggregate metrics, and cover error propagation and resilience across module boundaries.",
+            "status": "pending",
+            "testStrategy": "Run pytest -m integration and confirm logs show expected discovery order and cache metrics."
+          },
+          {
+            "id": 10,
+            "title": "Create end-to-end deletion, backup, audit, and recovery tests",
+            "description": "Goal: Prove complete safe deletion workflows; Deliverables: tests/e2e scenarios exercising deletion, backup creation, audit logging, and recovery paths; Acceptance Criteria: All E2E tests pass, demonstrating no data loss and correct artifact outputs.",
+            "dependencies": [
+              6,
+              9
+            ],
+            "details": "Chain CLI or service entry points to perform full lifecycle, simulate failures for recovery validation, inspect audit JSON, verify archive integrity, and ensure cleanup routines execute.",
+            "status": "pending",
+            "testStrategy": "Execute pytest -m e2e --maxfail=1 to validate workflows and verify generated backup/audit artifacts."
+          },
+          {
+            "id": 11,
+            "title": "Implement cross-platform parametrization, CI layering, and testing documentation",
+            "description": "Goal: Ensure cross-OS coverage with clear execution guidance; Deliverables: Parametrized tests for Windows/macOS/Linux paths, CI workflows running selective markers, and documentation on running/debugging tests with flake mitigation; Acceptance Criteria: CI matrix executes platform-specific cases and docs published under docs/testing.md or equivalent with troubleshooting steps.",
+            "dependencies": [
+              4,
+              5,
+              7,
+              8,
+              9,
+              10
+            ],
+            "details": "Add pytest parametrization for platform-dependent paths and permissions, enhance CI (GitHub/GitLab) workflows to invoke tox environments per layer, capture coverage XML uploads, and produce documentation covering local commands, debugging tips, rerun strategies, and handling flaky tests.",
+            "status": "pending",
+            "testStrategy": "Monitor CI pipeline results across OS runners and perform documentation review to confirm completeness and accessibility."
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "CI/CD Pipeline Setup and GitHub Actions Configuration",
+        "description": "Establish automated testing, linting, and deployment pipeline using GitHub Actions to ensure code quality and enable continuous delivery to PyPI.",
+        "status": "pending",
+        "dependencies": [
+          11
+        ],
+        "priority": "high",
+        "details": "Create GitHub Actions workflows (.github/workflows/) with the following jobs: (1) Lint & Format: Use ruff (latest 0.x) for fast linting and black (latest 24.x) for code formatting with pre-commit integration; (2) Test Matrix: Run pytest across Python 3.9-3.12 on ubuntu-latest, macos-latest, and windows-latest; (3) Coverage: Generate and upload coverage reports to Codecov using codecov/codecov-action@v4; (4) Security: Use bandit (latest 1.x) for security checks and pip-audit for dependency vulnerabilities; (5) Build: Create distribution packages using build (latest 1.x) and validate with twine (latest 5.x); (6) Release: Automated PyPI publishing on version tags using trusted publishers (PyPI trusted publishing). Configure workflow triggers on push to main/develop branches and pull requests. Use workflow_dispatch for manual triggers. Implement branch protection rules requiring passing checks before merge. Add status badges to README. Store PyPI token as GitHub secret using OIDC trusted publisher authentication (no static tokens).",
+        "testStrategy": "Verify all workflow jobs execute successfully on test commits. Confirm linting catches style violations. Validate test matrix runs on all specified Python versions and OS combinations. Test PyPI publishing workflow with test PyPI first. Verify coverage reports upload correctly to Codecov. Check that security scanning identifies known vulnerabilities.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Configure repository prerequisites and branch protection",
+            "description": "Set up baseline repository settings to enable CI/CD work.",
+            "dependencies": [],
+            "details": "Acceptance criteria: branch protection rules require status checks, reviews, and OIDC conditions documented. Rollback plan: record current settings and provide script or manual steps to revert to prior protection config.",
+            "status": "pending",
+            "testStrategy": "Verify branch protection via GitHub settings audit and simulated PR checks."
+          },
+          {
+            "id": 2,
+            "title": "Implement lint and format workflow with ruff and black",
+            "description": "Create GitHub Actions workflow for ruff linting and black formatting using pre-commit.",
+            "dependencies": [
+              1
+            ],
+            "details": "Acceptance criteria: workflow runs ruff 0.x and black 24.x via pre-commit on push/PR, failing on violations. Rollback plan: retain prior workflow copy and disable job by reverting commit if instability occurs.",
+            "status": "pending",
+            "testStrategy": "Push a commit with intentional lint issues to confirm workflow failure, then fix to confirm pass."
+          },
+          {
+            "id": 3,
+            "title": "Build pytest matrix workflow for Python 3.9-3.12 on multiple OSes",
+            "description": "Implement test matrix covering specified Python versions and OSes with caching.",
+            "dependencies": [
+              1
+            ],
+            "details": "Acceptance criteria: workflow executes pytest across ubuntu, macOS, and Windows for Python 3.9-3.12 using cache strategy for dependencies. Rollback plan: revert workflow commit to restore previous testing setup if failures block merges.",
+            "status": "pending",
+            "testStrategy": "Trigger workflow on PR to confirm all matrix jobs complete successfully with cached installs."
+          },
+          {
+            "id": 4,
+            "title": "Add coverage reporting workflow with Codecov v4 integration",
+            "description": "Extend CI to capture coverage and upload to Codecov using official action.",
+            "dependencies": [
+              3
+            ],
+            "details": "Acceptance criteria: coverage job generates report, uploads via codecov/codecov-action@v4, and enforces thresholds. Rollback plan: disable upload step and revert to local coverage reporting if Codecov issues emerge.",
+            "status": "pending",
+            "testStrategy": "Verify Codecov dashboard receives report and PR checks reflect coverage status."
+          },
+          {
+            "id": 5,
+            "title": "Configure security scanning workflow with bandit and pip-audit",
+            "description": "Create security CI workflow running bandit and pip-audit with SARIF uploads.",
+            "dependencies": [
+              1
+            ],
+            "details": "Acceptance criteria: workflow runs bandit 1.x and pip-audit, uploads SARIF to GitHub code scanning alerts. Rollback plan: keep prior security config and provide instructions to disable workflow if false positives block delivery.",
+            "status": "pending",
+            "testStrategy": "Introduce known vulnerable dependency in a branch to confirm alerts surface in GitHub security tab."
+          },
+          {
+            "id": 6,
+            "title": "Set up build workflow with build and twine validation",
+            "description": "Automate package build and twine check steps for release readiness.",
+            "dependencies": [
+              3
+            ],
+            "details": "Acceptance criteria: workflow builds sdist/wheel via build 1.x and validates with twine 5.x without errors. Rollback plan: revert workflow file to previous state if build pipeline causes regressions.",
+            "status": "pending",
+            "testStrategy": "Run workflow on release branch to confirm artifacts and twine check succeed."
+          },
+          {
+            "id": 7,
+            "title": "Prepare environment, secrets, and OIDC trusted publisher configuration",
+            "description": "Configure GitHub secrets, OIDC roles, and PyPI trusted publishing prerequisites.",
+            "dependencies": [
+              1
+            ],
+            "details": "Acceptance criteria: OIDC trust configuration established for TestPyPI and PyPI, secrets stored securely, documentation updated. Rollback plan: retain previous token-based configuration details and instructions to disable OIDC if needed.",
+            "status": "pending",
+            "testStrategy": "Perform OIDC token dry run using GitHub workflow logs to confirm credential exchange succeeds."
+          },
+          {
+            "id": 8,
+            "title": "Create release workflow with TestPyPI and PyPI deployment",
+            "description": "Implement release automation using OIDC trusted publishing triggered on tags.",
+            "dependencies": [
+              6,
+              7
+            ],
+            "details": "Acceptance criteria: workflow publishes to TestPyPI on pre-release tags and PyPI on version tags using trusted publishing. Rollback plan: fallback to manual release process documented in repo and disable workflow if failures occur.",
+            "status": "pending",
+            "testStrategy": "Tag a pre-release in staging branch to validate TestPyPI deployment, then simulate production tag without publishing."
+          },
+          {
+            "id": 9,
+            "title": "Update README with status badges and required checks overview",
+            "description": "Add CI status badges and document required checks for contributors.",
+            "dependencies": [
+              2,
+              3,
+              4,
+              5,
+              8
+            ],
+            "details": "Acceptance criteria: README displays badges for lint, tests, coverage, security, and release, plus list of protected branch checks. Rollback plan: retain prior README version to restore if badges break rendering.",
+            "status": "pending",
+            "testStrategy": "Preview README rendering in GitHub and verify badges reflect workflow status."
+          },
+          {
+            "id": 10,
+            "title": "Document CI/CD configuration and execute dry-run validation",
+            "description": "Compile documentation and perform end-to-end dry-run to validate pipelines.",
+            "dependencies": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "details": "Acceptance criteria: documentation covers workflows, rollback steps, and troubleshooting; dry-run confirms all pipelines succeed without publishing production artifacts. Rollback plan: maintain changelog entry with steps to temporarily pause workflows if issues arise post-launch.",
+            "status": "pending",
+            "testStrategy": "Follow documentation to execute dry-run on feature branch and confirm all workflows pass without impacting production."
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Cross-Platform Path Discovery and Cache Location Mapping",
+        "description": "Implement comprehensive cache discovery for Linux and Windows platforms, extending beyond current macOS-only support. Map cache locations for Unity, Unreal, Chrome, and prepare infrastructure for additional apps (VS Code, Node.js, Docker, Git, Xcode).",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "high",
+        "details": "Create a platform-agnostic path discovery system using pathlib (Python 3.9+) and environment variables. Implement a CacheLocationRegistry class that maps application identifiers to platform-specific cache paths. For each platform: (1) macOS: Use ~/Library/Caches, ~/Library/Application Support, ~/Library/Logs; (2) Linux: Use ~/.cache (XDG Base Directory), ~/.config, ~/.local/share; (3) Windows: Use %APPDATA%, %LOCALAPPDATA%, %TEMP%. Create platform detection using sys.platform and platform module. Implement cache location definitions for: Unity (Library/Unity/cache, .cache/unity, AppData/Local/Unity/cache), Unreal (Library/Caches/Unreal Engine, .cache/unreal-engine, AppData/Local/UnrealEngine), Chrome (Library/Application Support/Google/Chrome, .config/google-chrome, AppData/Local/Google/Chrome). Use environment variable expansion (os.path.expanduser, os.path.expandvars) for dynamic paths. Implement path validation using pathlib.Path.exists() and permission checks. Create a configuration schema (TOML format) allowing users to override default paths. Use dataclasses for type-safe path definitions. Implement caching of discovered paths with TTL to avoid repeated filesystem traversal.",
+        "testStrategy": "Unit test path discovery on each platform using mocked filesystem (pyfakefs). Verify correct paths are returned for each application on each OS. Test environment variable expansion with various configurations. Validate path validation catches invalid/inaccessible paths. Integration test with real filesystem on CI/CD matrix (ubuntu, macos, windows). Test configuration override mechanism with custom TOML files.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement cross-platform detection module",
+            "description": "Create platform detection helpers using sys.platform and platform module.",
+            "dependencies": [],
+            "details": "Provide functions returning standardized enums for macOS, Linux, Windows. Include acceptance criteria: detection matches macOS (darwin), Linux (linux, linux2), Windows (win32, cygwin). Document fallback behaviors for unknown platforms.",
+            "status": "pending",
+            "testStrategy": "Unit test on mocked sys.platform values ensuring correct enum mapping and fallback handling."
+          },
+          {
+            "id": 2,
+            "title": "Build OS-specific base path resolvers",
+            "description": "Develop resolvers that surface canonical cache base directories per supported OS.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement macOS resolver for ~/Library/Caches, ~/Library/Application Support, ~/Library/Logs; Linux resolver honoring XDG cache/config/data; Windows resolver for %APPDATA%, %LOCALAPPDATA%, %TEMP%. Acceptance criteria: each resolver returns expanded, deduplicated Path objects for its OS.",
+            "status": "pending",
+            "testStrategy": "Use pyfakefs to verify resolvers return expected paths with environment overrides for each OS."
+          },
+          {
+            "id": 3,
+            "title": "Design CacheLocationRegistry with dataclasses",
+            "description": "Create registry structure storing app cache metadata via dataclasses.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Define dataclasses encapsulating app identifier, platform-specific paths, validation flags, TTL metadata hook. Registry should support registration, lookup, and merging overrides. Acceptance criteria: registry handles Unity/Unreal/Chrome entries and future additions.",
+            "status": "pending",
+            "testStrategy": "Unit test registry CRUD operations and dataclass serialization behavior."
+          },
+          {
+            "id": 4,
+            "title": "Define default app cache mappings",
+            "description": "Populate registry with platform-specific cache paths for Unity, Unreal, Chrome.",
+            "dependencies": [
+              3
+            ],
+            "details": "Configure default path patterns: Unity (mac: Library/Unity/cache, linux: .cache/unity, win: AppData/Local/Unity/cache); Unreal (mac: Library/Caches/Unreal Engine, linux: .cache/unreal-engine, win: AppData/Local/UnrealEngine); Chrome (mac: Library/Application Support/Google/Chrome, linux: .config/google-chrome, win: AppData/Local/Google/Chrome). Acceptance criteria: registry returns correct path list per OS for each app.",
+            "status": "pending",
+            "testStrategy": "Registry lookup tests asserting expected default paths across OS-specific contexts."
+          },
+          {
+            "id": 5,
+            "title": "Implement environment and user expansion utilities",
+            "description": "Add helpers expanding env vars and user home references in paths.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Wrap os.path.expanduser and expandvars with pathlib integration to ensure normalized Paths. Handle nested variables and tilde. Acceptance criteria: paths containing ~, $VAR, %VAR% resolve to absolute Paths per OS.",
+            "status": "pending",
+            "testStrategy": "Unit tests covering tilde, POSIX vars, Windows vars, and missing variable fallbacks."
+          },
+          {
+            "id": 6,
+            "title": "Implement path validation and permission checks",
+            "description": "Validate discovered cache paths before returning to callers.",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "Use Path.exists(), is_dir(), and os.access for read/write checks. Track inaccessible paths and produce structured error info. Acceptance criteria: invalid paths marked with reason, valid ones confirmed per OS/app combinations.",
+            "status": "pending",
+            "testStrategy": "Pyfakefs tests simulating missing directories and permission-denied scenarios."
+          },
+          {
+            "id": 7,
+            "title": "Add TTL-based caching for discovery results",
+            "description": "Cache resolved paths with configurable time-to-live to reduce repeated traversal.",
+            "dependencies": [
+              3,
+              6
+            ],
+            "details": "Implement in-memory cache keyed by (app, platform). Support TTL expiration and manual invalidation. Acceptance criteria: subsequent lookups within TTL skip filesystem, expired entries refresh automatically.",
+            "status": "pending",
+            "testStrategy": "Unit tests manipulating time mocks to confirm TTL behavior and cache invalidation."
+          },
+          {
+            "id": 8,
+            "title": "Introduce TOML configuration overrides",
+            "description": "Create TOML schema enabling user-defined cache path overrides.",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "Design TOML structure for per-app, per-platform overrides plus future app placeholders (VS Code, Node.js, Docker, Git, Xcode). Validate schema via dataclasses or pydantic. Acceptance criteria: overrides merge with defaults without duplication.",
+            "status": "pending",
+            "testStrategy": "Load sample TOML files ensuring overrides apply and malformed configs raise descriptive errors."
+          },
+          {
+            "id": 9,
+            "title": "Implement logging and metrics for discovery",
+            "description": "Add structured logging and optional metrics emission for discovery outcomes.",
+            "dependencies": [
+              6,
+              7
+            ],
+            "details": "Log successes, missing paths, permission issues, cache hits/misses. Prepare hooks for future metrics backend. Acceptance criteria: logs include app, platform, path status; metrics counters increment appropriately.",
+            "status": "pending",
+            "testStrategy": "Unit tests using logging capture to verify messages and counters per scenario."
+          },
+          {
+            "id": 10,
+            "title": "Develop comprehensive cross-platform tests",
+            "description": "Create test suite covering all OS/app combinations and CI integration.",
+            "dependencies": [
+              4,
+              6,
+              7,
+              8,
+              9
+            ],
+            "details": "Use pyfakefs and parametrized tests to verify Unity, Unreal, Chrome detections across macOS, Linux, Windows, including overrides and TTL caching. Configure CI matrix for tri-platform runs. Acceptance criteria: tests assert expected paths per OS/app and cover error cases.",
+            "status": "pending",
+            "testStrategy": "Pytest suite with pyfakefs, environment patching, and CI workflow configs for macOS/Linux/Windows runners."
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "TOML Configuration System Migration and Schema Validation",
+        "description": "Migrate from INI to TOML configuration format with comprehensive schema validation, supporting user customization of cache paths, deletion behavior, and UI preferences.",
+        "status": "pending",
+        "dependencies": [
+          13
+        ],
+        "priority": "high",
+        "details": "Use tomli (Python <3.11) and tomllib (Python 3.11+) for TOML parsing. Implement tomli_w (latest 1.x) for TOML writing. Define configuration schema using pydantic (latest 2.x) with strict validation. Create config models: (1) ScannerConfig (recursive_depth, follow_symlinks, exclude_patterns); (2) DeletionConfig (enable_backups, backup_location, audit_log_path, recovery_window_days); (3) UIConfig (theme, animation_speed, color_scheme); (4) AppConfig (enabled_apps, custom_cache_paths, performance_settings). Implement configuration file discovery: ~/.lazyscan/config.toml (primary), /etc/lazyscan/config.toml (system-wide on Linux), %APPDATA%/LazyScan/config.toml (Windows). Create migration script from INI to TOML with validation. Implement configuration merging (system defaults → user config → CLI overrides). Use pydantic's validation decorators for custom validation logic (e.g., valid paths, positive integers). Implement configuration hot-reload capability for long-running processes. Add --config flag to CLI for custom config paths. Generate default config template on first run if missing.",
+        "testStrategy": "Unit test TOML parsing with valid and invalid configurations. Verify schema validation catches malformed configs with clear error messages. Test configuration merging with multiple sources. Validate migration script converts INI to TOML correctly. Test path validation in config (invalid paths rejected). Integration test with real config files. Test CLI override precedence over config file values.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define configuration requirements and acceptance criteria",
+            "description": "Catalog TOML migration requirements, success metrics, and explicit failure messaging with rollback expectations.",
+            "dependencies": [],
+            "details": "Document config domains, merging precedence rules, hot-reload expectations, and acceptance criteria covering validation errors, failure messaging, and rollback behavior.",
+            "status": "pending",
+            "testStrategy": null
+          },
+          {
+            "id": 2,
+            "title": "Implement strict Pydantic v2 configuration models",
+            "description": "Create ScannerConfig, DeletionConfig, UIConfig, and AppConfig models using Pydantic v2 with strict types.",
+            "dependencies": [
+              1
+            ],
+            "details": "Define models with field constraints, default values, and config metadata to enforce strict typing and prepare for merging and validation scenarios.",
+            "status": "pending",
+            "testStrategy": "Add unit tests instantiating each model with valid and invalid payloads to verify type coercion is disabled."
+          },
+          {
+            "id": 3,
+            "title": "Add custom validation decorators for configuration models",
+            "description": "Implement path, range, and pattern validators using Pydantic validation decorators.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create validators ensuring paths exist or are creatable, positive integers for depths and recovery windows, theme choices, and provide descriptive error messages meeting acceptance criteria.",
+            "status": "pending",
+            "testStrategy": "Unit test each validator with valid and invalid values to confirm descriptive error messages and rollback triggers."
+          },
+          {
+            "id": 4,
+            "title": "Implement TOML read and write utilities",
+            "description": "Create loader abstractions that select tomllib or tomli for reading and use tomli_w for writing.",
+            "dependencies": [
+              2
+            ],
+            "details": "Build version-aware import logic, wrapper functions for safe read/write, and error handling that maps parser failures to actionable messages.",
+            "status": "pending",
+            "testStrategy": "Write unit tests simulating Python 3.10 and 3.11 environments to confirm correct backend selection and error propagation."
+          },
+          {
+            "id": 5,
+            "title": "Implement configuration discovery and path resolution",
+            "description": "Resolve config files in system, user, and CLI locations with precedence ordering.",
+            "dependencies": [
+              4
+            ],
+            "details": "Scan OS-specific default paths, normalize to pathlib objects, handle missing files gracefully, and log discovery outcomes for debugging.",
+            "status": "pending",
+            "testStrategy": "Integration tests using temporary directories to ensure resolution order and missing file handling behave as specified."
+          },
+          {
+            "id": 6,
+            "title": "Implement configuration merging and conflict resolution",
+            "description": "Merge defaults, system, user, and CLI configurations with deterministic precedence and conflict reporting.",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "Build merge pipeline that validates each layer, records overrides, and surfaces conflicts with clear rollback instructions when merging fails.",
+            "status": "pending",
+            "testStrategy": "Integration tests covering multiple config layers, conflicting keys, and verification of resulting merged configuration."
+          },
+          {
+            "id": 7,
+            "title": "Add CLI --config flag support",
+            "description": "Extend CLI to accept a --config path and integrate it with the loader pipeline.",
+            "dependencies": [
+              5,
+              6
+            ],
+            "details": "Parse CLI flag, validate provided path, inject into discovery precedence, and ensure errors trigger informative messages aligning with acceptance criteria.",
+            "status": "pending",
+            "testStrategy": "CLI-level tests invoking command with custom config paths, non-existent files, and invalid TOML."
+          },
+          {
+            "id": 8,
+            "title": "Generate default configuration template on first run",
+            "description": "Create default TOML template generation when no config files found.",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "Detect first-run scenarios, write template with comments and safe defaults, and ensure atomic writes to prevent partial files.",
+            "status": "pending",
+            "testStrategy": "Unit tests using temporary directories to confirm template creation, idempotency, and file content correctness."
+          },
+          {
+            "id": 9,
+            "title": "Develop INI to TOML migration script with validation and rollback",
+            "description": "Build migration tool converting legacy INI to validated TOML with rollback if validation fails.",
+            "dependencies": [
+              3,
+              4,
+              6
+            ],
+            "details": "Parse INI, map settings into Pydantic models, write TOML if validation passes, and restore original files with clear failure messages when issues occur.",
+            "status": "pending",
+            "testStrategy": "Integration tests using sample INI files, including malformed cases, ensuring rollback preserves original files on failure."
+          },
+          {
+            "id": 10,
+            "title": "Implement configuration hot-reload mechanism",
+            "description": "Add file watching and reload logic for long-running processes.",
+            "dependencies": [
+              4,
+              6,
+              8
+            ],
+            "details": "Use watchdog or polling based on platform, re-validate on change, apply updates safely, and log reload outcomes with failure handling.",
+            "status": "pending",
+            "testStrategy": "Integration tests simulating file updates to verify reload triggers, validation, and error rollback behavior."
+          },
+          {
+            "id": 11,
+            "title": "Provide backward-compatibility notices and failure messaging",
+            "description": "Implement user-facing warnings for deprecated INI usage and standardized failure outputs.",
+            "dependencies": [
+              6,
+              9
+            ],
+            "details": "Add logging and CLI notices for deprecated formats, centralize error messaging, and document rollback procedures for validation failures.",
+            "status": "pending",
+            "testStrategy": "Unit tests confirming warnings appear when INI detected and failure messages match acceptance criteria."
+          },
+          {
+            "id": 12,
+            "title": "Document and test configuration workflows",
+            "description": "Produce documentation and comprehensive tests covering parsing, merging, migration, and hot-reload.",
+            "dependencies": [
+              6,
+              9,
+              10,
+              11
+            ],
+            "details": "Author docs with examples, create unit and integration tests for end-to-end scenarios, and ensure coverage includes rollback and error cases.",
+            "status": "pending",
+            "testStrategy": "Execute full test suite with coverage reporting and verify documentation examples run successfully."
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Enhanced Error Handling and User Guidance System",
+        "description": "Implement comprehensive error handling with clear, actionable messages, context-aware help, and suggested solutions for common issues across all operations.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "details": "Create a custom exception hierarchy: LazyScanException (base), ScannerException, DeletionException, ConfigException, PermissionException, PathNotFoundException. Implement an ErrorHandler class with context-aware messaging. Use rich library (latest 13.x) for formatted error output with colors and formatting. Create error codes (e.g., ERR_001_PERMISSION_DENIED) mapped to user-friendly messages and suggested solutions. Implement error context tracking with stack traces in debug mode (--debug flag). Create a help system that suggests solutions based on error type: (1) Permission errors: suggest running with elevated privileges or checking file permissions; (2) Path not found: suggest checking configuration or running discovery; (3) Insufficient space: suggest checking backup location; (4) Corrupted cache: suggest manual cleanup. Use logging module (Python stdlib) with rotating file handler for audit trails. Implement structured logging with JSON format for machine parsing. Create error recovery mechanisms where applicable (e.g., retry with backoff for transient failures). Add --verbose flag for detailed error information. Implement error telemetry collection (opt-in) for improving error messages.",
+        "testStrategy": "Unit test each exception type with appropriate error codes. Verify error messages are clear and actionable. Test context-aware help suggestions for various error scenarios. Validate error logging captures sufficient information for debugging. Test error recovery mechanisms with simulated failures. Integration test error handling in real workflows (permission denied, missing paths, etc.).",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define LazyScan exception hierarchy",
+            "description": "Create the full LazyScanException hierarchy per spec.",
+            "dependencies": [],
+            "details": "Implement LazyScanException base class and concrete subclasses (ScannerException, DeletionException, ConfigException, PermissionException, PathNotFoundException). Document usage guidelines and acceptance criteria: all raised errors must use this hierarchy and include error codes.",
+            "status": "pending",
+            "testStrategy": "Add unit tests asserting each exception initializes with code, message, and metadata payload."
+          },
+          {
+            "id": 2,
+            "title": "Author error code catalog and guidance map",
+            "description": "Design centralized error codes with messages and remedies.",
+            "dependencies": [
+              1
+            ],
+            "details": "Produce ERR_xxx catalog mapping to user-friendly text and suggested actions (permissions, path discovery, disk space, cache corruption, etc.). Acceptance criteria: every exception subclass has at least one mapped code with guidance and solution text stored in structured data (e.g., YAML/JSON).",
+            "status": "pending",
+            "testStrategy": "Validate mapping completeness and format via unit tests that load the catalog and ensure codes resolve to messages and suggestions."
+          },
+          {
+            "id": 3,
+            "title": "Implement central ErrorHandler with context capture",
+            "description": "Build ErrorHandler managing exceptions, context, and help lookup.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create ErrorHandler that accepts exceptions, attaches contextual metadata, resolves error codes to guidance, and captures stack traces when --debug flag enabled. Acceptance criteria: handler outputs actionable guidance and records context blocks for logging.",
+            "status": "pending",
+            "testStrategy": "Write tests simulating different exception inputs verifying context enrichment, stack trace toggling, and guidance retrieval."
+          },
+          {
+            "id": 4,
+            "title": "Apply Rich-based output with verbosity controls",
+            "description": "Integrate rich 13.x for colored, formatted error displays.",
+            "dependencies": [
+              3
+            ],
+            "details": "Utilize rich Console to render error headers, guidance panels, and verbose/debug toggles tied to --verbose and --debug flags. Acceptance criteria: output differentiates severity levels, respects flags, and stays readable in standard terminals.",
+            "status": "pending",
+            "testStrategy": "Snapshot-style tests capturing Rich render output under default, verbose, and debug modes."
+          },
+          {
+            "id": 5,
+            "title": "Add structured JSON logging with rotating handlers",
+            "description": "Configure logging for JSON events and file rotation.",
+            "dependencies": [
+              3
+            ],
+            "details": "Use logging + RotatingFileHandler to emit JSON-formatted records containing error code, context, stack trace (if debug), and correlation IDs. Acceptance criteria: logs rotate at configured size, remain machine-parseable, and align with privacy requirements.",
+            "status": "pending",
+            "testStrategy": "Integration tests verifying log files rotate, JSON parses, and fields match expectations for varied error conditions."
+          },
+          {
+            "id": 6,
+            "title": "Develop retry and backoff utilities for transient errors",
+            "description": "Implement reusable retry logic with exponential backoff.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create helper wrapping callable execution with configurable retry count, jitter, and classification of transient errors. Acceptance criteria: retries only for designated exceptions, respects max attempts, and surfaces final guidance.",
+            "status": "pending",
+            "testStrategy": "Unit tests using mocked transient failures to ensure retry sequencing, backoff timings, and final error propagation behave as designed."
+          },
+          {
+            "id": 7,
+            "title": "Implement opt-in telemetry and privacy controls",
+            "description": "Build telemetry collection respecting user consent.",
+            "dependencies": [
+              5
+            ],
+            "details": "Introduce telemetry module capturing anonymized error metrics when users opt in, including consent storage, data minimization, and easy opt-out. Acceptance criteria: telemetry disabled by default, honors flags/config, and excludes PII.",
+            "status": "pending",
+            "testStrategy": "Tests toggling telemetry opt-in/out verifying no events emitted when disabled and payload schema when enabled."
+          },
+          {
+            "id": 8,
+            "title": "Integrate error system across CLI operations",
+            "description": "Wire new error handling into all CLI workflows.",
+            "dependencies": [
+              4,
+              5,
+              6,
+              7
+            ],
+            "details": "Refactor CLI commands to raise hierarchy exceptions, invoke ErrorHandler, log structured events, apply retries, and display Rich guidance. Acceptance criteria: all operations produce consistent messaging, recovery hints, and logging.",
+            "status": "pending",
+            "testStrategy": "End-to-end command tests simulating permission, path, space, and corruption issues verifying outputs and log entries."
+          },
+          {
+            "id": 9,
+            "title": "Verify guidance quality and recovery behaviors",
+            "description": "Create comprehensive tests validating messaging and resilience.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "details": "Author unit/integration tests covering message clarity, suggestion accuracy, retry success/failure, telemetry emissions, and debug/verbose toggles. Acceptance criteria: tests assert actionable guidance, successful recovery paths, and compliance with privacy guarantees.",
+            "status": "pending",
+            "testStrategy": "Aggregate pytest suite ensuring coverage of error messages, help suggestions, logging artifacts, retry flows, and telemetry toggles with >=80% relevant coverage."
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "JSON Output Format Implementation for Automation",
+        "description": "Implement machine-readable JSON output format for scan results, deletion reports, and configuration, enabling automation and integration with external tools.",
+        "status": "pending",
+        "dependencies": [
+          11,
+          14
+        ],
+        "priority": "medium",
+        "details": "Create JSON schema definitions for: (1) ScanResult (timestamp, platform, total_size, items_found, cache_breakdown_by_app, scan_duration); (2) DeletionReport (timestamp, items_deleted, space_freed, backup_location, recovery_info, errors); (3) CacheItem (path, size, app_name, category, last_accessed, is_safe_to_delete). Use pydantic models for serialization with model_dump_json(). Implement --output-format flag supporting 'text' (default), 'json', 'csv'. Create JSONEncoder for custom types (Path, datetime). Implement pretty-printing with --pretty flag for human-readable JSON. Add --output-file flag to write results to file instead of stdout. Create JSON schema files (JSON Schema format) for validation of output. Implement streaming JSON output for large scans using ijson (latest 3.x) or jsonlines format. Add metadata to JSON output: version, command, arguments, execution_time. Implement filtering/querying of JSON output using jq-compatible format (optional). Create example JSON outputs in documentation.",
+        "testStrategy": "Unit test JSON serialization of all data types. Verify JSON output validates against schema. Test JSON output with large datasets (100GB+ scans). Validate CSV output format correctness. Test file output with various paths and permissions. Integration test JSON output in automation workflows (piping to jq, parsing in scripts).",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define core Pydantic models for scan outputs",
+            "description": "Create Pydantic models for ScanResult, DeletionReport, and CacheItem with required fields and validation.",
+            "dependencies": [],
+            "details": "Implement models with type hints, field validators, and model_dump_json usage. Acceptance criteria: All fields validated, optional fields handled, models serialize without errors.",
+            "status": "pending",
+            "testStrategy": "Write unit tests ensuring model instantiation, validation errors, and JSON serialization work for typical and edge cases."
+          },
+          {
+            "id": 2,
+            "title": "Generate and package JSON Schema definitions",
+            "description": "Produce JSON Schema files from Pydantic models and embed them in the project for validation and distribution.",
+            "dependencies": [
+              1
+            ],
+            "details": "Automate schema generation via pydantic.schema_json, version schemas, and store under schemas/. Acceptance criteria: Schemas cover all fields, match naming conventions, and pass JSON Schema validators.",
+            "status": "pending",
+            "testStrategy": "Use jsonschema to validate sample payloads against generated schemas and ensure schema files are loadable during runtime."
+          },
+          {
+            "id": 3,
+            "title": "Implement custom JSON encoders and pretty printing",
+            "description": "Support serialization of Path and datetime types and add optional pretty-print output formatting.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create custom JSONEncoder or pydantic config for Path and datetime, add --pretty flag handling. Acceptance criteria: Pretty JSON is human-readable and special types serialize correctly.",
+            "status": "pending",
+            "testStrategy": "Test serialization of Path/datetime values, compare pretty vs compact outputs, and verify CLI flag toggles formatting."
+          },
+          {
+            "id": 4,
+            "title": "Add CLI output control flags",
+            "description": "Implement --output-format, --pretty, and --output-file flags to control serialization format and destination.",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Integrate flags with existing CLI parser, support text (default), json, csv formats and file writing. Acceptance criteria: Flags persist across commands, invalid combos yield helpful errors, and output matches selected format.",
+            "status": "pending",
+            "testStrategy": "Create CLI integration tests covering default behavior, each flag combination, invalid formats, and file write success/failure paths."
+          },
+          {
+            "id": 5,
+            "title": "Implement streaming JSON output for large scans",
+            "description": "Introduce streaming-friendly JSON output via ijson or jsonlines for very large result sets.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Design incremental encoder or jsonlines writer to avoid high memory use. Acceptance criteria: Stream mode handles large datasets without OOM, integrates with --output-format json, and documents usage.",
+            "status": "pending",
+            "testStrategy": "Simulate large scan data to verify streaming consumes bounded memory and produces valid JSON lines consumable by ijson."
+          },
+          {
+            "id": 6,
+            "title": "Build CSV serializer for structured outputs",
+            "description": "Provide CSV exports for tabular views of scan and deletion data when --output-format csv is used.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Map model fields to CSV columns, handle nested structures, and document assumptions. Acceptance criteria: CSV headers are stable, data escapes correctly, and multiple records serialize accurately.",
+            "status": "pending",
+            "testStrategy": "Unit test CSV generation with varied datasets, including commas and newlines, and validate against expected CSV strings."
+          },
+          {
+            "id": 7,
+            "title": "Augment outputs with metadata and optional querying hooks",
+            "description": "Attach metadata fields and ensure compatibility with jq-style querying for automation workflows.",
+            "dependencies": [
+              1,
+              4
+            ],
+            "details": "Include version, command, arguments, execution_time metadata; evaluate jq-compatible structure. Acceptance criteria: Metadata present in all formats, optional filter hooks documented, and timestamps accurate.",
+            "status": "pending",
+            "testStrategy": "Verify metadata fields appear in json/csv outputs, check timestamp formatting, and run sample jq queries on produced JSON."
+          },
+          {
+            "id": 8,
+            "title": "Document JSON/CSV usage with examples",
+            "description": "Update docs with sample outputs, schema references, and guidance for automation consumers.",
+            "dependencies": [
+              1,
+              4,
+              7
+            ],
+            "details": "Add examples to README/docs, link schema files, and show pretty vs compact JSON. Acceptance criteria: Documentation reviewed, examples validated, and references to CLI flags clear.",
+            "status": "pending",
+            "testStrategy": "Render documentation locally, validate JSON/CSV examples via parsers, and ensure links to schema files resolve."
+          },
+          {
+            "id": 9,
+            "title": "Validate schemas and CLI behavior through testing",
+            "description": "Create comprehensive tests covering schema conformance, CLI flags, and performance on large datasets.",
+            "dependencies": [
+              1,
+              2,
+              4,
+              5,
+              6,
+              7
+            ],
+            "details": "Expand test suite for schema validation, CLI regression, and large-scale performance. Acceptance criteria: Tests enforce schema correctness, CLI flags behave under stress, and large dataset runs meet memory/time expectations.",
+            "status": "pending",
+            "testStrategy": "Integrate pytest cases for schema validation, CLI flag permutations, streaming performance benchmarks, and include coverage assertions for new code paths."
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "title": "Performance Optimization and Scan Speed Enhancement",
+        "description": "Optimize scanner to achieve <30s scan time for 100GB+ directories through parallel processing, efficient traversal, and caching strategies.",
+        "status": "pending",
+        "dependencies": [
+          11
+        ],
+        "priority": "high",
+        "details": "Implement parallel directory traversal using concurrent.futures.ThreadPoolExecutor (Python 3.9+) with configurable worker count (default: CPU count). Use os.scandir() instead of os.walk() for faster directory listing (built-in since Python 3.5). Implement size calculation caching with mtime-based invalidation. Use pathlib.Path for efficient path operations. Implement early termination for excluded paths (symlinks, system directories). Add progress tracking with minimal overhead using tqdm (latest 4.x) with disable option for JSON output. Implement memory-efficient streaming for large file lists using generators. Use functools.lru_cache for frequently accessed path properties. Benchmark scan performance with test datasets (10GB, 50GB, 100GB+). Profile code using cProfile and memory_profiler to identify bottlenecks. Implement adaptive worker count based on system resources. Add --fast-mode flag that trades accuracy for speed (skip symlink resolution, use cached sizes). Implement incremental scanning for repeated scans of same paths.",
+        "testStrategy": "Benchmark scan performance on 100GB+ test dataset, verify <30s completion. Profile memory usage to ensure no leaks. Test parallel processing with various worker counts. Verify accuracy of size calculations in fast mode. Compare performance across Python versions. Test on systems with limited resources (low CPU, low RAM).",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Establish benchmark datasets and baseline measurements",
+            "description": "Create representative datasets and measure current scan timing to set baselines.",
+            "dependencies": [],
+            "details": "Assemble 10GB, 50GB, and 100GB+ directory fixtures with mixed file types, record existing scan performance, and document hardware specs.",
+            "status": "pending",
+            "testStrategy": "Capture repeatable baseline timings and verify dataset integrity hashes before optimization work."
+          },
+          {
+            "id": 2,
+            "title": "Introduce ThreadPoolExecutor-based parallel traversal",
+            "description": "Implement threaded directory scanning with configurable worker counts.",
+            "dependencies": [
+              1
+            ],
+            "details": "Replace current traversal dispatcher with concurrent.futures.ThreadPoolExecutor using default max workers equal to CPU cores and expose CLI/config overrides.",
+            "status": "pending",
+            "testStrategy": "Unit test worker count configuration, run smoke scans on sample directories, and confirm no deadlocks via stress tests."
+          },
+          {
+            "id": 3,
+            "title": "Adopt os.scandir and minimize redundant syscalls",
+            "description": "Switch to os.scandir iteration and reduce filesystem calls.",
+            "dependencies": [
+              2
+            ],
+            "details": "Refactor traversal logic to use os.scandir with pathlib path handling, ensuring stat reuse and eliminating redundant metadata fetches.",
+            "status": "pending",
+            "testStrategy": "Profile syscall counts using strace on Linux or equivalent and compare against baseline to confirm reductions."
+          },
+          {
+            "id": 4,
+            "title": "Implement size cache with mtime-based invalidation",
+            "description": "Create persistent file size cache keyed by path and mtime.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Use functools.lru_cache or custom store to memoize file sizes, persist cache between runs, and invalidate entries when mtime or inode changes.",
+            "status": "pending",
+            "testStrategy": "Add unit tests covering cache hits, misses, and invalidation plus end-to-end runs verifying consistent totals after file modifications."
+          },
+          {
+            "id": 5,
+            "title": "Add early pruning for excluded, symlink, and system paths",
+            "description": "Skip traversal of non-target paths promptly.",
+            "dependencies": [
+              3
+            ],
+            "details": "Augment traversal filters to detect symlinks, configured exclusions, and protected system directories, terminating recursion before worker submission.",
+            "status": "pending",
+            "testStrategy": "Create regression tests with fixture directories ensuring excluded paths are not visited and symlink loops are avoided."
+          },
+          {
+            "id": 6,
+            "title": "Implement incremental scan index for repeated runs",
+            "description": "Persist scan metadata to accelerate subsequent executions.",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "Design incremental state store capturing directory snapshots and reuse cached size data when unchanged, with invalidation tied to mtime checks.",
+            "status": "pending",
+            "testStrategy": "Run consecutive scans and verify the second run finishes faster while reporting accurate aggregates after targeted file changes."
+          },
+          {
+            "id": 7,
+            "title": "Introduce adaptive worker tuning based on system load",
+            "description": "Adjust worker counts dynamically to balance speed and resource use.",
+            "dependencies": [
+              2,
+              6
+            ],
+            "details": "Monitor runtime metrics (CPU load, I/O wait) and adjust ThreadPoolExecutor worker pool size or batching strategy to avoid over-saturation.",
+            "status": "pending",
+            "testStrategy": "Execute scans under varying system load, confirming worker adjustments occur and improve throughput without starvation."
+          },
+          {
+            "id": 8,
+            "title": "Ensure memory-efficient streaming and backpressure",
+            "description": "Use generators to avoid loading huge file lists into memory.",
+            "dependencies": [
+              3,
+              6
+            ],
+            "details": "Refactor file dispatch pipelines to operate on iterators, applying bounded queues or batching to prevent memory spikes in large directories.",
+            "status": "pending",
+            "testStrategy": "Profile memory usage with memory_profiler on 100GB dataset ensuring consumption stays within acceptable limits."
+          },
+          {
+            "id": 9,
+            "title": "Integrate lightweight progress tracking with optional disable",
+            "description": "Add performant progress indicators controllable via CLI.",
+            "dependencies": [
+              2,
+              8
+            ],
+            "details": "Implement tqdm-based progress reporting with minimal locking overhead and provide --no-progress or JSON mode disable flags.",
+            "status": "pending",
+            "testStrategy": "Verify progress output accuracy in interactive mode and ensure it is suppressed when disabled or in JSON output."
+          },
+          {
+            "id": 10,
+            "title": "Design fast-mode behavior and validate accuracy trade-offs",
+            "description": "Add --fast-mode flag skipping expensive checks with documented impact.",
+            "dependencies": [
+              4,
+              5,
+              8
+            ],
+            "details": "Implement code paths that reuse cached sizes and avoid symlink resolution when fast mode is enabled, with clear documentation of potential inaccuracies.",
+            "status": "pending",
+            "testStrategy": "Run comparative scans in normal and fast modes, quantifying speed gains and accuracy deltas on controlled datasets."
+          },
+          {
+            "id": 11,
+            "title": "Profile performance and enforce regression benchmarks",
+            "description": "Use cProfile and memory_profiler to capture hotspots and guard performance.",
+            "dependencies": [
+              7,
+              8,
+              9,
+              10
+            ],
+            "details": "Automate profiling sessions, store reports, and add CI regression benchmarks ensuring <30s completion on 100GB fixture within tolerated variance.",
+            "status": "pending",
+            "testStrategy": "Integrate benchmark suite into CI, review cProfile output for bottlenecks, and alert on regressions exceeding defined thresholds."
+          },
+          {
+            "id": 12,
+            "title": "Harden error handling for high-throughput I/O operations",
+            "description": "Improve robustness under concurrent filesystem churn.",
+            "dependencies": [
+              5,
+              8,
+              10
+            ],
+            "details": "Add retries, graceful degradation, and contextual logging for transient I/O failures encountered during parallel scans and caching updates.",
+            "status": "pending",
+            "testStrategy": "Simulate permission changes and file deletions during scans, verifying clear error messages and continued processing without crashes."
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "title": "Knight Rider UI Animation and Visual Enhancement",
+        "description": "Enhance Knight Rider themed UI with smooth animations, improved color coding, and responsive terminal rendering for better user experience.",
+        "status": "pending",
+        "dependencies": [],
+        "priority": "medium",
+        "details": "Use rich library (latest 13.x) for advanced terminal UI with support for colors, animations, and responsive layouts. Implement Knight Rider scanner animation using rich.progress.Progress with custom BarColumn. Create animated progress bar with neon red scanning effect (simulate KITT scanner). Implement color coding: cyan for safe caches, yellow for large caches, red for critical/system caches. Use rich.console.Console for output management with automatic terminal width detection. Implement smooth animation frames using time.sleep() with configurable speed (--animation-speed flag). Create visual hierarchy with rich.panel.Panel for sections. Implement spinner animations for long-running operations using rich.spinner.Spinner. Add ASCII art for Knight Rider theme (KITT logo, scanner effects). Implement responsive layout that adapts to terminal width (minimum 80 chars). Use ANSI escape codes for color support detection. Implement --no-animation flag for CI/CD environments. Create theme configuration (colors, animation speed) in TOML config. Test rendering on various terminal emulators (iTerm2, Terminal.app, Windows Terminal, Linux terminals).",
+        "testStrategy": "Visual regression testing with screenshot comparison (optional). Test animation rendering on various terminal sizes. Verify color output on different terminal emulators. Test --no-animation flag disables animations. Validate responsive layout on narrow terminals. Test animation performance (no CPU spikes). Manual testing on macOS, Linux, Windows terminals.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Knight Rider theme config in TOML",
+            "description": "Create a dedicated TOML theme file covering colors, animation speed defaults, and scanner styling tokens.",
+            "dependencies": [],
+            "details": "Establish a TOML theme schema capturing color palette (neon red, cyan, yellow) and default animation settings; ensure Console loads config with sensible fallbacks. Acceptance criteria: theme parses without errors and overrides Rich styles consistently.",
+            "status": "pending",
+            "testStrategy": "Write unit tests that load the TOML into a dataclass/config object and assert expected values."
+          },
+          {
+            "id": 2,
+            "title": "Implement KITT scanner progress animation",
+            "description": "Build the Rich Progress instance with a custom BarColumn to simulate the Knight Rider scanner effect.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a neon red scanning bar using Progress and custom BarColumn, leveraging theme values for colors and speed. Acceptance criteria: animation loops smoothly without flicker and frame transition time respects theme defaults within ±10%.",
+            "status": "pending",
+            "testStrategy": "Interactive smoke test plus automated timing check ensuring frame cadence within tolerance."
+          },
+          {
+            "id": 3,
+            "title": "Apply cache severity color coding",
+            "description": "Map cache categories to themed colors for safe, large, and critical caches across UI components.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate cyan/yellow/red styling into cache list, panels, and progress outputs using Rich styles. Acceptance criteria: each severity consistently renders with the correct theme color and maintains accessibility contrast ratio ≥4.5:1.",
+            "status": "pending",
+            "testStrategy": "Snapshot rendering tests comparing expected ANSI sequences per severity."
+          },
+          {
+            "id": 4,
+            "title": "Create responsive layout with panels and ASCII art",
+            "description": "Assemble panels, layout sections, and Knight Rider ASCII art that adapt to terminal widths ≥80 chars.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use Panel, Layout, and Console width detection to arrange sections and inject ASCII art; ensure resizing reflows content. Acceptance criteria: layout stays readable at 80-120+ columns and animation remains centered without overlap.",
+            "status": "pending",
+            "testStrategy": "Automated layout tests using Rich measure API plus manual verification at multiple terminal widths."
+          },
+          {
+            "id": 5,
+            "title": "Implement animation control flags and TTY detection",
+            "description": "Add --animation-speed, --no-animation, and ANSI color support detection leveraging Console features.",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "Introduce CLI flags to adjust animation speed and disable motion; detect non-TTY or ANSI-disabled environments to fall back gracefully. Acceptance criteria: --no-animation renders static UI, --animation-speed overrides default, non-TTY mode skips animations.",
+            "status": "pending",
+            "testStrategy": "CLI integration tests invoking flags and mocked TTY/ANSI conditions."
+          },
+          {
+            "id": 6,
+            "title": "Add animation performance safeguards",
+            "description": "Optimize animation loops to avoid CPU spikes and allow configurable frame pacing.",
+            "dependencies": [
+              2,
+              5
+            ],
+            "details": "Throttle loops with configurable sleep, ensure minimum frame interval, and monitor CPU usage. Acceptance criteria: sustained animation keeps CPU under 20% on reference machine and no dropped frames beyond 5% variance.",
+            "status": "pending",
+            "testStrategy": "Profiling tests measuring CPU usage during animation runs with psutil or similar tooling."
+          },
+          {
+            "id": 7,
+            "title": "Validate cross-terminal compatibility",
+            "description": "Test visual output across iTerm2, Terminal.app, Windows Terminal, and common Linux terminals.",
+            "dependencies": [
+              2,
+              4,
+              5,
+              6
+            ],
+            "details": "Run the enhanced UI on target terminals verifying color fidelity, animations, and layout responsiveness. Acceptance criteria: all terminals display correct colors, animations, and respect --no-animation flag in CI shells.",
+            "status": "pending",
+            "testStrategy": "Manual testing matrix documented with screenshots and notes; automate basic checks via CI container where possible."
+          },
+          {
+            "id": 8,
+            "title": "Document visuals and accessibility guidance",
+            "description": "Produce documentation updates, GIFs, and accessibility notes covering themes, flags, and terminal support.",
+            "dependencies": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "details": "Update docs with usage instructions, embed recorded GIF of KITT scanner, and note accessibility considerations (colorblind-friendly tips, reduced motion). Acceptance criteria: docs reviewed, GIF included, and guidance references acceptance outcomes from previous subtasks.",
+            "status": "pending",
+            "testStrategy": "Documentation review checklist and link validation in CI."
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "title": "Safe Deletion Testing and Recovery Mechanism Validation",
+        "description": "Comprehensive testing of safe deletion operations including backup creation, audit logging, recovery mechanisms, and path validation to ensure zero data loss.",
+        "status": "pending",
+        "dependencies": [
+          11,
+          12
+        ],
+        "priority": "high",
+        "details": "Implement comprehensive deletion workflow: (1) Pre-deletion validation: verify paths exist, check permissions, validate against exclusion list; (2) Backup creation: tar/zip cache to backup location with timestamp; (3) Audit logging: record deletion details (path, size, timestamp, user, reason) to JSON log; (4) Recovery mechanism: implement recovery command to restore from backups within configurable window (default 30 days); (5) Post-deletion verification: confirm deletion success, update audit log. Use tarfile (Python stdlib) for backup creation with compression. Implement atomic operations using context managers. Create backup metadata file (JSON) with recovery instructions. Implement backup retention policy (delete backups older than recovery_window_days). Use cryptographic hashing (hashlib.sha256) to verify backup integrity. Implement dry-run mode (--dry-run) showing what would be deleted without actually deleting. Create recovery command: lazyscan recover --backup-id <id> --restore-path <path>. Implement backup listing: lazyscan backups --list. Add backup encryption option (optional, using cryptography library). Implement backup verification: lazyscan backups --verify. Test with pyfakefs to simulate real deletion scenarios safely.",
+        "testStrategy": "Unit test deletion validation logic with various path scenarios. Integration test backup creation and recovery with real files. Test audit logging captures all required information. Verify recovery mechanism restores files correctly. Test backup retention policy removes old backups. Validate dry-run mode doesn't delete anything. Test backup integrity verification. Test recovery within and outside recovery window.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define pre-deletion validation and exclusions",
+            "description": "Document and implement rules for validating deletion targets and exclusion lists.",
+            "dependencies": [],
+            "details": "Specify path existence checks, permission validation, exclusion list enforcement, and acceptance criteria ensuring zero data loss before any deletion logic executes.",
+            "status": "pending",
+            "testStrategy": "Unit tests covering valid, missing, and excluded paths plus permission-denied scenarios."
+          },
+          {
+            "id": 2,
+            "title": "Implement atomic backup creation with tarfile",
+            "description": "Create atomic backup workflow using tarfile with compression.",
+            "dependencies": [
+              1
+            ],
+            "details": "Design context-managed backup builder that tars target paths with deterministic naming, ensures temporary-to-final atomic moves, and captures timestamps consistent with recovery requirements.",
+            "status": "pending",
+            "testStrategy": "Integration tests verifying backup archives are created atomically and compressed contents match source files."
+          },
+          {
+            "id": 3,
+            "title": "Generate backup metadata and SHA-256 integrity",
+            "description": "Produce JSON metadata and hash digests for each backup.",
+            "dependencies": [
+              2
+            ],
+            "details": "Write metadata emitter storing archive path, contents manifest, hash digest, creation time, and recovery instructions aligned with acceptance criteria for zero data loss.",
+            "status": "pending",
+            "testStrategy": "Unit tests validating metadata schema and asserting stored SHA-256 matches recomputed digest."
+          },
+          {
+            "id": 4,
+            "title": "Establish audit logging with append-only safeguards",
+            "description": "Record deletion events in JSON log with tamper resistance.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Implement append-only JSON logging capturing path, user, size, reason, timestamp, and integrity markers to support forensic traceability.",
+            "status": "pending",
+            "testStrategy": "Unit tests ensuring log entries append correctly and reject modifications to prior records."
+          },
+          {
+            "id": 5,
+            "title": "Build recovery command and restore workflow",
+            "description": "Create lazyscan recover CLI handling backup restoration within window.",
+            "dependencies": [
+              2,
+              3,
+              4
+            ],
+            "details": "Implement recovery execution that locates backup by ID, validates metadata, verifies hashes, restores to chosen path, and updates audit trails guaranteeing full recovery.",
+            "status": "pending",
+            "testStrategy": "Integration tests exercising recover command across success, invalid ID, and expired window scenarios."
+          },
+          {
+            "id": 6,
+            "title": "Enforce backup retention policy and pruning",
+            "description": "Implement deletion of backups older than recovery window.",
+            "dependencies": [
+              3,
+              5
+            ],
+            "details": "Create scheduled or command-invoked retention logic that inspects metadata timestamps and safely removes archives outside configurable window without impacting active recoveries.",
+            "status": "pending",
+            "testStrategy": "Unit tests simulating varying timestamps to ensure only expired backups are pruned."
+          },
+          {
+            "id": 7,
+            "title": "Add dry-run mode with diff-style preview",
+            "description": "Implement --dry-run flag showing pending deletions without execution.",
+            "dependencies": [
+              1,
+              2,
+              4
+            ],
+            "details": "Extend CLI to summarize prospective deletions, backup actions, and audit entries while skipping filesystem mutations to support safety acceptance criteria.",
+            "status": "pending",
+            "testStrategy": "CLI tests asserting dry-run outputs expected plans and performs no file changes."
+          },
+          {
+            "id": 8,
+            "title": "Prototype optional backup encryption pathway",
+            "description": "Provide encryption toggle for backup archives using cryptography library.",
+            "dependencies": [
+              2,
+              3,
+              5
+            ],
+            "details": "Integrate symmetric encryption flow wrapping tarball output, manage keys/config, and ensure recovery command decrypts before restore while maintaining hash verification.",
+            "status": "pending",
+            "testStrategy": "Integration tests covering encrypted backup creation and successful decryption during recovery."
+          },
+          {
+            "id": 9,
+            "title": "Harden error handling and rollback safety nets",
+            "description": "Implement transactional error management for backup and deletion steps.",
+            "dependencies": [
+              2,
+              3,
+              5,
+              7,
+              8
+            ],
+            "details": "Add structured exception handling that aborts deletion on validation failure, rolls back partial backups, and logs errors while preserving zero data loss guarantees.",
+            "status": "pending",
+            "testStrategy": "Unit tests injecting failures to verify operations roll back and data remains intact."
+          },
+          {
+            "id": 10,
+            "title": "Enhance CLI UX for backup listing and verification",
+            "description": "Implement lazyscan backups --list and --verify commands.",
+            "dependencies": [
+              3,
+              5,
+              6,
+              8
+            ],
+            "details": "Design user-friendly output formatting, filtering, and verification routines that leverage metadata and hash checks to confirm backup integrity.",
+            "status": "pending",
+            "testStrategy": "CLI integration tests ensuring list output accuracy and verify detects altered archives."
+          },
+          {
+            "id": 11,
+            "title": "Develop pyfakefs and selective real FS tests",
+            "description": "Create comprehensive test suite using pyfakefs plus targeted real FS cases.",
+            "dependencies": [
+              2,
+              3,
+              5,
+              7,
+              9,
+              10
+            ],
+            "details": "Compose automated scenarios simulating deletion, backup, recovery, retention, and encryption flows while validating acceptance criteria for zero data loss.",
+            "status": "pending",
+            "testStrategy": "Pyfakefs-based tests combined with isolated real filesystem runs in CI for critical paths."
+          },
+          {
+            "id": 12,
+            "title": "Document workflow and safety acceptance criteria",
+            "description": "Produce documentation and checklists covering safe deletion lifecycle.",
+            "dependencies": [
+              1,
+              4,
+              5,
+              6,
+              7,
+              9,
+              10,
+              11
+            ],
+            "details": "Draft user and developer docs outlining validation rules, recovery steps, retention policy, testing procedures, and acceptance criteria ensuring zero data loss and full recovery.",
+            "status": "pending",
+            "testStrategy": "Documentation review ensuring procedures align with implemented features and safety requirements."
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "title": "Documentation, Examples, and User Onboarding",
+        "description": "Create comprehensive documentation including installation guide, usage examples, configuration reference, troubleshooting guide, and API documentation for v1.0 launch.",
+        "status": "pending",
+        "dependencies": [
+          12,
+          14,
+          15,
+          16
+        ],
+        "priority": "high",
+        "details": "Create documentation structure: (1) README.md: Quick start, features overview, installation, basic usage; (2) docs/installation.md: Platform-specific installation (pip, pipx, homebrew); (3) docs/usage.md: CLI reference, examples for each app (Unity, Unreal, Chrome); (4) docs/configuration.md: TOML config reference with examples; (5) docs/troubleshooting.md: Common issues and solutions; (6) docs/api.md: Python API documentation for programmatic usage; (7) docs/examples/: Real-world usage examples (scripts, automation); (8) CHANGELOG.md: Version history and migration guides. Use MkDocs (latest 1.x) with Material theme for documentation site. Generate API docs from docstrings using pdoc (latest 14.x) or Sphinx. Create installation guide for: pip install lazyscan, pipx install lazyscan, homebrew (if applicable). Add video tutorials or GIFs showing Knight Rider UI. Create troubleshooting flowchart for common issues. Implement --help and --version flags with clear output. Create man page for Unix systems. Add examples for: scanning specific apps, custom cache paths, automation scripts, JSON output parsing. Create migration guide from v0.5.0 to v1.0. Host documentation on GitHub Pages or ReadTheDocs.",
+        "testStrategy": "Verify all documentation links are valid. Test installation instructions on clean environments (macOS, Linux, Windows). Validate code examples in documentation execute correctly. Check API documentation completeness and accuracy. Verify man page renders correctly. Test --help output is clear and complete. Validate TOML config examples work as documented.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design documentation IA and navigation blueprint",
+            "description": "Map the full documentation information architecture and navigation structure for the v1.0 docs site.",
+            "dependencies": [],
+            "details": "Produce site map covering README, installation, usage, configuration, troubleshooting, API, examples, changelog, onboarding assets, and migration guide. Define nav hierarchy for MkDocs. Acceptance Criteria: IA doc reviewed with stakeholders, confirms coverage of all required sections, and lists runnable example placeholders per section.",
+            "status": "pending",
+            "testStrategy": "Workshop IA with stakeholders, validate against parent task requirements, and ensure each planned section references at least one runnable example placeholder."
+          },
+          {
+            "id": 2,
+            "title": "Set up MkDocs Material project infrastructure",
+            "description": "Initialize MkDocs (latest 1.x) with Material theme and configure site settings.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create mkdocs.yml with navigation from IA, configure Material theme features (tabs, search, code highlighting), and set up local preview workflow. Acceptance Criteria: mkdocs serve renders without errors, theme matches spec, and placeholder pages exist for all IA nodes including example stubs.",
+            "status": "pending",
+            "testStrategy": "Run `mkdocs serve` locally, confirm navigation works, ensure theme assets load, and lint mkdocs.yml with `mkdocs build` to verify successful static build."
+          },
+          {
+            "id": 3,
+            "title": "Draft README and quickstart content",
+            "description": "Author README.md covering overview, installation summary, quickstart, and feature highlights.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Write concise narrative including command snippets for initial scan and config creation. Provide runnable quickstart example referencing sample project. Acceptance Criteria: README passes markdown linting, quickstart commands run successfully on test environment, and cross-links to deeper docs remain accurate.",
+            "status": "pending",
+            "testStrategy": "Execute quickstart steps in clean virtualenv, validate outputs against expected results, and run markdown linter plus link checker on README."
+          },
+          {
+            "id": 4,
+            "title": "Develop installation guides for pip, pipx, and Homebrew",
+            "description": "Create docs/installation.md with platform-specific installation instructions and validation steps.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Document pip install lazyscan, pipx workflows, and investigate/confirm Homebrew availability including tap instructions or caveats. Add verification commands post-install. Acceptance Criteria: Each method tested on supported OS, documented outputs accurate, and fallback guidance provided if Homebrew unavailable.",
+            "status": "pending",
+            "testStrategy": "Perform installs in macOS, Windows (WSL where needed), and Linux containers, capture terminal logs, and confirm `lazyscan --version` matches v1.0."
+          },
+          {
+            "id": 5,
+            "title": "Document CLI usage and app-specific examples",
+            "description": "Author docs/usage.md with CLI reference and runnable examples for Unity, Unreal, and Chrome integrations.",
+            "dependencies": [
+              2,
+              3
+            ],
+            "details": "Cover command syntax, flags (including JSON output), and include sample datasets or fixtures ensuring commands run. Acceptance Criteria: Each example tested end-to-end, outputs captured in docs, and CLI option tables verified against actual `--help` output.",
+            "status": "pending",
+            "testStrategy": "Run live CLI commands against mock/sample data, compare documentation to `lazyscan --help`, and ensure JSON examples validate via `jq`."
+          },
+          {
+            "id": 6,
+            "title": "Produce configuration reference with TOML examples",
+            "description": "Create docs/configuration.md detailing all config fields with annotated TOML snippets.",
+            "dependencies": [
+              2,
+              5
+            ],
+            "details": "Explain schema, defaults, nested structures, and environment overrides. Include runnable sample config powering documented CLI examples. Acceptance Criteria: TOML validated by tooling, config loaded successfully by app, and doc cross-links to relevant usage sections.",
+            "status": "pending",
+            "testStrategy": "Use `toml` parser to validate example files, load them in app dry run, and ensure references in docs resolve correctly."
+          },
+          {
+            "id": 7,
+            "title": "Author troubleshooting guide and flowchart",
+            "description": "Write docs/troubleshooting.md including common issues, resolutions, and a decision flowchart.",
+            "dependencies": [
+              2,
+              5,
+              6
+            ],
+            "details": "Capture error codes, log locations, recovery steps, and embed flowchart (Mermaid or image). Acceptance Criteria: Flowchart renders in Material, guidance verified with failure injections, and references actionable commands with runnable validation steps.",
+            "status": "pending",
+            "testStrategy": "Simulate documented failure scenarios, verify steps resolve issue, and preview flowchart rendering locally and in PDF export if available."
+          },
+          {
+            "id": 8,
+            "title": "Generate Python API documentation",
+            "description": "Set up automated API docs (pdoc 14.x or Sphinx) and integrate output into docs/api.md.",
+            "dependencies": [
+              2,
+              6
+            ],
+            "details": "Configure tooling to parse docstrings, include usage examples, and add navigation links. Acceptance Criteria: API docs build without warnings, include runnable code snippets verified via doctest or unit execution, and integrate into MkDocs nav.",
+            "status": "pending",
+            "testStrategy": "Run API doc generator command, inspect for warnings, execute embedded code samples using doctest or notebooks, and ensure mkdocs build includes generated HTML."
+          },
+          {
+            "id": 9,
+            "title": "Curate examples and automation workflows",
+            "description": "Populate docs/examples/ with real-world scripts covering JSON parsing, automation, and custom cache paths.",
+            "dependencies": [
+              5,
+              6,
+              8
+            ],
+            "details": "Provide runnable scripts or notebooks plus narrative pages showing usage patterns, piping into jq, and integration with CI. Acceptance Criteria: All scripts execute successfully, outputs captured, and download links plus instructions verified.",
+            "status": "pending",
+            "testStrategy": "Execute each example script in isolated environment, validate JSON outputs via jq, and run automated tests ensuring examples stay in sync."
+          },
+          {
+            "id": 10,
+            "title": "Polish man page and CLI flag documentation",
+            "description": "Implement and document `--help`, `--version`, and Unix man page for lazyscan.",
+            "dependencies": [
+              5,
+              9
+            ],
+            "details": "Ensure CLI emits structured help, generate man page (roff), and document install steps for man page. Acceptance Criteria: Man page passes `man -l` check, help text matches docs, and runnable examples demonstrate flags with expected output.",
+            "status": "pending",
+            "testStrategy": "Run `lazyscan --help` and `--version`, compare to docs, validate man page formatting using `man -l` plus lint with `mandoc` or `ruffman`."
+          },
+          {
+            "id": 11,
+            "title": "Implement docs CI for validation and publishing",
+            "description": "Create pipeline to lint docs, run link checks, test examples, and publish to GitHub Pages or ReadTheDocs.",
+            "dependencies": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "details": "Set up CI workflow: mkdocs build, markdown lint, link verifier, example test harness, and deployment to hosting. Acceptance Criteria: CI passes on clean run, artifacts published to selected platform, and documentation accuracy ensured via automated checks for runnable examples.",
+            "status": "pending",
+            "testStrategy": "Run CI workflow in branch, confirm build + tests succeed, validate deployed site accessibility, and review logs for link-check completeness."
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Additional App Integrations (VS Code, Node.js, Docker, Git, Xcode)",
+        "description": "Implement cache discovery and cleanup for VS Code, Node.js (node_modules), Docker, Git, and Xcode to expand platform support and user value.",
+        "status": "pending",
+        "dependencies": [
+          13,
+          14
+        ],
+        "priority": "medium",
+        "details": "Implement app-specific cache handlers following existing pattern (Unity, Unreal, Chrome). For each app: (1) VS Code: ~/.config/Code/Cache, ~/.config/Code/CachedData, ~/.vscode/extensions (extensions cache); (2) Node.js: node_modules directories (recursive), npm cache (~/.npm), yarn cache (~/.yarn/cache); (3) Docker: ~/.docker/buildx/cache, /var/lib/docker (requires elevated privileges); (4) Git: ~/.git/objects (large objects), git gc optimization; (5) Xcode: ~/Library/Developer/Xcode/DerivedData, ~/Library/Caches/com.apple.dt.Xcode, ~/Library/Developer/Xcode/iOS DeviceSupport. Create AppHandler abstract base class with methods: discover(), calculate_size(), cleanup(). Implement platform-specific discovery (e.g., find node_modules recursively, parse Xcode project files). Add configuration options for each app (e.g., exclude certain node_modules, preserve specific extensions). Implement safe cleanup with validation (e.g., don't delete node_modules if package.json exists in parent). Create tests for each app integration. Add --apps flag to filter which apps to scan. Implement app-specific warnings (e.g., rebuilding node_modules takes time).",
+        "testStrategy": "Unit test each app handler with mocked filesystem. Integration test discovery on systems with apps installed. Verify size calculations are accurate. Test cleanup operations with dry-run mode. Validate app-specific validation logic (e.g., don't delete critical files). Test cross-platform app discovery (macOS, Linux, Windows).",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define AppHandler ABC and lifecycle methods",
+            "description": "Create core abstract interface for all app handlers.",
+            "dependencies": [],
+            "details": "Design an AppHandler abstract base class with discover, calculate_size, and cleanup method signatures, clear docstrings, and shared error semantics for implementers.",
+            "status": "pending",
+            "testStrategy": "Add unit tests ensuring subclasses must implement all abstract methods and that default behaviors raise NotImplementedError."
+          },
+          {
+            "id": 2,
+            "title": "Build shared discovery utilities and validators",
+            "description": "Implement reusable helper utilities for handler implementations.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create shared helpers for path normalization, permission checks, dry-run handling, timestamp formatting, and platform detection to keep handlers consistent and safe.",
+            "status": "pending",
+            "testStrategy": "Write unit tests covering path normalization edge cases, permission guard responses, and dry-run toggling logic."
+          },
+          {
+            "id": 3,
+            "title": "Implement VS Code cache handler",
+            "description": "Add VS Code-specific cache discovery, sizing, cleanup, and configuration.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement a VSCodeHandler that locates cache directories, calculates cumulative sizes, supports excluding extensions, and performs validated cleanup respecting dry-run and user config.",
+            "status": "pending",
+            "testStrategy": "Use pyfakefs to simulate VS Code cache directories, verify discovery results, size calculations, and that cleanup only removes intended paths."
+          },
+          {
+            "id": 4,
+            "title": "Implement Node.js cache handler with safety checks",
+            "description": "Handle node_modules, npm, and yarn cache management safely.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Create a NodeJsHandler that recursively discovers node_modules, npm, and yarn caches, enforces package.json safeguards, supports exclusion patterns, and surfaces rebuild warnings.",
+            "status": "pending",
+            "testStrategy": "Mock nested project structures to ensure discovery respects exclusions, validate safeguards prevent deleting active dependencies, and confirm cleanup honors dry-run."
+          },
+          {
+            "id": 5,
+            "title": "Implement Docker cache handler with privilege awareness",
+            "description": "Support Docker cache discovery and guarded cleanup.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Develop a DockerHandler that detects buildx cache and daemon storage, checks for required privileges, offers dry-run guidance, and fails safely when access is insufficient.",
+            "status": "pending",
+            "testStrategy": "Use mocked filesystem and permission checks to verify detection logic, ensure elevated path operations are skipped without rights, and confirm cleanup commands are guarded."
+          },
+          {
+            "id": 6,
+            "title": "Implement Git objects handler and GC guidance",
+            "description": "Add Git cache management with safe cleanup strategies.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement a GitHandler that identifies large object stores, calculates sizes, suggests git gc commands, and safely removes stale objects without harming repositories.",
+            "status": "pending",
+            "testStrategy": "Create temporary git repos to confirm discovery accuracy, ensure safety checks prevent deleting essential refs, and test that guidance messaging is emitted."
+          },
+          {
+            "id": 7,
+            "title": "Implement Xcode cache handler for macOS assets",
+            "description": "Support Xcode DerivedData, cache, and DeviceSupport management.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Build an XcodeHandler that discovers DerivedData, cache, and device support directories, respects simulator exclusions, validates macOS availability, and cleans safely.",
+            "status": "pending",
+            "testStrategy": "Leverage pyfakefs macOS-like paths to verify discovery, test selective deletions, and ensure handler skips execution on non-macOS systems."
+          },
+          {
+            "id": 8,
+            "title": "Add per-app configuration options and exclusions",
+            "description": "Expose configuration knobs for all new handlers.",
+            "dependencies": [
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "details": "Extend configuration schema to let users exclude paths, preserve extensions, and set app-specific behaviors, integrating with existing config loading and validation.",
+            "status": "pending",
+            "testStrategy": "Test configuration parsing with valid and invalid overrides, confirm handlers honor exclusions, and verify defaults fall back safely."
+          },
+          {
+            "id": 9,
+            "title": "Implement safe deletion validators and rollback hooks",
+            "description": "Strengthen safeguards and reversibility across cleanups.",
+            "dependencies": [
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8
+            ],
+            "details": "Introduce centralized validators that confirm paths before deletion, enforce dry-run previews, log backups when available, and provide rollback hooks for critical assets.",
+            "status": "pending",
+            "testStrategy": "Simulate failure scenarios to ensure validators halt risky deletions, check rollback logging, and verify dry-run output highlights pending actions."
+          },
+          {
+            "id": 10,
+            "title": "Implement size aggregation and rebuild warnings",
+            "description": "Enhance reporting with accurate sizing and rebuild cost notices.",
+            "dependencies": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              9
+            ],
+            "details": "Aggregate per-app cache sizes, surface warnings about costly rebuilds (node_modules, Docker layers), and ensure summaries integrate with existing reporting pipeline.",
+            "status": "pending",
+            "testStrategy": "Verify aggregated totals match individual handler outputs, ensure warnings appear when thresholds met, and validate formatting in reports."
+          },
+          {
+            "id": 11,
+            "title": "Extend CLI with --apps filtering and UX updates",
+            "description": "Allow users to target specific apps via CLI flag.",
+            "dependencies": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "details": "Implement a --apps flag supporting multiple selections, enhance help text, and ensure CLI feedback clearly lists scanned and skipped apps with reasoning.",
+            "status": "pending",
+            "testStrategy": "Add CLI tests covering valid/invalid app selections, multiple values, and ensure output accurately reflects filtered execution paths."
+          },
+          {
+            "id": 12,
+            "title": "Harden cross-platform conditionals and environment detection",
+            "description": "Ensure handlers behave correctly across OS variations.",
+            "dependencies": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              9,
+              10,
+              11
+            ],
+            "details": "Audit handlers for platform assumptions, gate macOS-only logic, handle Windows path nuances, and centralize environment detection to prevent runtime errors.",
+            "status": "pending",
+            "testStrategy": "Run platform-specific unit tests via mocking, verify Windows and Linux path handling, and ensure macOS-only handlers skip gracefully elsewhere."
+          },
+          {
+            "id": 13,
+            "title": "Develop comprehensive test suite for new integrations",
+            "description": "Create unit and integration tests covering all handlers.",
+            "dependencies": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12
+            ],
+            "details": "Assemble pyfakefs-based unit tests, add targeted integration probes, ensure cleanup dry-run coverage, and incorporate regression tests for size reporting.",
+            "status": "pending",
+            "testStrategy": "Execute full test matrix across handlers, measure coverage, and validate regression scenarios for discovery, cleanup, and reporting."
+          },
+          {
+            "id": 14,
+            "title": "Document integrations and acceptance criteria",
+            "description": "Produce documentation and acceptance criteria for safe defaults.",
+            "dependencies": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "details": "Update user docs detailing each app handler, configuration usage, safe defaults, reversibility expectations, and publish acceptance criteria for release readiness.",
+            "status": "pending",
+            "testStrategy": "Peer-review documentation for accuracy, confirm acceptance criteria map to implemented safeguards, and run linting on documentation sources."
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-10-22T03:11:06.051Z",
+      "updated": "2025-10-22T04:09:26.045Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
