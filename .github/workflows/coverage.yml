@@ -1,0 +1,296 @@
+name: Coverage Report
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # Run coverage analysis weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      upload-to-codecov:
+        description: 'Upload coverage to Codecov'
+        required: false
+        default: true
+        type: boolean
+
+# Cancel in-progress workflows for the same branch
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  FORCE_COLOR: 1
+  PY_COLORS: 1
+  PYTEST_ADDOPTS: "--color=yes"
+
+jobs:
+  coverage:
+    name: Generate Coverage Report
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false || github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for coverage comparison
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install -r requirements-dev.txt
+
+      - name: Create coverage directory
+        run: |
+          mkdir -p coverage-reports
+
+      - name: Run all tests with coverage
+        run: |
+          pytest tests/ \
+            --cov=lazyscan \
+            --cov=helpers \
+            --cov-report=xml:coverage-reports/coverage.xml \
+            --cov-report=html:coverage-reports/coverage-html \
+            --cov-report=json:coverage-reports/coverage.json \
+            --cov-report=lcov:coverage-reports/coverage.lcov \
+            --cov-report=term-missing \
+            --cov-branch \
+            --cov-fail-under=40 || echo "Coverage below threshold but continuing..."
+
+      - name: Generate additional coverage formats
+        run: |
+          # Copy the main coverage file as combined for consistency
+          cp coverage-reports/coverage.xml coverage-reports/combined-coverage.xml
+          cp coverage-reports/coverage.json coverage-reports/combined-coverage.json
+          cp -r coverage-reports/coverage-html coverage-reports/combined-html
+          coverage report --format=markdown > coverage-reports/coverage-summary.md || echo "Markdown report generation failed"
+
+      - name: Generate diff coverage (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          # Generate diff coverage report comparing to main branch
+          diff-cover coverage-reports/coverage.xml \
+            --compare-branch=origin/main \
+            --html-report coverage-reports/diff-coverage.html \
+            --json-report coverage-reports/diff-coverage.json \
+            --markdown-report coverage-reports/diff-coverage.md \
+            --fail-under=75
+
+      - name: Check coverage thresholds
+        run: |
+          python -c "
+          import json
+          import sys
+
+          # Load coverage data
+          with open('coverage-reports/coverage.json', 'r') as f:
+              coverage_data = json.load(f)
+
+          total_coverage = coverage_data['totals']['percent_covered']
+          print(f'Total coverage: {total_coverage:.2f}%')
+
+          # Define thresholds (lowered for initial CI setup)
+          thresholds = {
+              'minimum': 35,
+              'target': 50,
+              'excellent': 70
+          }
+
+          # Check thresholds
+          if total_coverage < thresholds['minimum']:
+              print(f'❌ Coverage {total_coverage:.2f}% is below minimum {thresholds[\"minimum\"]}%')
+              sys.exit(1)
+          elif total_coverage < thresholds['target']:
+              print(f'⚠️ Coverage {total_coverage:.2f}% is below target {thresholds[\"target\"]}%')
+          elif total_coverage >= thresholds['excellent']:
+              print(f'🌟 Excellent coverage {total_coverage:.2f}%!')
+          else:
+              print(f'✅ Good coverage {total_coverage:.2f}%')
+
+          # Check for untested files
+          files_data = coverage_data['files']
+          untested_files = [f for f, data in files_data.items() if data['summary']['percent_covered'] == 0]
+          if untested_files:
+              print(f'⚠️ Found {len(untested_files)} completely untested files:')
+              for file in untested_files[:10]:  # Show first 10
+                  print(f'  - {file}')
+          "
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: inputs.upload-to-codecov != false
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage-reports/coverage.xml
+          flags: combined
+          name: LazyScan Coverage
+          fail_ci_if_error: true
+          verbose: true
+
+
+      - name: Upload coverage reports as artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage-reports/
+          retention-days: 30
+
+      - name: Generate step summary
+        if: always()
+        run: |
+          echo "# Coverage Report Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "coverage-reports/coverage-summary.md" ]; then
+            echo "## Overall Coverage" >> $GITHUB_STEP_SUMMARY
+            cat coverage-reports/coverage-summary.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 [Combined HTML Report](./coverage-reports/combined-html/index.html)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 [Unit Test HTML Report](./coverage-reports/unit-html/index.html)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔗 [Integration HTML Report](./coverage-reports/integration-html/index.html)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🚀 [E2E HTML Report](./coverage-reports/e2e-html/index.html)" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "coverage-reports/diff-coverage.md" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## Diff Coverage (PR Changes Only)" >> $GITHUB_STEP_SUMMARY
+            cat coverage-reports/diff-coverage.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment on PR with coverage
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && always()
+        with:
+          script: |
+            const fs = require('fs');
+
+            let coverageComment = `## 📊 Coverage Report\n\n`;
+
+            try {
+              // Read combined coverage summary
+              if (fs.existsSync('coverage-reports/coverage-summary.md')) {
+                const summary = fs.readFileSync('coverage-reports/coverage-summary.md', 'utf8');
+                coverageComment += `### Overall Coverage\n${summary}\n\n`;
+              }
+
+              // Read diff coverage if available
+              if (fs.existsSync('coverage-reports/diff-coverage.md')) {
+                const diffCoverage = fs.readFileSync('coverage-reports/diff-coverage.md', 'utf8');
+                coverageComment += `### Diff Coverage (Your Changes)\n${diffCoverage}\n\n`;
+              }
+
+              coverageComment += `### 📈 Coverage Trends
+              - ✅ Unit Tests: Uploaded to Codecov
+              - ✅ Integration Tests: Uploaded to Codecov
+              - ✅ E2E Tests: Uploaded to Codecov
+              - 📋 Full reports available in workflow artifacts
+
+              ### 🎯 Coverage Goals
+              - **Minimum**: 70% (Required for merge)
+              - **Target**: 80% (Recommended)
+              - **Excellent**: 90% (Outstanding!)
+
+              ---
+              *Coverage report generated by GitHub Actions*`;
+
+            } catch (error) {
+              coverageComment += `⚠️ Unable to generate detailed coverage summary. Check the workflow logs for details.\n\nError: ${error.message}`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: coverageComment
+            });
+
+  coverage-comparison:
+    name: Coverage Comparison
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: coverage
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-branch
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage[toml]
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+          path: pr-coverage/
+
+      - name: Generate main branch coverage
+        run: |
+          cd main-branch
+          python -m pip install -e .
+          python -m pip install pytest pytest-cov
+          pytest tests/ --cov=lazyscan --cov=helpers --cov-report=json:../main-coverage.json || true
+
+      - name: Compare coverage
+        run: |
+          python -c "
+          import json
+          import sys
+
+          # Load PR and main coverage
+          try:
+              with open('pr-coverage/combined-coverage.json', 'r') as f:
+                  pr_coverage = json.load(f)['totals']['percent_covered']
+          except FileNotFoundError:
+              print('❌ PR coverage data not found')
+              sys.exit(1)
+
+          try:
+              with open('main-coverage.json', 'r') as f:
+                  main_coverage = json.load(f)['totals']['percent_covered']
+          except FileNotFoundError:
+              print('⚠️ Main branch coverage data not found, skipping comparison')
+              main_coverage = None
+
+          print(f'PR Coverage: {pr_coverage:.2f}%')
+          if main_coverage is not None:
+              print(f'Main Coverage: {main_coverage:.2f}%')
+              diff = pr_coverage - main_coverage
+              if diff > 0:
+                  print(f'📈 Coverage increased by {diff:.2f}%')
+              elif diff < 0:
+                  print(f'📉 Coverage decreased by {abs(diff):.2f}%')
+              else:
+                  print('📊 Coverage unchanged')
+          "

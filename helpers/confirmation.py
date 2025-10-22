@@ -10,32 +10,36 @@ Version: 1.0.0
 """
 
 import os
-import sys
-import time
 import random
 import string
-from typing import List, Dict, Optional, Tuple
-from enum import Enum
+import time
 from dataclasses import dataclass
-from .security import validate_paths, sanitize_input
+from enum import Enum
+
+from .security import sanitize_input, validate_paths
+
 
 class RiskLevel(Enum):
     """Risk levels for different operations"""
-    LOW = "low"          # Individual cache files
-    MEDIUM = "medium"    # Cache directories
-    HIGH = "high"        # Multiple directories or large amounts
-    CRITICAL = "critical" # System-wide operations
+
+    LOW = "low"  # Individual cache files
+    MEDIUM = "medium"  # Cache directories
+    HIGH = "high"  # Multiple directories or large amounts
+    CRITICAL = "critical"  # System-wide operations
+
 
 @dataclass
 class OperationSummary:
     """Summary of operation to be performed"""
+
     operation_type: str
-    target_paths: List[str]
+    target_paths: list[str]
     total_size: int
     file_count: int
     risk_level: RiskLevel
-    warnings: List[str]
+    warnings: list[str]
     estimated_time: float
+
 
 class ConfirmationDialog:
     """
@@ -56,9 +60,9 @@ class ConfirmationDialog:
         Returns:
             bool: True if user confirms, False otherwise
         """
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("🔒 LAZYSCAN SECURITY CONFIRMATION")
-        print("="*80)
+        print("=" * 80)
 
         # Display operation summary
         self._display_operation_summary(summary)
@@ -106,9 +110,9 @@ class ConfirmationDialog:
             response = input("\nProceed with deletion? [y/N]: ").strip().lower()
             response = sanitize_input(response, "selection")
 
-            if response in ['y', 'yes']:
+            if response in ["y", "yes"]:
                 return True
-            elif response in ['n', 'no', '']:
+            elif response in ["n", "no", ""]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
@@ -129,9 +133,9 @@ class ConfirmationDialog:
             response = input("\nDo you want to proceed? [y/N]: ").strip().lower()
             response = sanitize_input(response, "selection")
 
-            if response in ['y', 'yes']:
+            if response in ["y", "yes"]:
                 break
-            elif response in ['n', 'no', '']:
+            elif response in ["n", "no", ""]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
@@ -143,9 +147,9 @@ class ConfirmationDialog:
             response = input("Are you absolutely sure? [y/N]: ").strip().lower()
             response = sanitize_input(response, "selection")
 
-            if response in ['y', 'yes']:
+            if response in ["y", "yes"]:
                 return True
-            elif response in ['n', 'no', '']:
+            elif response in ["n", "no", ""]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
@@ -155,7 +159,9 @@ class ConfirmationDialog:
         """Strict confirmation for high-risk operations"""
         print("\n🚨 This is a HIGH RISK operation!")
         print("This operation will delete a large amount of data.")
-        print("Files will be PERMANENTLY DELETED and cannot be recovered without backups.")
+        print(
+            "Files will be PERMANENTLY DELETED and cannot be recovered without backups."
+        )
 
         # Safety delay
         if self.enable_safety_delays:
@@ -175,12 +181,16 @@ class ConfirmationDialog:
 
         # First confirmation
         while True:
-            response = input("\nDo you understand the risks and want to proceed? [y/N]: ").strip().lower()
+            response = (
+                input("\nDo you understand the risks and want to proceed? [y/N]: ")
+                .strip()
+                .lower()
+            )
             response = sanitize_input(response, "selection")
 
-            if response in ['y', 'yes']:
+            if response in ["y", "yes"]:
                 break
-            elif response in ['n', 'no', '']:
+            elif response in ["n", "no", ""]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
@@ -195,21 +205,27 @@ class ConfirmationDialog:
 
             if response == confirmation_word:
                 break
-            elif response.lower() in ['cancel', 'quit', 'exit']:
+            elif response.lower() in ["cancel", "quit", "exit"]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
-                print(f"Please type exactly '{confirmation_word}' or 'cancel' to abort.")
+                print(
+                    f"Please type exactly '{confirmation_word}' or 'cancel' to abort."
+                )
 
         # Final confirmation
         print("\n🔄 Final confirmation required.")
         while True:
-            response = input("This is your last chance. Proceed with deletion? [y/N]: ").strip().lower()
+            response = (
+                input("This is your last chance. Proceed with deletion? [y/N]: ")
+                .strip()
+                .lower()
+            )
             response = sanitize_input(response, "selection")
 
-            if response in ['y', 'yes']:
+            if response in ["y", "yes"]:
                 return True
-            elif response in ['n', 'no', '']:
+            elif response in ["n", "no", ""]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
@@ -237,7 +253,9 @@ class ConfirmationDialog:
         # Path validation check
         print("\n🔍 Performing security validation...")
         validation_results = validate_paths(summary.target_paths)
-        unsafe_paths = [path for path, (is_safe, _) in validation_results.items() if not is_safe]
+        unsafe_paths = [
+            path for path, (is_safe, _) in validation_results.items() if not is_safe
+        ]
 
         if unsafe_paths:
             print("\n❌ SECURITY VALIDATION FAILED!")
@@ -251,7 +269,9 @@ class ConfirmationDialog:
         print("✅ Security validation passed.")
 
         # Generate random confirmation code
-        confirmation_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        confirmation_code = "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=6)
+        )
 
         print(f"\n🔐 Security Code: {confirmation_code}")
         print("You must enter this code exactly to proceed.")
@@ -260,12 +280,12 @@ class ConfirmationDialog:
         max_attempts = 3
 
         while attempts < max_attempts:
-            response = input(f"\nEnter security code: ").strip()
+            response = input("\nEnter security code: ").strip()
             response = sanitize_input(response, "selection")
 
             if response == confirmation_code:
                 break
-            elif response.lower() in ['cancel', 'quit', 'exit']:
+            elif response.lower() in ["cancel", "quit", "exit"]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
@@ -279,25 +299,33 @@ class ConfirmationDialog:
 
         # Final warning and confirmation
         print("\n⚠️  FINAL WARNING:")
-        print("This operation will PERMANENTLY DELETE the specified files and directories.")
+        print(
+            "This operation will PERMANENTLY DELETE the specified files and directories."
+        )
         print("There is NO UNDO for this operation.")
         print("Make sure you have backups of any important data.")
 
         while True:
-            response = input("\nI understand the risks and want to proceed [y/N]: ").strip().lower()
+            response = (
+                input("\nI understand the risks and want to proceed [y/N]: ")
+                .strip()
+                .lower()
+            )
             response = sanitize_input(response, "selection")
 
-            if response in ['y', 'yes']:
+            if response in ["y", "yes"]:
                 # Record this critical operation
-                self.confirmation_history.append({
-                    'timestamp': time.time(),
-                    'operation': summary.operation_type,
-                    'risk_level': summary.risk_level.value,
-                    'paths_count': len(summary.target_paths),
-                    'total_size': summary.total_size
-                })
+                self.confirmation_history.append(
+                    {
+                        "timestamp": time.time(),
+                        "operation": summary.operation_type,
+                        "risk_level": summary.risk_level.value,
+                        "paths_count": len(summary.target_paths),
+                        "total_size": summary.total_size,
+                    }
+                )
                 return True
-            elif response in ['n', 'no', '']:
+            elif response in ["n", "no", ""]:
                 print("❌ Operation cancelled by user.")
                 return False
             else:
@@ -305,11 +333,12 @@ class ConfirmationDialog:
 
     def _format_size(self, size_bytes: int) -> str:
         """Format size in human-readable format"""
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        for unit in ["B", "KB", "MB", "GB", "TB"]:
             if size_bytes < 1024.0:
                 return f"{size_bytes:.1f} {unit}"
             size_bytes /= 1024.0
         return f"{size_bytes:.1f} PB"
+
 
 class PermissionChecker:
     """
@@ -317,7 +346,7 @@ class PermissionChecker:
     """
 
     @staticmethod
-    def check_write_permission(path: str) -> Tuple[bool, str]:
+    def check_write_permission(path: str) -> tuple[bool, str]:
         """Check if user has write permission to path"""
         try:
             if not os.path.exists(path):
@@ -333,17 +362,12 @@ class PermissionChecker:
                 return False, "Insufficient write permissions"
 
         except Exception as e:
-            return False, f"Permission check failed: {str(e)}"
+            return False, f"Permission check failed: {e!s}"
 
     @staticmethod
-    def check_admin_required(paths: List[str]) -> bool:
+    def check_admin_required(paths: list[str]) -> bool:
         """Check if any paths require admin privileges"""
-        admin_paths = [
-            '/System',
-            '/Library',
-            '/usr',
-            '/private/var'
-        ]
+        admin_paths = ["/System", "/Library", "/usr", "/private/var"]
 
         for path in paths:
             for admin_path in admin_paths:
@@ -352,10 +376,10 @@ class PermissionChecker:
         return False
 
     @staticmethod
-    def get_current_user_info() -> Dict[str, any]:
+    def get_current_user_info() -> dict[str, any]:
         """Get current user information"""
-        import pwd
         import grp
+        import pwd
 
         try:
             uid = os.getuid()
@@ -364,18 +388,21 @@ class PermissionChecker:
             group_info = grp.getgrgid(gid)
 
             return {
-                'uid': uid,
-                'gid': gid,
-                'username': user_info.pw_name,
-                'home_dir': user_info.pw_dir,
-                'shell': user_info.pw_shell,
-                'group_name': group_info.gr_name,
-                'is_root': uid == 0
+                "uid": uid,
+                "gid": gid,
+                "username": user_info.pw_name,
+                "home_dir": user_info.pw_dir,
+                "shell": user_info.pw_shell,
+                "group_name": group_info.gr_name,
+                "is_root": uid == 0,
             }
         except Exception as e:
-            return {'error': str(e)}
+            return {"error": str(e)}
 
-def determine_risk_level(paths: List[str], total_size: int, file_count: int) -> RiskLevel:
+
+def determine_risk_level(
+    paths: list[str], total_size: int, file_count: int
+) -> RiskLevel:
     """
     Determine risk level based on operation characteristics.
 
@@ -388,32 +415,45 @@ def determine_risk_level(paths: List[str], total_size: int, file_count: int) -> 
         RiskLevel: Determined risk level
     """
     # Critical risk indicators
-    critical_paths = ['/System', '/usr', '/bin', '/sbin', '/etc']
-    if any(any(path.startswith(critical) for critical in critical_paths) for path in paths):
+    critical_paths = ["/System", "/usr", "/bin", "/sbin", "/etc"]
+    if any(
+        any(path.startswith(critical) for critical in critical_paths) for path in paths
+    ):
         return RiskLevel.CRITICAL
 
     # High risk thresholds
-    if (total_size > 10 * 1024**3 or  # > 10GB
-        file_count > 100000 or        # > 100k files
-        len(paths) > 50):             # > 50 directories
+    if (
+        total_size > 10 * 1024**3  # > 10GB
+        or file_count > 100000  # > 100k files
+        or len(paths) > 50
+    ):  # > 50 directories
         return RiskLevel.HIGH
 
     # Medium risk thresholds
-    if (total_size > 1 * 1024**3 or   # > 1GB
-        file_count > 10000 or         # > 10k files
-        len(paths) > 10):             # > 10 directories
+    if (
+        total_size > 1 * 1024**3  # > 1GB
+        or file_count > 10000  # > 10k files
+        or len(paths) > 10
+    ):  # > 10 directories
         return RiskLevel.MEDIUM
 
     # Default to low risk
     return RiskLevel.LOW
 
+
 # Global confirmation dialog instance
 confirmation_dialog = ConfirmationDialog()
 permission_checker = PermissionChecker()
 
+
 # Convenience functions
-def get_confirmation(operation_type: str, paths: List[str], total_size: int,
-                   file_count: int, warnings: List[str] = None) -> bool:
+def get_confirmation(
+    operation_type: str,
+    paths: list[str],
+    total_size: int,
+    file_count: int,
+    warnings: list[str] = None,
+) -> bool:
     """Get user confirmation for an operation"""
     risk_level = determine_risk_level(paths, total_size, file_count)
 
@@ -424,12 +464,13 @@ def get_confirmation(operation_type: str, paths: List[str], total_size: int,
         file_count=file_count,
         risk_level=risk_level,
         warnings=warnings or [],
-        estimated_time=max(1.0, file_count / 1000)  # Rough estimate
+        estimated_time=max(1.0, file_count / 1000),  # Rough estimate
     )
 
     return confirmation_dialog.get_operation_confirmation(summary)
 
-def check_permissions(paths: List[str]) -> Tuple[bool, List[str]]:
+
+def check_permissions(paths: list[str]) -> tuple[bool, list[str]]:
     """Check permissions for multiple paths"""
     failed_paths = []
 

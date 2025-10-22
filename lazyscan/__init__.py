@@ -14,22 +14,22 @@ __version__ = "0.5.0"
 __author__ = "TheLazyIndianTechie"
 
 # Import main CLI entry point for backward compatibility
-from .cli.main import main, cli_main
+from .apps import chrome, unity, unreal
+from .cli.main import cli_main, main
 
 # Import key modules for programmatic use
-from .core import formatting, scanner, config, ui
-from .apps import unity, unreal, chrome
+from .core import config, formatting, scanner, ui
 
 __all__ = [
-    'main',
-    'cli_main', 
-    '__version__',
-    '__author__',
-    'formatting',
-    'scanner', 
-    'config',
-    'ui',
-    'unity',
-    'unreal',
-    'chrome'
+    "main",
+    "cli_main",
+    "__version__",
+    "__author__",
+    "formatting",
+    "scanner",
+    "config",
+    "ui",
+    "unity",
+    "unreal",
+    "chrome",
 ]

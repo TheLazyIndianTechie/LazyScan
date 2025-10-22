@@ -1,0 +1,37 @@
+# Global Code Owners
+# These owners will be requested for review when someone opens a pull request.
+*       @TheLazyIndianTechie
+
+# Core Application Code
+/lazyscan/              @TheLazyIndianTechie
+/helpers/               @TheLazyIndianTechie
+
+# Testing and Quality Assurance
+/tests/                 @TheLazyIndianTechie
+/pytest.ini            @TheLazyIndianTechie
+/conftest.py           @TheLazyIndianTechie
+/.coveragerc           @TheLazyIndianTechie
+/tox.ini               @TheLazyIndianTechie
+
+# CI/CD and Development Workflow
+/.github/               @TheLazyIndianTechie
+/.github/workflows/     @TheLazyIndianTechie
+/.pre-commit-config.yaml @TheLazyIndianTechie
+
+# Configuration Files
+/ruff.toml             @TheLazyIndianTechie
+/mypy.ini              @TheLazyIndianTechie
+/setup.py              @TheLazyIndianTechie
+/pyproject.toml        @TheLazyIndianTechie
+
+# Documentation
+/README.md             @TheLazyIndianTechie
+/docs/                 @TheLazyIndianTechie
+/.taskmaster/          @TheLazyIndianTechie
+
+# Package Management
+/requirements*.txt     @TheLazyIndianTechie
+
+# Security and Compliance
+/.bandit               @TheLazyIndianTechie
+/.safety-policy.json   @TheLazyIndianTechie

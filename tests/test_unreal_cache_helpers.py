@@ -1,14 +1,12 @@
-import pytest
 import os
-import tempfile
-import shutil
+
+import pytest
+
 from helpers.unreal_cache_helpers import (
-    discover_uproject_files,
-    get_unreal_cache_targets,
     generate_unreal_project_report,
     scan_unreal_project,
-    find_unreal_projects_in_directory
 )
+
 
 @pytest.fixture
 def create_mock_unreal_project(tmp_path):
@@ -27,15 +25,19 @@ def create_mock_unreal_project(tmp_path):
 
     return project_path
 
+
 # Test cache size calculation
+
 
 def test_cache_size_calculation(create_mock_unreal_project):
     project_path = create_mock_unreal_project
 
     report = generate_unreal_project_report(str(project_path), "MockUnrealProject")
-    assert report['total_size'] == 1024 + 512
+    assert report["total_size"] == 1024 + 512
+
 
 # Test project report generation
+
 
 def test_project_report_generation_with_missing_dirs(tmp_path):
     project_path = tmp_path / "MissingDirsProject"
@@ -43,11 +45,13 @@ def test_project_report_generation_with_missing_dirs(tmp_path):
 
     report = generate_unreal_project_report(str(project_path), "MissingDirsProject")
     # All directories should not exist
-    for cache_directory in report['cache_dirs'].values():
-        assert cache_directory['exists'] is False
-        assert cache_directory['size'] == 0
+    for cache_directory in report["cache_dirs"].values():
+        assert cache_directory["exists"] is False
+        assert cache_directory["size"] == 0
+
 
 # Test edge case with permission error
+
 
 def test_generate_unreal_project_report_permission_error(tmp_path):
     project_path = tmp_path / "PermissionErrorProject"

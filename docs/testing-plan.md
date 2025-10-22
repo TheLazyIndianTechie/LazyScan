@@ -145,7 +145,7 @@ Using pyfakefs to create safe, reproducible test environments:
 
 ### Test Datasets
 - **Small Dataset**: 1GB simulated cache data
-- **Medium Dataset**: 10GB simulated cache data  
+- **Medium Dataset**: 10GB simulated cache data
 - **Large Dataset**: 100GB+ simulated cache data
 - **Edge Cases**: Empty caches, permission denied, corrupted data
 
@@ -176,7 +176,7 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = 
+addopts =
     --verbose
     --cov=lazyscan
     --cov-report=xml:reports/coverage.xml
@@ -197,7 +197,7 @@ markers =
 [run]
 source = lazyscan
 branch = True
-omit = 
+omit =
     tests/*
     setup.py
     lazyscan/__version__.py
@@ -218,7 +218,7 @@ directory = reports/coverage_html
 envlist = py39, py310, py311, py312, lint, coverage
 
 [testenv]
-deps = 
+deps =
     pytest>=7.0
     pytest-cov>=4.0
     pytest-mock>=3.10
@@ -226,7 +226,7 @@ deps =
 commands = pytest {posargs}
 
 [testenv:coverage]
-commands = 
+commands =
     pytest --cov-report=xml --cov-fail-under=80
     coverage html
 ```
@@ -359,8 +359,8 @@ repos:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2024-01-22  
-**Next Review**: 2024-02-22  
-**Owner**: QA Lead  
+**Document Version**: 1.0
+**Last Updated**: 2024-01-22
+**Next Review**: 2024-02-22
+**Owner**: QA Lead
 **Reviewers**: Development Team, Product Owner

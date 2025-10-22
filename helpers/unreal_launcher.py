@@ -7,10 +7,9 @@ manifest files to extract project information.
 import json
 import os
 from pathlib import Path
-from typing import List, Dict, Any
 
 
-def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, str]]:
+def read_unreal_launcher_projects(manifest_dir: str = None) -> list[dict[str, str]]:
     """Read registered Unreal Engine projects from manifest files.
 
     Args:
@@ -27,7 +26,7 @@ def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, st
 
     if manifest_dir is None:
         # Default launcher manifest locations
-        if os.name == 'nt':  # Windows
+        if os.name == "nt":  # Windows
             manifest_dir = Path("C:/ProgramData/Epic/UnrealEngineLauncher/Manifest")
         else:  # macOS
             home = Path.home()
@@ -35,7 +34,8 @@ def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, st
             manifest_dir = None
             possible_paths = [
                 home / "Library/Application Support/Epic/UnrealEngineLauncher/Manifest",
-                home / "Library/Application Support/Epic/EpicGamesLauncher/Data/Manifests"
+                home
+                / "Library/Application Support/Epic/EpicGamesLauncher/Data/Manifests",
             ]
             for path in possible_paths:
                 if path.exists() and path.is_dir():
@@ -56,10 +56,10 @@ def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, st
     try:
         for manifest_file in manifest_dir.glob("*.item"):
             try:
-                with open(manifest_file, 'r', encoding='utf-8') as f:
+                with open(manifest_file, encoding="utf-8") as f:
                     data = json.load(f)
                     # Check install location first
-                    install_path = Path(data.get('InstallLocation', ''))
+                    install_path = Path(data.get("InstallLocation", ""))
                     if not install_path.exists():
                         continue
 
@@ -68,10 +68,9 @@ def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, st
                         project_name = uproject.stem
                         project_path = uproject.parent
                         if project_path.exists():
-                            projects.append({
-                                'name': project_name,
-                                'path': str(project_path)
-                            })
+                            projects.append(
+                                {"name": project_name, "path": str(project_path)}
+                            )
             except Exception as e:
                 print(f"Error reading manifest {manifest_file}: {e}")
 
@@ -80,7 +79,8 @@ def read_unreal_launcher_projects(manifest_dir: str = None) -> List[Dict[str, st
 
     return projects
 
-def find_projects_in_paths(paths: List[Path]) -> List[Dict[str, str]]:
+
+def find_projects_in_paths(paths: list[Path]) -> list[dict[str, str]]:
     """Search specified paths for Unreal Engine projects.
 
     Args:
@@ -99,14 +99,14 @@ def find_projects_in_paths(paths: List[Path]) -> List[Dict[str, str]]:
         path_str = str(path).lower()
         # Exclude common non-user project paths
         excluded_patterns = [
-            'engine/programs',
-            'engine/source',
-            '/templates/',
-            'enginetest',
-            'testproject',
-            '/samples/',
-            '/content/examples/',
-            'tp_',  # Template projects
+            "engine/programs",
+            "engine/source",
+            "/templates/",
+            "enginetest",
+            "testproject",
+            "/samples/",
+            "/content/examples/",
+            "tp_",  # Template projects
         ]
         return not any(pattern in path_str.lower() for pattern in excluded_patterns)
 
@@ -115,18 +115,17 @@ def find_projects_in_paths(paths: List[Path]) -> List[Dict[str, str]]:
             continue
 
         # Look for .uproject files recursively
-        for project_file in path.rglob('*.uproject'):
+        for project_file in path.rglob("*.uproject"):
             if is_user_project(project_file):
                 project_name = project_file.stem
-                projects.append({
-                    'name': project_name,
-                    'path': str(project_file.parent)
-                })
+                projects.append(
+                    {"name": project_name, "path": str(project_file.parent)}
+                )
 
     return projects
 
 
-def get_unreal_projects() -> List[Dict[str, str]]:
+def get_unreal_projects() -> list[dict[str, str]]:
     """Find Unreal Engine user projects in common locations.
 
     Returns:
@@ -137,19 +136,24 @@ def get_unreal_projects() -> List[Dict[str, str]]:
     # Common locations for user projects
     home = Path.home()
     search_paths = [
-        home / 'Documents/Unreal Projects',        # Default location
-        home / 'UnrealProjects',                   # Common alternative
-        home / 'Documents/UnrealProjects',         # Another common location
-        home / 'Projects/Unreal',                  # Developer-style organization
-        Path('/Volumes')                           # External drives on macOS
+        home / "Documents/Unreal Projects",  # Default location
+        home / "UnrealProjects",  # Common alternative
+        home / "Documents/UnrealProjects",  # Another common location
+        home / "Projects/Unreal",  # Developer-style organization
+        Path("/Volumes"),  # External drives on macOS
     ]
 
     # Add any currently open project from launcher manifests
     manifest_projects = read_unreal_launcher_projects()
     # Filter out non-user projects from manifests
-    manifest_projects = [p for p in manifest_projects
-                        if not any(pattern in str(p['path']).lower()
-                                  for pattern in ['engine/programs', 'engine/source', '/templates/', 'tp_'])]
+    manifest_projects = [
+        p
+        for p in manifest_projects
+        if not any(
+            pattern in str(p["path"]).lower()
+            for pattern in ["engine/programs", "engine/source", "/templates/", "tp_"]
+        )
+    ]
 
     # Find additional projects in search paths
     path_projects = find_projects_in_paths(search_paths)
@@ -160,9 +164,8 @@ def get_unreal_projects() -> List[Dict[str, str]]:
     seen_paths = set()
 
     for project in all_projects:
-        if project['path'] not in seen_paths:
-            seen_paths.add(project['path'])
+        if project["path"] not in seen_paths:
+            seen_paths.add(project["path"])
             unique_projects.append(project)
 
     return unique_projects
-

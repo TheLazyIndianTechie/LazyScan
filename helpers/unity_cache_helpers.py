@@ -15,13 +15,13 @@ def compute_directory_size(path):
 def get_unity_cache_targets(project_path, include_build=False):
     """Returns a dictionary of cache target directories for a Unity project."""
     cache_targets = {
-        "Library": os.path.join(project_path, 'Library'),
-        "Temp": os.path.join(project_path, 'Temp'),
-        "obj": os.path.join(project_path, 'obj'),
-        "Logs": os.path.join(project_path, 'Logs'),
+        "Library": os.path.join(project_path, "Library"),
+        "Temp": os.path.join(project_path, "Temp"),
+        "obj": os.path.join(project_path, "obj"),
+        "Logs": os.path.join(project_path, "Logs"),
     }
     if include_build:
-        cache_targets["Build"] = os.path.join(project_path, 'Build')
+        cache_targets["Build"] = os.path.join(project_path, "Build")
     return cache_targets
 
 

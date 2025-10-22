@@ -1,0 +1,8 @@
+# LazyScan - Runtime Dependencies
+# Basic dependencies for the application to run
+
+# Currently, LazyScan has no external runtime dependencies
+# All functionality uses Python standard library only
+
+# Development and testing dependencies are handled separately
+# See requirements-dev.txt for development dependencies

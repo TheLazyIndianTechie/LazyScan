@@ -82,4 +82,3 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 - python lazyscan.py --unreal
 - python lazyscan.py --chrome # macOS only
 - Note: if CLI flags aren’t wired in this snapshot, import and call the handler functions directly or add argparse wiring.
-

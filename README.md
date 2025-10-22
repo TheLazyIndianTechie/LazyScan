@@ -139,7 +139,7 @@ Options:
   --build-dir        Include Build directory in calculations
   --no-unityhub      Suppress Unity Hub discovery
 
-# Browser & Application Caches  
+# Browser & Application Caches
 --chrome             Chrome profile and cache analysis
 --firefox            Firefox cache analysis
 --safari             Safari cache analysis
@@ -156,7 +156,7 @@ Options:
 
 # Security & Recovery
 --recovery           Show recovery menu for deleted files
---audit-logs         Display recent audit logs  
+--audit-logs         Display recent audit logs
 --recovery-stats     Show recovery system statistics
 ```
 
@@ -181,7 +181,7 @@ Options:
 
 #### Apps Module (`lazyscan.apps`)
 - **Unity**: Unity Hub integration, project discovery, cache analysis
-- **Unreal**: .uproject file discovery, cache directory management  
+- **Unreal**: .uproject file discovery, cache directory management
 - **Chrome**: Profile discovery, cache categorization, safe cleanup
 
 #### Core Module (`lazyscan.core`)
@@ -228,7 +228,7 @@ LazyScan/
 ├── lazyscan/               # Main package
 │   ├── __init__.py         # Package initialization and exports
 │   ├── cli/                # Command-line interface
-│   │   ├── __init__.py     # CLI exports  
+│   │   ├── __init__.py     # CLI exports
 │   │   └── main.py         # Main CLI logic (738 lines)
 │   ├── apps/               # Application integrations
 │   │   ├── __init__.py     # App module exports
@@ -238,12 +238,12 @@ LazyScan/
 │   ├── core/               # Core functionality
 │   │   ├── __init__.py     # Core exports
 │   │   ├── scanner.py      # Directory scanning (373 lines)
-│   │   ├── formatting.py   # Output formatting (205 lines) 
+│   │   ├── formatting.py   # Output formatting (205 lines)
 │   │   ├── config.py       # Configuration (136 lines)
 │   │   ├── ui.py           # User interface (163 lines)
 │   │   └── logging_config.py # Logging setup (623 lines)
 │   └── security/           # Security framework
-├── helpers/                # Shared utilities  
+├── helpers/                # Shared utilities
 │   ├── audit.py            # Audit logging
 │   ├── security.py         # Security operations
 │   └── recovery.py         # File recovery system
@@ -265,7 +265,7 @@ LazyScan/
 
 ### Safety Features:
 - ✅ **Backup system** creates copies before deletion
-- ✅ **Recovery options** available for deleted files  
+- ✅ **Recovery options** available for deleted files
 - ✅ **Audit logging** tracks all operations
 - ✅ **Confirmation prompts** for destructive actions
 - ✅ **Path validation** prevents dangerous operations
@@ -276,7 +276,7 @@ LazyScan/
 lazyscan --recovery
 
 # View audit logs
-lazyscan --audit-logs  
+lazyscan --audit-logs
 
 # Check recovery statistics
 lazyscan --recovery-stats
@@ -342,7 +342,7 @@ We welcome contributions! Here's how to get started:
 ### Development Guidelines
 - Follow PEP 8 style guidelines
 - Add docstrings for all public functions
-- Include type hints where appropriate  
+- Include type hints where appropriate
 - Write tests for new features
 - Update documentation as needed
 

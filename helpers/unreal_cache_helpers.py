@@ -1,4 +1,5 @@
 import os
+
 from .unity_cache_helpers import compute_directory_size
 
 
@@ -16,7 +17,7 @@ def discover_uproject_files(directory):
 
     for root, dirs, files in os.walk(directory):
         for file in files:
-            if file.endswith('.uproject'):
+            if file.endswith(".uproject"):
                 full_path = os.path.join(root, file)
                 uproject_files.append(full_path)
 
@@ -34,11 +35,11 @@ def get_unreal_cache_targets(project_path):
         Dictionary mapping cache directory names to their paths.
     """
     cache_targets = {
-        "Intermediate": os.path.join(project_path, 'Intermediate'),
-        "Saved/Logs": os.path.join(project_path, 'Saved', 'Logs'),
-        "Saved/Crashes": os.path.join(project_path, 'Saved', 'Crashes'),
-        "DerivedDataCache": os.path.join(project_path, 'DerivedDataCache'),
-        "Binaries": os.path.join(project_path, 'Binaries'),
+        "Intermediate": os.path.join(project_path, "Intermediate"),
+        "Saved/Logs": os.path.join(project_path, "Saved", "Logs"),
+        "Saved/Crashes": os.path.join(project_path, "Saved", "Crashes"),
+        "DerivedDataCache": os.path.join(project_path, "DerivedDataCache"),
+        "Binaries": os.path.join(project_path, "Binaries"),
     }
     return cache_targets
 
@@ -65,7 +66,7 @@ def generate_unreal_project_report(project_path, project_name=None):
     # Find the .uproject file in the project directory
     uproject_file = None
     for file in os.listdir(project_path):
-        if file.endswith('.uproject'):
+        if file.endswith(".uproject"):
             uproject_file = os.path.join(project_path, file)
             # Use the .uproject filename (without extension) as project name if not specified
             if not project_name or project_name == os.path.basename(project_path):
@@ -83,11 +84,7 @@ def generate_unreal_project_report(project_path, project_name=None):
         if exists:
             size = compute_directory_size(cache_path)
             total_size += size
-        cache_dirs[cache_name] = {
-            "exists": exists,
-            "size": size,
-            "path": cache_path
-        }
+        cache_dirs[cache_name] = {"exists": exists, "size": size, "path": cache_path}
 
     return {
         "name": project_name,

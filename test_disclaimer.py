@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Test script to verify disclaimer functionality"""
 
-import sys
 import os
+import sys
 
 # Add the current directory to Python path to import lazyscan
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import the functions we want to test
-from lazyscan import show_logo, show_disclaimer
+from lazyscan import show_disclaimer, show_logo
 
 print("Testing disclaimer display...")
 print("=" * 80)

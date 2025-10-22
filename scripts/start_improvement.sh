@@ -58,56 +58,56 @@ class DeletionMode(Enum):
 class SafeDeleter:
     """
     Centralized, policy-driven file deletion with security safeguards.
-    
+
     Key features:
     - Global kill switch via LAZYSCAN_DISABLE_DELETIONS=1
-    - Trash-first deletion by default  
+    - Trash-first deletion by default
     - Path validation before any operation
     - Structured logging of all decisions
     - Two-step confirmation for large directories
     """
-    
+
     def __init__(self):
         self._kill_switch_enabled = os.getenv("LAZYSCAN_DISABLE_DELETIONS", "0") == "1"
         if self._kill_switch_enabled:
             logger.warning("🛑 Global kill switch enabled - all deletions disabled")
-    
+
     def delete(
-        self, 
-        path: Path, 
+        self,
+        path: Path,
         mode: DeletionMode = DeletionMode.TRASH,
         dry_run: bool = True,
         force: bool = False
     ) -> bool:
         """
         Safely delete a file or directory with comprehensive checks.
-        
+
         Args:
             path: Path to delete (will be canonicalized)
-            mode: DeletionMode.TRASH (default) or DeletionMode.PERMANENT  
+            mode: DeletionMode.TRASH (default) or DeletionMode.PERMANENT
             dry_run: If True, log what would be deleted but don't actually delete
             force: If True, skip interactive confirmations (dangerous!)
-            
+
         Returns:
             bool: True if deletion was successful or would succeed (dry_run)
-            
+
         Raises:
             DeletionSafetyError: If deletion is blocked by security checks
         """
-        
+
         # Check global kill switch first
         if self._kill_switch_enabled:
             raise DeletionSafetyError(
                 "Global deletion kill switch is enabled (LAZYSCAN_DISABLE_DELETIONS=1). "
                 "All destructive operations are blocked."
             )
-        
+
         # Canonicalize and validate path
         try:
             canonical_path = path.resolve(strict=False)
         except Exception as e:
             raise DeletionSafetyError(f"Cannot resolve path {path}: {e}")
-        
+
         # Log the deletion attempt
         logger.info(
             "Deletion requested",
@@ -118,52 +118,52 @@ class SafeDeleter:
                 "force": force
             }
         )
-        
+
         # Security checks
         self._validate_deletion_safety(canonical_path)
-        
+
         if dry_run:
             logger.info(f"DRY RUN: Would delete {canonical_path} using {mode.value} mode")
             return True
-            
+
         # Actual deletion logic would go here
         if mode == DeletionMode.TRASH:
             return self._delete_to_trash(canonical_path, force=force)
         else:
             return self._delete_permanent(canonical_path, force=force)
-    
+
     def _validate_deletion_safety(self, path: Path) -> None:
         """
         Validate that the path is safe to delete.
-        
+
         Raises:
             DeletionSafetyError: If path fails safety checks
         """
-        
+
         # Check if path exists
         if not path.exists():
             logger.warning(f"Path does not exist: {path}")
             return  # Not an error - already "deleted"
-        
+
         # Critical path checks
         if self._is_critical_system_path(path):
             raise DeletionSafetyError(
                 f"Attempted to delete critical system path: {path}. "
                 "This operation is blocked for safety."
             )
-        
+
         # Symlink/junction checks
         if path.is_symlink():
             raise DeletionSafetyError(
                 f"Attempted to delete symlink: {path}. "
                 "Symlink deletion is blocked to prevent unexpected behavior."
             )
-        
+
         logger.debug(f"Path validation passed for: {path}")
-    
+
     def _is_critical_system_path(self, path: Path) -> bool:
         """Check if path is a critical system directory that should never be deleted."""
-        
+
         critical_paths = [
             Path.home(),  # User home directory
             Path("/"),    # Root directory (Unix)
@@ -174,7 +174,7 @@ class SafeDeleter:
             Path("/etc"),
             Path("/boot"),
         ]
-        
+
         # Check if path is or is parent of any critical path
         for critical in critical_paths:
             try:
@@ -183,18 +183,18 @@ class SafeDeleter:
             except (OSError, ValueError):
                 # Handle paths that don't exist or permission errors
                 continue
-                
+
         return False
-    
+
     def _delete_to_trash(self, path: Path, force: bool = False) -> bool:
         """Delete path to trash/recycle bin."""
-        
+
         if send2trash is None:
             raise DeletionSafetyError(
                 "send2trash library not available. Cannot safely delete to trash. "
                 "Install with: pip install send2trash"
             )
-        
+
         try:
             send2trash.send2trash(str(path))
             logger.info(f"Successfully moved to trash: {path}")
@@ -202,22 +202,22 @@ class SafeDeleter:
         except Exception as e:
             logger.error(f"Failed to move to trash: {path}, error: {e}")
             raise DeletionSafetyError(f"Trash deletion failed: {e}")
-    
+
     def _delete_permanent(self, path: Path, force: bool = False) -> bool:
         """Permanently delete path (dangerous!)."""
-        
+
         if not force and sys.stdin.isatty():
             # Interactive confirmation required
             print(f"⚠️  PERMANENT DELETION WARNING")
             print(f"   Path: {path}")
             print(f"   This operation CANNOT be undone!")
-            
+
             response = input("   Type 'DELETE' to confirm: ").strip()
             if response != "DELETE":
                 print("   Deletion cancelled.")
                 logger.info(f"Permanent deletion cancelled by user: {path}")
                 return False
-        
+
         # TODO: Implement permanent deletion logic
         logger.warning(f"PERMANENT DELETION NOT YET IMPLEMENTED: {path}")
         raise NotImplementedError("Permanent deletion not yet implemented for safety")
@@ -310,30 +310,30 @@ from lazyscan.security.safe_delete import SafeDeleter, DeletionSafetyError, Dele
 
 
 class TestSafeDeleter:
-    
+
     def setup_method(self):
         """Setup for each test method."""
         self.deleter = SafeDeleter()
-    
+
     def test_kill_switch_blocks_deletion(self):
         """Test that global kill switch blocks all deletions."""
         with patch.dict(os.environ, {"LAZYSCAN_DISABLE_DELETIONS": "1"}):
             deleter = SafeDeleter()
             test_path = Path("/tmp/test")
-            
+
             with pytest.raises(DeletionSafetyError) as exc_info:
                 deleter.delete(test_path, dry_run=False)
-            
+
             assert "kill switch" in str(exc_info.value).lower()
-    
+
     def test_dry_run_mode(self):
         """Test that dry run mode doesn't actually delete."""
         test_path = Path("/tmp/nonexistent")
-        
+
         # Should return True for dry run without actually doing anything
         result = self.deleter.delete(test_path, dry_run=True)
         assert result is True
-    
+
     def test_critical_path_rejection(self):
         """Test that critical system paths are rejected."""
         critical_paths = [
@@ -341,26 +341,26 @@ class TestSafeDeleter:
             Path("/"),
             Path("C:\\") if os.name == 'nt' else Path("/usr"),
         ]
-        
+
         for critical_path in critical_paths:
             if critical_path.exists():
                 with pytest.raises(DeletionSafetyError) as exc_info:
                     self.deleter.delete(critical_path, dry_run=False)
-                
+
                 assert "critical system path" in str(exc_info.value).lower()
-    
+
     def test_symlink_rejection(self, tmp_path):
         """Test that symlinks are rejected."""
         # Create a test file and symlink to it
         test_file = tmp_path / "test_file.txt"
         test_file.write_text("test content")
-        
+
         test_symlink = tmp_path / "test_symlink"
         test_symlink.symlink_to(test_file)
-        
+
         with pytest.raises(DeletionSafetyError) as exc_info:
             self.deleter.delete(test_symlink, dry_run=False)
-        
+
         assert "symlink" in str(exc_info.value).lower()
 
 
@@ -431,7 +431,7 @@ cat > MIGRATION_CHECKLIST.md << 'EOF'
 
 ### Step 1: Safe Deletion Module
 - [x] Create SafeDeleter module template
-- [x] Implement global kill switch check  
+- [x] Implement global kill switch check
 - [x] Add basic path validation
 - [ ] Add comprehensive critical path detection
 - [ ] Implement trash-first deletion with send2trash
@@ -439,7 +439,7 @@ cat > MIGRATION_CHECKLIST.md << 'EOF'
 - [ ] Replace all direct shutil.rmtree/os.remove calls
 - [ ] Add comprehensive tests
 
-### Step 2: Path Validation Library  
+### Step 2: Path Validation Library
 - [ ] Create validators.py module
 - [ ] Implement canonicalize_path() function
 - [ ] Add is_within_allowed_roots() validation
@@ -499,7 +499,7 @@ python -m pytest tests/security/test_safe_delete.py -v
    ```bash
    # Find calls to replace
    ast-grep --pattern 'shutil.rmtree($_)' --lang python .
-   
+
    # Use interactive replacement
    ast-grep --pattern 'shutil.rmtree($X)' --rewrite 'get_safe_deleter().delete(Path($X), mode=DeletionMode.PERMANENT, dry_run=False)' --interactive
    ```
@@ -515,7 +515,7 @@ echo "================================================"
 echo ""
 echo "📁 Files created:"
 echo "  - lazyscan/security/safe_delete.py (SafeDeleter module)"
-echo "  - lazyscan/core/errors.py (Custom exceptions)"  
+echo "  - lazyscan/core/errors.py (Custom exceptions)"
 echo "  - tests/security/test_safe_delete.py (Basic tests)"
 echo "  - requirements-improvement.txt (Dependencies)"
 echo "  - scripts/analyze_patterns.sh (Analysis tool)"

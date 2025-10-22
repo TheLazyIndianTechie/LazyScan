@@ -7,10 +7,10 @@ The main functionality has been moved to lazyscan.cli.main for better organizati
 """
 
 # Import the main CLI function for backward compatibility
-from lazyscan.cli.main import main, cli_main
+from lazyscan.cli.main import cli_main, main
 
 __version__ = "0.5.0"
-__all__ = ['main', 'cli_main']
+__all__ = ["main", "cli_main"]
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
