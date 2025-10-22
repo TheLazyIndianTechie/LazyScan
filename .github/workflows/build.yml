@@ -1,0 +1,146 @@
+name: Build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+
+    - name: Build source distribution
+      run: python -m build --sdist
+
+    - name: Build wheel distribution
+      run: python -m build --wheel
+
+    - name: Validate distribution with twine
+      run: |
+        twine check dist/*
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: distributions-py${{ matrix.python-version }}
+        path: dist/
+        retention-days: 7
+
+  build-validation:
+    runs-on: ${{ matrix.os }}
+    needs: build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9", "3.12"]  # Test on oldest and newest supported versions
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: distributions-py3.12  # Use artifacts from Python 3.12 build
+        path: dist/
+
+    - name: Install package from wheel
+      run: |
+        python -m pip install --upgrade pip
+        pip install dist/*.whl
+
+    - name: Test installed package
+      run: |
+        lazyscan --version
+        lazyscan --help
+
+    - name: Install package from source distribution
+      run: |
+        pip uninstall -y lazyscan
+        pip install dist/*.tar.gz
+
+    - name: Test installed package from source
+      run: |
+        lazyscan --version
+        lazyscan --help
+
+  package-metadata-check:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install validation tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install twine check-manifest
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: distributions-py3.12
+        path: dist/
+
+    - name: Check package manifest
+      run: check-manifest
+
+    - name: Validate metadata with twine
+      run: twine check dist/* --strict
+
+    - name: Check wheel contents
+      run: |
+        pip install wheel
+        python -c "
+        import zipfile
+        import sys
+        from pathlib import Path
+
+        wheel_files = list(Path('dist').glob('*.whl'))
+        if not wheel_files:
+            sys.exit('No wheel files found')
+
+        wheel_path = wheel_files[0]
+        print(f'Checking wheel: {wheel_path}')
+
+        with zipfile.ZipFile(wheel_path) as zf:
+            print('Wheel contents:')
+            for name in sorted(zf.namelist()):
+                print(f'  {name}')
+        "
