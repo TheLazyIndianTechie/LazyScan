@@ -1,0 +1,44 @@
+[run]
+source = lazyscan
+branch = True
+omit = 
+    tests/*
+    setup.py
+    lazyscan/__version__.py
+    lazyscan/version.py
+    */__init__.py
+    */conftest.py
+    .venv/*
+    venv/*
+    build/*
+    dist/*
+
+[report]
+precision = 2
+show_missing = True
+skip_covered = False
+skip_empty = True
+sort = Cover
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+
+[html]
+directory = reports/coverage_html
+title = LazyScan Test Coverage Report
+show_contexts = True
+
+[xml]
+output = reports/coverage.xml
+
+[json]
+output = reports/coverage.json
+show_contexts = True

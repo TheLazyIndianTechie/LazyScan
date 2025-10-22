@@ -1,0 +1,14 @@
+# Coverage reports
+*.xml
+*.json
+*.html
+coverage_html/
+.coverage
+
+# Test reports
+junit.xml
+pytest-report.html
+
+# Performance reports
+*.prof
+*.stats

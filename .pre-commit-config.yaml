@@ -1,0 +1,142 @@
+repos:
+  # Ruff for fast Python linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        name: ruff-lint
+        description: "Run Ruff linter"
+      - id: ruff-format
+        name: ruff-format
+        description: "Run Ruff formatter"
+
+  # Black code formatter (backup/alternative to ruff-format)
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        name: black
+        description: "Black Python code formatter"
+        language_version: python3
+        args: [--line-length=88]
+
+  # Built-in pre-commit hooks for basic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: trailing-whitespace
+        description: "Trim trailing whitespace"
+      - id: end-of-file-fixer
+        name: end-of-file-fixer
+        description: "Ensure files end with newline"
+      - id: check-yaml
+        name: check-yaml
+        description: "Check YAML file syntax"
+      - id: check-toml
+        name: check-toml
+        description: "Check TOML file syntax"
+      - id: check-json
+        name: check-json
+        description: "Check JSON file syntax"
+      - id: check-added-large-files
+        name: check-added-large-files
+        description: "Check for large files"
+        args: ['--maxkb=500']
+      - id: check-case-conflict
+        name: check-case-conflict
+        description: "Check for case conflicts"
+      - id: check-merge-conflict
+        name: check-merge-conflict
+        description: "Check for merge conflicts"
+      - id: debug-statements
+        name: debug-statements
+        description: "Check for debugger imports"
+      - id: fix-byte-order-marker
+        name: fix-byte-order-marker
+        description: "Remove UTF-8 byte order marker"
+
+  # MyPy static type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        name: mypy
+        description: "MyPy static type checker"
+        additional_dependencies: [types-setuptools, types-requests]
+        args: [--ignore-missing-imports, --show-error-codes]
+        exclude: ^(tests/|docs/)
+
+  # Local hooks for pytest and custom checks
+  - repo: local
+    hooks:
+      # Fast unit tests (disabled until dependencies installed)
+      - id: pytest-unit
+        name: pytest-unit
+        description: "Run unit tests"
+        entry: python3 -m pytest tests/unit/ -m unit -x --tb=short
+        language: system
+        pass_filenames: false
+        always_run: false  # Disabled until testing setup is complete
+        stages: [manual]
+
+      # Coverage check (optional, can be slow)
+      - id: pytest-coverage
+        name: pytest-coverage
+        description: "Run tests with coverage check"
+        entry: python -m pytest tests/ --cov=lazyscan --cov-fail-under=80 -x --tb=short
+        language: system
+        pass_filenames: false
+        always_run: false  # Only run when explicitly enabled
+        stages: [manual]
+
+      # Security check with bandit
+      - id: bandit
+        name: bandit
+        description: "Security linting with bandit"
+        entry: bandit
+        language: system
+        args: [-r, lazyscan, -f, screen]
+        types: [python]
+        exclude: ^tests/
+
+      # Check for TODO/FIXME comments in production code
+      - id: check-todos
+        name: check-todos
+        description: "Check for TODO/FIXME in production code"
+        entry: grep -n -E "(TODO|FIXME|XXX|HACK)"
+        language: system
+        types: [python]
+        exclude: ^tests/
+
+# Configuration for specific hooks
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [pytest-unit, pytest-coverage, bandit]  # Skip these in CI
+  submodules: false
+
+# Default stages for hooks
+default_stages: [commit]
+
+# Files to exclude from all hooks
+exclude: |
+  (?x)^(
+      \.tox/|
+      \.venv/|
+      venv/|
+      \.git/|
+      \.pytest_cache/|
+      __pycache__/|
+      \.coverage|
+      build/|
+      dist/|
+      .*\.egg-info/
+  )$
