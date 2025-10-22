@@ -3,7 +3,10 @@ from unittest import mock
 
 import pytest
 
-from lazyscan import prompt_unity_project_selection, scan_unity_project_via_hub
+from lazyscan.apps.unity import (
+    prompt_unity_project_selection,
+    scan_unity_project_via_hub,
+)
 
 
 @pytest.fixture
@@ -21,7 +24,7 @@ def create_mock_unity_hub_json(tmp_path):
     return json_path
 
 
-@mock.patch("lazyscan.read_unity_hub_projects")
+@mock.patch("helpers.unity_hub.read_unity_hub_projects")
 def test_scan_unity_project_via_hub(mock_read_projects, create_mock_unity_hub_json):
     mock_read_projects.return_value = [
         {"name": "TestProject1", "path": "dummy/TestProject1"},

@@ -2,7 +2,7 @@ from unittest import mock
 
 # Since the selection parsing is part of prompt_unity_project_selection
 # we'll test the selection logic more thoroughly
-from lazyscan import prompt_unity_project_selection
+from lazyscan.apps.unity import prompt_unity_project_selection
 
 
 class TestSelectionParser:
