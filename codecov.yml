@@ -1,0 +1,111 @@
+codecov:
+  # Require CI to pass before coverage can be uploaded
+  require_ci_to_pass: yes
+
+  # Disable Codecov's default status checks since we have our own
+  notify:
+    wait_for_ci: true
+
+coverage:
+  # Set overall project coverage precision
+  precision: 2
+  # Round down to avoid misleading coverage percentages
+  round: down
+  # Consider only the coverage range for status checks
+  range: "80...95"
+
+  status:
+    # Project level coverage
+    project:
+      default:
+        target: 80%         # Target overall coverage
+        threshold: 2%       # Allow 2% decrease
+        if_ci_failed: error # Fail if CI fails
+        only_pulls: false   # Apply to all builds
+
+      # Core application coverage (stricter)
+      core:
+        target: 85%
+        threshold: 1%
+        paths:
+          - "lazyscan/"
+          - "helpers/"
+        if_no_uploads: error
+
+      # Test coverage (more lenient)
+      tests:
+        target: 70%
+        threshold: 3%
+        paths:
+          - "tests/"
+        if_no_uploads: error
+
+    # Patch coverage for new changes
+    patch:
+      default:
+        target: 75%         # New code should have good coverage
+        threshold: 5%       # Allow for some uncovered edge cases
+        only_pulls: true    # Only apply to PRs
+        if_no_uploads: error
+
+      # Stricter patch coverage for core components
+      core_patch:
+        target: 80%
+        threshold: 2%
+        paths:
+          - "lazyscan/"
+          - "helpers/"
+        only_pulls: true
+
+  # Ignore certain files from coverage calculation
+  ignore:
+    - "setup.py"
+    - "tests/"
+    - "*.cfg"
+    - "*.ini"
+    - "*.toml"
+    - "docs/"
+    - ".github/"
+    - ".taskmaster/"
+    - "reports/"
+    - "build/"
+    - "dist/"
+    - "*.egg-info/"
+
+flags:
+  # Define coverage flags for different test types
+  unit:
+    paths:
+      - lazyscan/
+      - helpers/
+    carryforward: true    # Keep coverage if no new unit tests
+
+  integration:
+    paths:
+      - lazyscan/
+      - helpers/
+    carryforward: true
+
+  e2e:
+    paths:
+      - lazyscan/
+      - helpers/
+    carryforward: true
+
+comment:
+  # Customize PR comments
+  layout: "diff, flags, files"
+  behavior: default       # Update existing comments
+  require_changes: true   # Only comment when coverage changes
+
+  # Comment template
+  after_n_builds: 1      # Comment after first build
+  show_carryforward_flags: true
+
+github_checks:
+  annotations: true       # Show coverage annotations on GitHub
+
+profiling:
+  critical_files_paths:   # Critical files that need high coverage
+    - "lazyscan/"
+    - "helpers/"
