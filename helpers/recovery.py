@@ -12,19 +12,21 @@ Author: Security Enhancement for LazyScan
 Version: 1.0.0
 """
 
-import os
-import json
-import shutil
 import hashlib
+import json
+import os
+import shutil
 import time
-from pathlib import Path
-from typing import List, Dict, Optional, Tuple, Any
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
+from pathlib import Path
+from typing import Any, Optional
+
 
 class RecoveryStatus(Enum):
     """Status of recovery operations"""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -32,51 +34,58 @@ class RecoveryStatus(Enum):
     PARTIAL = "partial"
     CANCELLED = "cancelled"
 
+
 class RecoveryType(Enum):
     """Type of recovery operation"""
+
     UNDO_DELETE = "undo_delete"
     RESTORE_BACKUP = "restore_backup"
     ROLLBACK_OPERATION = "rollback_operation"
     SELECTIVE_RESTORE = "selective_restore"
 
+
 @dataclass
 class RecoveryRecord:
     """Record of a recoverable operation"""
+
     operation_id: str
     operation_type: str
     timestamp: str
-    original_paths: List[str]
-    backup_paths: List[str]
-    metadata: Dict[str, Any]
+    original_paths: list[str]
+    backup_paths: list[str]
+    metadata: dict[str, Any]
     files_affected: int
     size_affected: int
     checksum: str
     recovery_status: RecoveryStatus = RecoveryStatus.PENDING
     recovery_attempts: int = 0
     last_recovery_attempt: Optional[str] = None
-    recovery_errors: List[str] = None
+    recovery_errors: list[str] = None
 
     def __post_init__(self):
         if self.recovery_errors is None:
             self.recovery_errors = []
 
+
 @dataclass
 class RecoveryResult:
     """Result of a recovery operation"""
+
     success: bool
     recovery_type: RecoveryType
     operation_id: str
     message: str
-    restored_paths: List[str]
-    failed_paths: List[str]
+    restored_paths: list[str]
+    failed_paths: list[str]
     files_restored: int
     size_restored: int
     duration: float
-    warnings: List[str] = None
+    warnings: list[str] = None
 
     def __post_init__(self):
         if self.warnings is None:
             self.warnings = []
+
 
 class RecoveryManager:
     """
@@ -97,7 +106,7 @@ class RecoveryManager:
         self.recovery_db_file = self.recovery_dir / "recovery_records.json"
 
         # Load existing recovery records
-        self.recovery_records: Dict[str, RecoveryRecord] = self._load_recovery_records()
+        self.recovery_records: dict[str, RecoveryRecord] = self._load_recovery_records()
 
         # Maximum age for recovery records (30 days)
         self.max_recovery_age = timedelta(days=30)
@@ -105,19 +114,21 @@ class RecoveryManager:
         # Clean up old records on initialization
         self._cleanup_old_records()
 
-    def _load_recovery_records(self) -> Dict[str, RecoveryRecord]:
+    def _load_recovery_records(self) -> dict[str, RecoveryRecord]:
         """Load recovery records from disk"""
         if not self.recovery_db_file.exists():
             return {}
 
         try:
-            with open(self.recovery_db_file, 'r') as f:
+            with open(self.recovery_db_file) as f:
                 data = json.load(f)
 
             records = {}
             for record_id, record_data in data.items():
                 # Convert dict back to RecoveryRecord
-                record_data['recovery_status'] = RecoveryStatus(record_data['recovery_status'])
+                record_data["recovery_status"] = RecoveryStatus(
+                    record_data["recovery_status"]
+                )
                 records[record_id] = RecoveryRecord(**record_data)
 
             return records
@@ -133,10 +144,10 @@ class RecoveryManager:
             data = {}
             for record_id, record in self.recovery_records.items():
                 record_dict = asdict(record)
-                record_dict['recovery_status'] = record.recovery_status.value
+                record_dict["recovery_status"] = record.recovery_status.value
                 data[record_id] = record_dict
 
-            with open(self.recovery_db_file, 'w') as f:
+            with open(self.recovery_db_file, "w") as f:
                 json.dump(data, f, indent=2, default=str)
 
             return True
@@ -165,10 +176,16 @@ class RecoveryManager:
         if expired_records:
             print(f"Cleaned up {len(expired_records)} expired recovery records")
 
-    def register_operation(self, operation_id: str, operation_type: str,
-                         original_paths: List[str], backup_paths: List[str],
-                         files_affected: int, size_affected: int,
-                         metadata: Dict[str, Any] = None) -> bool:
+    def register_operation(
+        self,
+        operation_id: str,
+        operation_type: str,
+        original_paths: list[str],
+        backup_paths: list[str],
+        files_affected: int,
+        size_affected: int,
+        metadata: dict[str, Any] = None,
+    ) -> bool:
         """
         Register an operation for potential recovery.
 
@@ -201,7 +218,7 @@ class RecoveryManager:
             metadata=metadata,
             files_affected=files_affected,
             size_affected=size_affected,
-            checksum=checksum
+            checksum=checksum,
         )
 
         # Store record
@@ -211,7 +228,8 @@ class RecoveryManager:
         success = self._save_recovery_records()
 
         if success:
-            from .audit import audit_logger, EventType, Severity
+            from .audit import EventType, Severity, audit_logger
+
             audit_logger.log_event(
                 EventType.BACKUP_CREATE,
                 Severity.INFO,
@@ -220,13 +238,13 @@ class RecoveryManager:
                     "operation_id": operation_id,
                     "files_affected": files_affected,
                     "size_affected": size_affected,
-                    "backup_count": len(backup_paths)
-                }
+                    "backup_count": len(backup_paths),
+                },
             )
 
         return success
 
-    def can_recover(self, operation_id: str) -> Tuple[bool, str]:
+    def can_recover(self, operation_id: str) -> tuple[bool, str]:
         """
         Check if an operation can be recovered.
 
@@ -257,12 +275,16 @@ class RecoveryManager:
                 existing_originals.append(original_path)
 
         if existing_originals:
-            return False, f"Original paths already exist: {', '.join(existing_originals[:3])}"
+            return (
+                False,
+                f"Original paths already exist: {', '.join(existing_originals[:3])}",
+            )
 
         return True, "Recovery possible"
 
-    def undo_operation(self, operation_id: str,
-                      selective_paths: List[str] = None) -> RecoveryResult:
+    def undo_operation(
+        self, operation_id: str, selective_paths: list[str] = None
+    ) -> RecoveryResult:
         """
         Undo a deletion operation by restoring from backups.
 
@@ -287,7 +309,7 @@ class RecoveryManager:
                 failed_paths=[],
                 files_restored=0,
                 size_restored=0,
-                duration=time.time() - start_time
+                duration=time.time() - start_time,
             )
 
         record = self.recovery_records[operation_id]
@@ -307,10 +329,15 @@ class RecoveryManager:
                 # Filter backup paths based on selective restore
                 paths_to_restore = []
                 for i, original_path in enumerate(record.original_paths):
-                    if any(original_path.startswith(sel_path) or sel_path.startswith(original_path)
-                          for sel_path in selective_paths):
+                    if any(
+                        original_path.startswith(sel_path)
+                        or sel_path.startswith(original_path)
+                        for sel_path in selective_paths
+                    ):
                         if i < len(record.backup_paths):
-                            paths_to_restore.append((original_path, record.backup_paths[i]))
+                            paths_to_restore.append(
+                                (original_path, record.backup_paths[i])
+                            )
             else:
                 # Restore all paths
                 paths_to_restore = list(zip(record.original_paths, record.backup_paths))
@@ -320,7 +347,9 @@ class RecoveryManager:
                 try:
                     if not os.path.exists(backup_path):
                         failed_paths.append(original_path)
-                        record.recovery_errors.append(f"Backup not found: {backup_path}")
+                        record.recovery_errors.append(
+                            f"Backup not found: {backup_path}"
+                        )
                         continue
 
                     # Create parent directories if needed
@@ -342,20 +371,22 @@ class RecoveryManager:
                                     file_path = os.path.join(root, file)
                                     size_restored += os.path.getsize(file_path)
                                     files_restored += 1
-                                except (OSError, IOError):
+                                except OSError:
                                     continue
 
                     restored_paths.append(original_path)
 
                 except Exception as e:
                     failed_paths.append(original_path)
-                    error_msg = f"Failed to restore {original_path}: {str(e)}"
+                    error_msg = f"Failed to restore {original_path}: {e!s}"
                     record.recovery_errors.append(error_msg)
                     warnings.append(error_msg)
 
             # Update recovery status
             if failed_paths:
-                record.recovery_status = RecoveryStatus.PARTIAL if restored_paths else RecoveryStatus.FAILED
+                record.recovery_status = (
+                    RecoveryStatus.PARTIAL if restored_paths else RecoveryStatus.FAILED
+                )
             else:
                 record.recovery_status = RecoveryStatus.COMPLETED
 
@@ -363,7 +394,8 @@ class RecoveryManager:
             success = len(restored_paths) > 0
 
             # Log recovery operation
-            from .audit import audit_logger, EventType, Severity
+            from .audit import EventType, Severity, audit_logger
+
             audit_logger.log_event(
                 EventType.BACKUP_RESTORE,
                 Severity.INFO if success else Severity.ERROR,
@@ -373,8 +405,8 @@ class RecoveryManager:
                     "files_restored": files_restored,
                     "size_restored": size_restored,
                     "failed_paths": len(failed_paths),
-                    "duration": duration
-                }
+                    "duration": duration,
+                },
             )
 
             # Save updated record
@@ -382,7 +414,9 @@ class RecoveryManager:
 
             message = "Recovery completed successfully"
             if failed_paths:
-                message = f"Recovery partially completed. {len(failed_paths)} paths failed."
+                message = (
+                    f"Recovery partially completed. {len(failed_paths)} paths failed."
+                )
             if not restored_paths:
                 message = "Recovery failed. No paths were restored."
 
@@ -396,29 +430,29 @@ class RecoveryManager:
                 files_restored=files_restored,
                 size_restored=size_restored,
                 duration=duration,
-                warnings=warnings
+                warnings=warnings,
             )
 
         except Exception as e:
             # Critical error during recovery
             record.recovery_status = RecoveryStatus.FAILED
-            record.recovery_errors.append(f"Critical recovery error: {str(e)}")
+            record.recovery_errors.append(f"Critical recovery error: {e!s}")
             self._save_recovery_records()
 
             return RecoveryResult(
                 success=False,
                 recovery_type=RecoveryType.UNDO_DELETE,
                 operation_id=operation_id,
-                message=f"Critical recovery error: {str(e)}",
+                message=f"Critical recovery error: {e!s}",
                 restored_paths=restored_paths,
                 failed_paths=failed_paths,
                 files_restored=files_restored,
                 size_restored=size_restored,
                 duration=time.time() - start_time,
-                warnings=[str(e)]
+                warnings=[str(e)],
             )
 
-    def list_recoverable_operations(self, days_back: int = 7) -> List[Dict[str, Any]]:
+    def list_recoverable_operations(self, days_back: int = 7) -> list[dict[str, Any]]:
         """
         List operations that can be recovered.
 
@@ -439,25 +473,25 @@ class RecoveryManager:
             can_recover, reason = self.can_recover(operation_id)
 
             op_info = {
-                'operation_id': operation_id,
-                'operation_type': record.operation_type,
-                'timestamp': record.timestamp,
-                'files_affected': record.files_affected,
-                'size_affected': record.size_affected,
-                'can_recover': can_recover,
-                'recovery_status': record.recovery_status.value,
-                'recovery_attempts': record.recovery_attempts,
-                'reason': reason if not can_recover else 'Ready for recovery'
+                "operation_id": operation_id,
+                "operation_type": record.operation_type,
+                "timestamp": record.timestamp,
+                "files_affected": record.files_affected,
+                "size_affected": record.size_affected,
+                "can_recover": can_recover,
+                "recovery_status": record.recovery_status.value,
+                "recovery_attempts": record.recovery_attempts,
+                "reason": reason if not can_recover else "Ready for recovery",
             }
 
             recoverable_ops.append(op_info)
 
         # Sort by timestamp (newest first)
-        recoverable_ops.sort(key=lambda x: x['timestamp'], reverse=True)
+        recoverable_ops.sort(key=lambda x: x["timestamp"], reverse=True)
 
         return recoverable_ops
 
-    def get_recovery_statistics(self) -> Dict[str, Any]:
+    def get_recovery_statistics(self) -> dict[str, Any]:
         """
         Get recovery system statistics.
 
@@ -481,13 +515,17 @@ class RecoveryManager:
                 total_files_recoverable += record.files_affected
 
         return {
-            'total_records': total_records,
-            'recoverable_operations': recoverable_count,
-            'total_size_recoverable': total_size_recoverable,
-            'total_files_recoverable': total_files_recoverable,
-            'status_breakdown': status_counts,
-            'recovery_directory': str(self.recovery_dir),
-            'database_size': os.path.getsize(self.recovery_db_file) if self.recovery_db_file.exists() else 0
+            "total_records": total_records,
+            "recoverable_operations": recoverable_count,
+            "total_size_recoverable": total_size_recoverable,
+            "total_files_recoverable": total_files_recoverable,
+            "status_breakdown": status_counts,
+            "recovery_directory": str(self.recovery_dir),
+            "database_size": (
+                os.path.getsize(self.recovery_db_file)
+                if self.recovery_db_file.exists()
+                else 0
+            ),
         }
 
     def _remove_recovery_record(self, operation_id: str) -> bool:
@@ -546,19 +584,32 @@ class RecoveryManager:
 
         return len(records_to_remove)
 
+
 # Global recovery manager
 recovery_manager = RecoveryManager()
 
+
 # Convenience functions
-def register_operation_for_recovery(operation_id: str, operation_type: str,
-                                  original_paths: List[str], backup_paths: List[str],
-                                  files_affected: int, size_affected: int,
-                                  metadata: Dict[str, Any] = None) -> bool:
+def register_operation_for_recovery(
+    operation_id: str,
+    operation_type: str,
+    original_paths: list[str],
+    backup_paths: list[str],
+    files_affected: int,
+    size_affected: int,
+    metadata: dict[str, Any] = None,
+) -> bool:
     """Register an operation for potential recovery"""
     return recovery_manager.register_operation(
-        operation_id, operation_type, original_paths, backup_paths,
-        files_affected, size_affected, metadata
+        operation_id,
+        operation_type,
+        original_paths,
+        backup_paths,
+        files_affected,
+        size_affected,
+        metadata,
     )
+
 
 def undo_last_operation() -> Optional[RecoveryResult]:
     """Undo the most recent operation"""
@@ -568,18 +619,21 @@ def undo_last_operation() -> Optional[RecoveryResult]:
 
     # Find the most recent recoverable operation
     for op in recent_ops:
-        if op['can_recover']:
-            return recovery_manager.undo_operation(op['operation_id'])
+        if op["can_recover"]:
+            return recovery_manager.undo_operation(op["operation_id"])
 
     return None
 
-def list_recent_operations(days_back: int = 7) -> List[Dict[str, Any]]:
+
+def list_recent_operations(days_back: int = 7) -> list[dict[str, Any]]:
     """List recent recoverable operations"""
     return recovery_manager.list_recoverable_operations(days_back)
 
-def get_recovery_stats() -> Dict[str, Any]:
+
+def get_recovery_stats() -> dict[str, Any]:
     """Get recovery system statistics"""
     return recovery_manager.get_recovery_statistics()
+
 
 def cleanup_old_recoveries(older_than_days: int = 7) -> int:
     """Clean up old completed recovery records"""

@@ -4,7 +4,7 @@
 
 ### Step 1: Safe Deletion Module
 - [x] Create SafeDeleter module template
-- [x] Implement global kill switch check  
+- [x] Implement global kill switch check
 - [x] Add basic path validation
 - [ ] Add comprehensive critical path detection
 - [ ] Implement trash-first deletion with send2trash
@@ -12,7 +12,7 @@
 - [ ] Replace all direct shutil.rmtree/os.remove calls
 - [ ] Add comprehensive tests
 
-### Step 2: Path Validation Library  
+### Step 2: Path Validation Library
 - [ ] Create validators.py module
 - [ ] Implement canonicalize_path() function
 - [ ] Add is_within_allowed_roots() validation
@@ -72,7 +72,7 @@ python -m pytest tests/security/test_safe_delete.py -v
    ```bash
    # Find calls to replace
    ast-grep --pattern 'shutil.rmtree($_)' --lang python .
-   
+
    # Use interactive replacement
    ast-grep --pattern 'shutil.rmtree($X)' --rewrite 'get_safe_deleter().delete(Path($X), mode=DeletionMode.PERMANENT, dry_run=False)' --interactive
    ```

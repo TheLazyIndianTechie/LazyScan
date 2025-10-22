@@ -76,7 +76,7 @@ def scan_directory(directory):
                 except (OSError, IOError):
                     continue
         return {"total_size": total_size, "file_count": file_count}
-    
+
     result = secure_scan(directory, scan_function)
     if result.success:
         return result.details
@@ -95,20 +95,20 @@ from helpers.recovery import list_recent_operations, recovery_manager
 def show_recovery_menu():
     """Display recovery options to user"""
     recent_ops = list_recent_operations(days_back=7)
-    
+
     if not recent_ops:
         print("\n📋 No recent operations available for recovery.")
         return
-    
+
     print("\n🔄 Recent Operations (Recoverable):")
     print("=" * 50)
-    
+
     recoverable_ops = [op for op in recent_ops if op['can_recover']]
-    
+
     if not recoverable_ops:
         print("No operations can be recovered at this time.")
         return
-    
+
     for i, op in enumerate(recoverable_ops, 1):
         timestamp = datetime.fromisoformat(op['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
         size_mb = op['size_affected'] / (1024 * 1024)
@@ -117,23 +117,23 @@ def show_recovery_menu():
         print(f"   Files: {op['files_affected']:,} ({size_mb:.1f} MB)")
         print(f"   Status: {op['recovery_status']}")
         print()
-    
+
     try:
         choice = input("Enter operation number to recover (or 'q' to quit): ").strip()
         if choice.lower() == 'q':
             return
-        
+
         choice_idx = int(choice) - 1
         if 0 <= choice_idx < len(recoverable_ops):
             selected_op = recoverable_ops[choice_idx]
-            
+
             print(f"\n🔄 Recovering: {selected_op['operation_type']}")
             print("This will restore all deleted files from backups.")
-            
+
             confirm = input("Continue with recovery? (y/N): ").strip().lower()
             if confirm == 'y':
                 result = recovery_manager.undo_operation(selected_op['operation_id'])
-                
+
                 if result.success:
                     print(f"\n✅ Recovery completed successfully!")
                     print(f"   Files restored: {result.files_restored:,}")
@@ -150,7 +150,7 @@ def show_recovery_menu():
                 print("Recovery cancelled.")
         else:
             print("Invalid selection.")
-            
+
     except (ValueError, IndexError):
         print("Invalid input.")
 ```
@@ -173,10 +173,10 @@ def initialize_security_system():
         "security_enabled": True,
         "backup_enabled": True
     })
-    
+
     # Configure security settings
     configure_security(enable_backups=True, enable_confirmations=True)
-    
+
     # Show recovery statistics
     stats = get_recovery_stats()
     if stats['recoverable_operations'] > 0:
@@ -274,7 +274,7 @@ class CustomBackupManager(BackupManager):
         if self.should_backup(source_path):
             return super().create_backup(source_path, operation_id)
         return None
-    
+
     def should_backup(self, path):
         # Custom logic to determine if path should be backed up
         important_extensions = ['.config', '.plist', '.json', '.xml']
@@ -294,27 +294,27 @@ def test_security_integration():
     from helpers.secure_operations import secure_delete, secure_scan
     from helpers.recovery import recovery_manager
     import tempfile
-    
+
     # Create test directory
     with tempfile.TemporaryDirectory() as temp_dir:
         test_file = os.path.join(temp_dir, "test.txt")
         with open(test_file, 'w') as f:
             f.write("Test content")
-        
+
         # Test secure scan
         scan_result = secure_scan(temp_dir, lambda d: {"total_size": 100, "file_count": 1})
         assert scan_result.success, "Secure scan should succeed"
-        
+
         # Test secure delete with recovery
         delete_result = secure_delete([test_file], "Test Deletion")
         assert delete_result.success, "Secure delete should succeed"
         assert len(delete_result.backup_paths) > 0, "Backup should be created"
-        
+
         # Test recovery
         recovery_result = recovery_manager.undo_operation(delete_result.operation_id)
         assert recovery_result.success, "Recovery should succeed"
         assert os.path.exists(test_file), "File should be restored"
-        
+
         print("✅ Security integration test passed!")
 
 if __name__ == "__main__":

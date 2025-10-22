@@ -20,6 +20,7 @@ class TestUnityHubParser(unittest.TestCase):
         """Clean up test fixtures."""
         # Clean up temporary files
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_read_valid_projects_json(self):
@@ -29,17 +30,17 @@ class TestUnityHubParser(unittest.TestCase):
             "/Users/developer/Unity Projects/MyGame": {
                 "name": "My Awesome Game",
                 "version": "2022.3.10f1",
-                "lastOpened": 1234567890
+                "lastOpened": 1234567890,
             },
             "/Volumes/External/UnityProjects/TestProject": {
                 "version": "2021.3.15f1",
-                "lastOpened": 1234567891
+                "lastOpened": 1234567891,
             },
-            "/Users/developer/Documents/UnityDemo": {}
+            "/Users/developer/Documents/UnityDemo": {},
         }
 
         fixture_path = Path(self.temp_dir) / "projects-v1.json"
-        with open(fixture_path, 'w') as f:
+        with open(fixture_path, "w") as f:
             json.dump(fixture_data, f)
 
         # Test reading the fixture
@@ -49,16 +50,24 @@ class TestUnityHubParser(unittest.TestCase):
         self.assertEqual(len(projects), 3)
 
         # Check first project (has name in metadata)
-        project1 = next(p for p in projects if p['path'] == "/Users/developer/Unity Projects/MyGame")
-        self.assertEqual(project1['name'], "My Awesome Game")
+        project1 = next(
+            p for p in projects if p["path"] == "/Users/developer/Unity Projects/MyGame"
+        )
+        self.assertEqual(project1["name"], "My Awesome Game")
 
         # Check second project (no name in metadata, should use basename)
-        project2 = next(p for p in projects if p['path'] == "/Volumes/External/UnityProjects/TestProject")
-        self.assertEqual(project2['name'], "TestProject")
+        project2 = next(
+            p
+            for p in projects
+            if p["path"] == "/Volumes/External/UnityProjects/TestProject"
+        )
+        self.assertEqual(project2["name"], "TestProject")
 
         # Check third project (empty metadata, should use basename)
-        project3 = next(p for p in projects if p['path'] == "/Users/developer/Documents/UnityDemo")
-        self.assertEqual(project3['name'], "UnityDemo")
+        project3 = next(
+            p for p in projects if p["path"] == "/Users/developer/Documents/UnityDemo"
+        )
+        self.assertEqual(project3["name"], "UnityDemo")
 
     def test_missing_file(self):
         """Test behavior when JSON file is missing."""
@@ -69,7 +78,7 @@ class TestUnityHubParser(unittest.TestCase):
     def test_malformed_json(self):
         """Test behavior with malformed JSON."""
         fixture_path = Path(self.temp_dir) / "malformed.json"
-        with open(fixture_path, 'w') as f:
+        with open(fixture_path, "w") as f:
             f.write("{ invalid json content")
 
         projects = read_unity_hub_projects(str(fixture_path))
@@ -79,7 +88,7 @@ class TestUnityHubParser(unittest.TestCase):
         """Test behavior with unexpected JSON structure."""
         # Test with array instead of object
         fixture_path = Path(self.temp_dir) / "array.json"
-        with open(fixture_path, 'w') as f:
+        with open(fixture_path, "w") as f:
             json.dump(["item1", "item2"], f)
 
         projects = read_unity_hub_projects(str(fixture_path))
@@ -87,7 +96,7 @@ class TestUnityHubParser(unittest.TestCase):
 
         # Test with nested but wrong structure
         fixture_path2 = Path(self.temp_dir) / "wrong_structure.json"
-        with open(fixture_path2, 'w') as f:
+        with open(fixture_path2, "w") as f:
             json.dump({"projects": [{"name": "test"}]}, f)
 
         projects = read_unity_hub_projects(str(fixture_path2))
@@ -97,7 +106,7 @@ class TestUnityHubParser(unittest.TestCase):
     def test_empty_json(self):
         """Test behavior with empty JSON object."""
         fixture_path = Path(self.temp_dir) / "empty.json"
-        with open(fixture_path, 'w') as f:
+        with open(fixture_path, "w") as f:
             json.dump({}, f)
 
         projects = read_unity_hub_projects(str(fixture_path))
@@ -116,16 +125,16 @@ class TestUnityHubParser(unittest.TestCase):
         fixture_data = {
             "/Users/developer/Unity/游戏项目": {
                 "name": "我的游戏",
-                "version": "2022.3.10f1"
+                "version": "2022.3.10f1",
             },
             "/Users/developer/Unity/Proyecto_Español": {
                 "name": "Mi Juego Increíble",
-                "version": "2021.3.15f1"
-            }
+                "version": "2021.3.15f1",
+            },
         }
 
         fixture_path = Path(self.temp_dir) / "unicode.json"
-        with open(fixture_path, 'w', encoding='utf-8') as f:
+        with open(fixture_path, "w", encoding="utf-8") as f:
             json.dump(fixture_data, f, ensure_ascii=False)
 
         projects = read_unity_hub_projects(str(fixture_path))
@@ -133,12 +142,12 @@ class TestUnityHubParser(unittest.TestCase):
         self.assertEqual(len(projects), 2)
 
         # Check Unicode handling
-        chinese_project = next(p for p in projects if "游戏项目" in p['path'])
-        self.assertEqual(chinese_project['name'], "我的游戏")
+        chinese_project = next(p for p in projects if "游戏项目" in p["path"])
+        self.assertEqual(chinese_project["name"], "我的游戏")
 
-        spanish_project = next(p for p in projects if "Español" in p['path'])
-        self.assertEqual(spanish_project['name'], "Mi Juego Increíble")
+        spanish_project = next(p for p in projects if "Español" in p["path"])
+        self.assertEqual(spanish_project["name"], "Mi Juego Increíble")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

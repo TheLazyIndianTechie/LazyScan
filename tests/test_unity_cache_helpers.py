@@ -1,8 +1,10 @@
-import pytest
 import os
 import tempfile
-import shutil
+
+import pytest
+
 from helpers.unity_cache_helpers import generate_unity_project_report
+
 
 @pytest.fixture
 def create_mock_unity_project(tmp_path):
@@ -40,35 +42,35 @@ def create_mock_unity_project(tmp_path):
 
     return project_path
 
+
 def test_generate_unity_project_report_with_all_cache_dirs(create_mock_unity_project):
     """Test generating report for Unity project with all cache directories"""
     project_path = create_mock_unity_project
 
     report = generate_unity_project_report(
-        str(project_path),
-        "MockUnityProject",
-        include_build=False
+        str(project_path), "MockUnityProject", include_build=False
     )
 
     # Verify report structure
-    assert report['name'] == "MockUnityProject"
-    assert report['path'] == str(project_path)
+    assert report["name"] == "MockUnityProject"
+    assert report["path"] == str(project_path)
 
     # Verify cache directories exist and have correct sizes
-    assert report['cache_dirs']['Library']['exists'] is True
-    assert report['cache_dirs']['Library']['size'] == 1024 + 2048 + 512  # 3584 bytes
+    assert report["cache_dirs"]["Library"]["exists"] is True
+    assert report["cache_dirs"]["Library"]["size"] == 1024 + 2048 + 512  # 3584 bytes
 
-    assert report['cache_dirs']['Temp']['exists'] is True
-    assert report['cache_dirs']['Temp']['size'] == 256
+    assert report["cache_dirs"]["Temp"]["exists"] is True
+    assert report["cache_dirs"]["Temp"]["size"] == 256
 
-    assert report['cache_dirs']['obj']['exists'] is True
-    assert report['cache_dirs']['obj']['size'] == 128
+    assert report["cache_dirs"]["obj"]["exists"] is True
+    assert report["cache_dirs"]["obj"]["size"] == 128
 
-    assert report['cache_dirs']['Logs']['exists'] is True
-    assert report['cache_dirs']['Logs']['size'] == 64
+    assert report["cache_dirs"]["Logs"]["exists"] is True
+    assert report["cache_dirs"]["Logs"]["size"] == 64
 
     # Verify total size
-    assert report['total_size'] == 3584 + 256 + 128 + 64  # 4032 bytes
+    assert report["total_size"] == 3584 + 256 + 128 + 64  # 4032 bytes
+
 
 def test_generate_unity_project_report_missing_directories():
     """Test generating report when some cache directories are missing"""
@@ -79,26 +81,25 @@ def test_generate_unity_project_report_missing_directories():
         # Only create Library directory
         library_dir = os.path.join(project_path, "Library")
         os.makedirs(library_dir)
-        with open(os.path.join(library_dir, "test.file"), 'wb') as f:
+        with open(os.path.join(library_dir, "test.file"), "wb") as f:
             f.write(b"x" * 100)
 
         report = generate_unity_project_report(
-            project_path,
-            "PartialProject",
-            include_build=False
+            project_path, "PartialProject", include_build=False
         )
 
         # Verify Library exists
-        assert report['cache_dirs']['Library']['exists'] is True
-        assert report['cache_dirs']['Library']['size'] == 100
+        assert report["cache_dirs"]["Library"]["exists"] is True
+        assert report["cache_dirs"]["Library"]["size"] == 100
 
         # Verify other directories don't exist
-        assert report['cache_dirs']['Temp']['exists'] is False
-        assert report['cache_dirs']['obj']['exists'] is False
-        assert report['cache_dirs']['Logs']['exists'] is False
+        assert report["cache_dirs"]["Temp"]["exists"] is False
+        assert report["cache_dirs"]["obj"]["exists"] is False
+        assert report["cache_dirs"]["Logs"]["exists"] is False
 
         # Total should only include Library
-        assert report['total_size'] == 100
+        assert report["total_size"] == 100
+
 
 def test_generate_unity_project_report_with_build_dir():
     """Test including Build directory in report"""
@@ -109,19 +110,18 @@ def test_generate_unity_project_report_with_build_dir():
         # Create Build directory
         build_dir = os.path.join(project_path, "Build")
         os.makedirs(build_dir)
-        with open(os.path.join(build_dir, "game.exe"), 'wb') as f:
+        with open(os.path.join(build_dir, "game.exe"), "wb") as f:
             f.write(b"x" * 5000)
 
         report = generate_unity_project_report(
-            project_path,
-            "ProjectWithBuild",
-            include_build=True
+            project_path, "ProjectWithBuild", include_build=True
         )
 
         # Verify Build directory is included
-        assert 'Build' in report['cache_dirs']
-        assert report['cache_dirs']['Build']['exists'] is True
-        assert report['cache_dirs']['Build']['size'] == 5000
+        assert "Build" in report["cache_dirs"]
+        assert report["cache_dirs"]["Build"]["exists"] is True
+        assert report["cache_dirs"]["Build"]["size"] == 5000
+
 
 def test_generate_unity_project_report_empty_project():
     """Test generating report for empty Unity project directory"""
@@ -130,14 +130,12 @@ def test_generate_unity_project_report_empty_project():
         os.makedirs(project_path)
 
         report = generate_unity_project_report(
-            project_path,
-            "EmptyProject",
-            include_build=False
+            project_path, "EmptyProject", include_build=False
         )
 
         # All directories should not exist
-        for cache_name, cache_info in report['cache_dirs'].items():
-            assert cache_info['exists'] is False
-            assert cache_info['size'] == 0
+        for cache_name, cache_info in report["cache_dirs"].items():
+            assert cache_info["exists"] is False
+            assert cache_info["size"] == 0
 
-        assert report['total_size'] == 0
+        assert report["total_size"] == 0

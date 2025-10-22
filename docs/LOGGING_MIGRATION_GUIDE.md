@@ -49,11 +49,11 @@ from lazyscan.core.logging_config import get_logger, log_context
 logger = get_logger(__name__)
 
 with log_context(operation="unity_scan", target_path=str(path)):
-    logger.info("Starting Unity cache scan", 
+    logger.info("Starting Unity cache scan",
                path=str(path),
                scan_type="discovery")
-    
-    logger.info("Cache scan completed", 
+
+    logger.info("Cache scan completed",
                cache_count=count,
                total_size_mb=size_mb,
                scan_duration_seconds=duration)
@@ -94,7 +94,7 @@ console.print_error(f"Error: Could not access {path}")
 console.print_error("   Check permissions and try again")
 
 # Or with structured logging for better tracking:
-logger.error("Path access failed", 
+logger.error("Path access failed",
             path=str(path),
             error_type="permission_denied",
             operation="scan_directory")
@@ -176,7 +176,7 @@ The console adapter provides these methods:
 
 - `console.print(*args)` - Normal output (like print)
 - `console.print_success(*args)` - Success messages (green, with ✅)
-- `console.print_error(*args)` - Error messages (red, with ❌)  
+- `console.print_error(*args)` - Error messages (red, with ❌)
 - `console.print_warning(*args)` - Warning messages (yellow, with ⚠️)
 - `console.print_info(*args)` - Info messages (cyan, with ℹ️)
 - `console.print_debug(*args)` - Debug messages (gray, with 🔍)
@@ -295,21 +295,21 @@ After migration, LazyScan will have:
 ```python
 def scan_unity_caches(unity_path):
     print(f"🎯 Scanning Unity caches in {unity_path}")
-    
+
     try:
         projects = find_unity_projects(unity_path)
         print(f"✅ Found {len(projects)} Unity projects")
-        
+
         total_size = 0
         for i, project in enumerate(projects, 1):
             print(f"[{i}/{len(projects)}] Scanning {project.name}")
             size = calculate_cache_size(project)
             total_size += size
             print(f"  Cache size: {size}MB")
-            
+
         print(f"🎯 Total cache size: {total_size}MB")
         return projects, total_size
-        
+
     except Exception as e:
         print(f"❌ Error during scan: {e}")
         return [], 0
@@ -323,40 +323,40 @@ from lazyscan.core.errors import handle_exception
 def scan_unity_caches(unity_path):
     console = get_console()
     logger = get_logger(__name__)
-    
+
     with log_context(operation="unity_cache_scan", target_path=str(unity_path)):
         console.print_info(f"Scanning Unity caches in {unity_path}")
         logger.info("Unity cache scan started", target_path=str(unity_path))
-        
+
         try:
             projects = find_unity_projects(unity_path)
             console.print_success(f"Found {len(projects)} Unity projects")
-            logger.info("Unity projects discovered", 
+            logger.info("Unity projects discovered",
                        project_count=len(projects),
                        discovery_method="filesystem_scan")
-            
+
             total_size = 0
             for i, project in enumerate(projects, 1):
                 console.print(f"[{i}/{len(projects)}] Scanning {project.name}")
-                
+
                 size = calculate_cache_size(project)
                 total_size += size
-                
+
                 console.print(f"  Cache size: {size}MB")
                 logger.debug("Project cache analyzed",
                            project_name=project.name,
                            project_path=str(project.path),
                            cache_size_mb=size,
                            progress=f"{i}/{len(projects)}")
-                
+
             console.print_success(f"Total cache size: {total_size}MB")
             logger.info("Unity cache scan completed",
                        total_projects=len(projects),
                        total_size_mb=total_size,
                        scan_successful=True)
-            
+
             return projects, total_size
-            
+
         except Exception as e:
             console.print_error(f"Error during scan: {e}")
             handle_exception(e, logger, "unity_cache_scan")

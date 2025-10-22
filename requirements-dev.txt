@@ -8,6 +8,7 @@ pytest-xdist>=3.0.0
 pytest-mock>=3.10.0
 pytest-timeout>=2.1.0
 pytest-benchmark>=4.0.0
+pyfakefs>=5.0.0
 
 # Code Quality and Linting
 ruff>=0.1.0

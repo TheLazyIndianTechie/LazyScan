@@ -23,15 +23,15 @@ Based on the comprehensive code analysis using ast-grep, this improvement plan a
 ## 🚀 Improvement Plan Overview
 
 ### Phase 1: Critical Security Foundation (Priority: CRITICAL)
-**Timeline**: 4-6 days  
+**Timeline**: 4-6 days
 **Focus**: Eliminate file deletion risks and establish security framework
 
-### Phase 2: Architecture & Reliability (Priority: HIGH)  
-**Timeline**: 8-12 days  
+### Phase 2: Architecture & Reliability (Priority: HIGH)
+**Timeline**: 8-12 days
 **Focus**: Refactor monolithic structure, improve error handling, add comprehensive testing
 
 ### Phase 3: Platform & UX Enhancement (Priority: MEDIUM-LOW)
-**Timeline**: 4-6 days  
+**Timeline**: 4-6 days
 **Focus**: Cross-platform support, CLI improvements, developer tooling
 
 ---
@@ -134,7 +134,7 @@ ast-grep -p 'print($MSG)' --rewrite 'logger.info($MSG)' --interactive
 
 # Manual tuning for log levels:
 # INFO: scan summaries, confirmations
-# WARNING: risky inputs, skipped paths  
+# WARNING: risky inputs, skipped paths
 # ERROR: validation failures, exceptions
 # DEBUG: decision traces and sizes
 ```
@@ -151,7 +151,7 @@ lazyscan --log-level debug --log-format json unity
 ```python
 # lazyscan/core/errors.py
 PathValidationError
-DeletionSafetyError  
+DeletionSafetyError
 SecurityPolicyError
 UnsupportedPlatformError
 DiscoveryError
@@ -321,12 +321,12 @@ build/
 
 ### Rollout Sequence:
 1. **Critical Security Patch** (Steps 1-3): Ship as v0.5.x hotfix
-2. **Architecture Refactor** (Steps 4-9): Major version with extensive testing  
+2. **Architecture Refactor** (Steps 4-9): Major version with extensive testing
 3. **Platform & Polish** (Steps 10-14): Minor versions with UX improvements
 
 ### Risk Mitigation:
 - **Default dry-run** minimizes destructive impact during transition
-- **Kill switch** can disable deletions if issues surface  
+- **Kill switch** can disable deletions if issues surface
 - **Extensive testing** and CI matrix reduce platform regressions
 - **Incremental rollout** with canary releases
 
@@ -353,7 +353,7 @@ ast-grep --pattern 'from helpers import $_' --rewrite 'from lazyscan.helpers imp
 
 ### Security:
 - ✅ Zero direct file deletion calls outside SafeDeleter
-- ✅ All user inputs validated before use  
+- ✅ All user inputs validated before use
 - ✅ Security system cannot fail silently
 - ✅ Global kill switch functional
 
@@ -375,7 +375,7 @@ ast-grep --pattern 'from helpers import $_' --rewrite 'from lazyscan.helpers imp
 ### External Dependencies:
 ```requirements.txt
 send2trash>=1.8.0     # Cross-platform trash
-platformdirs>=3.0.0   # User directories  
+platformdirs>=3.0.0   # User directories
 pytest>=7.0.0         # Testing framework
 pytest-cov>=4.0.0     # Coverage reporting
 hypothesis>=6.0.0     # Property-based testing
@@ -385,7 +385,7 @@ hypothesis>=6.0.0     # Property-based testing
 ```requirements-dev.txt
 ast-grep>=0.5.0       # Pattern matching and refactoring
 ruff>=0.0.280         # Fast Python linter
-black>=23.0.0         # Code formatting  
+black>=23.0.0         # Code formatting
 mypy>=1.0.0           # Type checking
 pre-commit>=3.0.0     # Git hooks
 ```
@@ -397,7 +397,7 @@ pre-commit>=3.0.0     # Git hooks
 | Phase | Steps | Est. Effort | Timeline |
 |-------|-------|-------------|----------|
 | **Phase 1: Critical Security** | 1-3 | 4-6 days | Week 1-2 |
-| **Phase 2: Architecture** | 4-9 | 8-12 days | Week 2-4 |  
+| **Phase 2: Architecture** | 4-9 | 8-12 days | Week 2-4 |
 | **Phase 3: Enhancement** | 10-14 | 4-6 days | Week 4-5 |
 | **Total** | **1-15** | **16-24 days** | **5 weeks** |
 

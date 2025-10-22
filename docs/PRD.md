@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD)
 ## LazyScan - Knight Rider Themed Disk Space Analyzer
 
-**Version:** 1.0  
-**Date:** January 2025  
-**Product Version:** 0.5.0 → 1.0.0  
-**Status:** Active Development  
+**Version:** 1.0
+**Date:** January 2025
+**Product Version:** 0.5.0 → 1.0.0
+**Status:** Active Development
 **Owner:** TheLazyIndianTechie
 
 ---
@@ -92,19 +92,19 @@
 
 ## Roadmap
 
-**v1.0.0 (Q1 2025):** Tests, CI/CD, docs, cross-platform, performance  
-**v1.1.0 (Q2 2025):** Plugins, JSON output, more apps, TOML config  
-**v1.2.0 (Q3 2025):** Web dashboard, scheduling, advanced filtering  
+**v1.0.0 (Q1 2025):** Tests, CI/CD, docs, cross-platform, performance
+**v1.1.0 (Q2 2025):** Plugins, JSON output, more apps, TOML config
+**v1.2.0 (Q3 2025):** Web dashboard, scheduling, advanced filtering
 **v1.3.0 (Q4 2025):** Incremental scans, multi-user, API mode
 
 ---
 
 ## Success Criteria
 
-**Launch:** Zero critical bugs, 80% coverage, all P0 done, docs complete  
+**Launch:** Zero critical bugs, 80% coverage, all P0 done, docs complete
 **6-Month:** 10K downloads, 500 stars, 4.5+ rating, active community
 
 ---
 
-**Status:** ✅ Ready for Review  
+**Status:** ✅ Ready for Review
 **Maintained By:** Task Master AI

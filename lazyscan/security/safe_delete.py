@@ -6,10 +6,8 @@ Eliminates direct file deletion risks with policy-driven approach.
 
 import os
 import sys
-from pathlib import Path
-from typing import Literal, Optional
 from enum import Enum
-import logging
+from pathlib import Path
 
 try:
     import send2trash
@@ -17,8 +15,7 @@ except ImportError:
     send2trash = None
 
 from ..core.errors import DeletionSafetyError, SecurityPolicyError
-from ..core.logging_config import get_logger, get_console, log_deletion_event
-from .validators import canonicalize_path, is_critical_system_path
+from ..core.logging_config import get_console, get_logger, log_deletion_event
 
 logger = get_logger(__name__)
 console = get_console()
@@ -32,64 +29,64 @@ class DeletionMode(Enum):
 class SafeDeleter:
     """
     Centralized, policy-driven file deletion with security safeguards.
-    
+
     Key features:
     - Global kill switch via LAZYSCAN_DISABLE_DELETIONS=1
-    - Trash-first deletion by default  
+    - Trash-first deletion by default
     - Path validation before any operation
     - Structured logging of all decisions
     - Two-step confirmation for large directories
     """
-    
+
     def __init__(self):
         self._kill_switch_enabled = os.getenv("LAZYSCAN_DISABLE_DELETIONS", "0") == "1"
         if self._kill_switch_enabled:
             logger.warning("🛑 Global kill switch enabled - all deletions disabled")
-    
+
     def delete(
-        self, 
-        path: Path, 
+        self,
+        path: Path,
         mode: DeletionMode = DeletionMode.TRASH,
         dry_run: bool = True,
         force: bool = False,
-        context: str = "general"
+        context: str = "general",
     ) -> bool:
         """
         Safely delete a file or directory with comprehensive checks.
-        
+
         Args:
             path: Path to delete (will be canonicalized)
-            mode: DeletionMode.TRASH (default) or DeletionMode.PERMANENT  
+            mode: DeletionMode.TRASH (default) or DeletionMode.PERMANENT
             dry_run: If True, log what would be deleted but don't actually delete
             force: If True, skip interactive confirmations (dangerous!)
-            
+
         Returns:
             bool: True if deletion was successful or would succeed (dry_run)
-            
+
         Raises:
             DeletionSafetyError: If deletion is blocked by security checks
         """
-        
+
         # Check global kill switch first
         if self._kill_switch_enabled:
             raise DeletionSafetyError(
                 "Global deletion kill switch is enabled (LAZYSCAN_DISABLE_DELETIONS=1). "
                 "All destructive operations are blocked."
             )
-        
+
         # Check for symlinks BEFORE canonicalization
         if path.is_symlink():
             raise DeletionSafetyError(
                 f"Attempted to delete symlink: {path}. "
                 "Symlink deletion is blocked to prevent unexpected behavior."
             )
-        
+
         # Canonicalize and validate path
         try:
             canonical_path = path.resolve(strict=False)
         except Exception as e:
             raise DeletionSafetyError(f"Cannot resolve path {path}: {e}")
-        
+
         # Log the deletion attempt
         logger.info(
             "Deletion requested",
@@ -97,70 +94,77 @@ class SafeDeleter:
                 "path": str(canonical_path),
                 "mode": mode.value,
                 "dry_run": dry_run,
-                "force": force
-            }
+                "force": force,
+            },
         )
-        
+
         # Security checks
         self._validate_deletion_safety(canonical_path, context, mode.value)
-        
+
         if dry_run:
-            logger.info(f"DRY RUN: Would delete {canonical_path} using {mode.value} mode")
+            logger.info(
+                f"DRY RUN: Would delete {canonical_path} using {mode.value} mode"
+            )
             return True
-            
+
         # Actual deletion logic would go here
         if mode == DeletionMode.TRASH:
             return self._delete_to_trash(canonical_path, force=force)
         else:
             return self._delete_permanent(canonical_path, force=force)
-    
-    def _validate_deletion_safety(self, path: Path, context: str, operation_mode: str) -> None:
+
+    def _validate_deletion_safety(
+        self, path: Path, context: str, operation_mode: str
+    ) -> None:
         """
         Validate that the path is safe to delete.
-        
+
         Raises:
             DeletionSafetyError: If path fails safety checks
         """
-        
+
         # Check if path exists
         if not path.exists():
             logger.warning(f"Path does not exist: {path}")
             return  # Not an error - already "deleted"
-        
+
         # Try to get SecuritySentinel for policy enforcement
         try:
             from .sentinel import get_sentinel
+
             sentinel = get_sentinel()
             # Ask sentinel to guard this delete operation
             sentinel.guard_delete(path, context, operation_mode)
-            
+
         except (SecurityPolicyError, ImportError) as e:
             # Fall back to basic validation if sentinel is not available
-            logger.warning(f"SecuritySentinel not available, using basic validation: {e}")
-            
+            logger.warning(
+                f"SecuritySentinel not available, using basic validation: {e}"
+            )
+
             # Basic critical path checks (fallback)
             if self._is_critical_system_path(path):
                 raise DeletionSafetyError(
                     f"Attempted to delete critical system path: {path}. "
                     "This operation is blocked for safety."
                 )
-        
+
         logger.debug(f"Path validation passed for: {path}")
-    
+
     def _is_critical_system_path(self, path: Path) -> bool:
         """Check if path is a critical system directory that should never be deleted."""
-        
+
         critical_paths = [
             Path.home(),  # User home directory
-            Path("/"),    # Root directory (Unix)
-            Path("C:\\"), # C: drive root (Windows)
-            Path("/System"), # macOS system directory
-            Path("/usr"),    # Unix system directories
+            Path("/"),  # Root directory (Unix)
+            Path("C:\\"),  # C: drive root (Windows)
+            Path("/System"),  # macOS system directory
+            Path("/usr"),  # Unix system directories
             Path("/var"),
             Path("/etc"),
             Path("/boot"),
         ]
-        
+
         # Check if path is or is parent of any critical path
         for critical in critical_paths:
             try:
@@ -169,18 +173,18 @@ class SafeDeleter:
             except (OSError, ValueError):
                 # Handle paths that don't exist or permission errors
                 continue
-                
+
         return False
-    
+
     def _delete_to_trash(self, path: Path, force: bool = False) -> bool:
         """Delete path to trash/recycle bin."""
-        
+
         if send2trash is None:
             raise DeletionSafetyError(
                 "send2trash library not available. Cannot safely delete to trash. "
                 "Install with: pip install send2trash"
             )
-        
+
         try:
             send2trash.send2trash(str(path))
             logger.info(f"Successfully moved to trash: {path}")
@@ -188,16 +192,16 @@ class SafeDeleter:
         except Exception as e:
             logger.error(f"Failed to move to trash: {path}, error: {e}")
             raise DeletionSafetyError(f"Trash deletion failed: {e}")
-    
+
     def _delete_permanent(self, path: Path, force: bool = False) -> bool:
         """Permanently delete path (dangerous!)."""
-        
+
         if not force and sys.stdin.isatty():
             # Interactive confirmation required
             console.print_warning("⚠️  PERMANENT DELETION WARNING")
             console.print_warning(f"   Path: {path}")
             console.print_warning("   This operation CANNOT be undone!")
-            
+
             response = input("   Type 'DELETE' to confirm: ").strip()
             if response != "DELETE":
                 console.print_info("   Deletion cancelled.")
@@ -205,17 +209,17 @@ class SafeDeleter:
                     "Permanent deletion cancelled by user",
                     path=str(path),
                     operation="permanent_delete",
-                    user_action="cancelled"
+                    user_action="cancelled",
                 )
                 # Log security event for audit
                 log_deletion_event(
                     path=str(path),
                     deletion_mode="permanent",
                     result="cancelled_by_user",
-                    reason="user_declined_confirmation"
+                    reason="user_declined_confirmation",
                 )
                 return False
-        
+
         # TODO: Implement permanent deletion logic
         logger.warning(f"PERMANENT DELETION NOT YET IMPLEMENTED: {path}")
         raise NotImplementedError("Permanent deletion not yet implemented for safety")
@@ -223,6 +227,7 @@ class SafeDeleter:
 
 # Global instance
 _safe_deleter = None
+
 
 def get_safe_deleter() -> SafeDeleter:
     """Get the global SafeDeleter instance."""

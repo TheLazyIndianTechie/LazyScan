@@ -1,7 +1,7 @@
 [run]
 source = lazyscan
 branch = True
-omit = 
+omit =
     tests/*
     setup.py
     lazyscan/__version__.py

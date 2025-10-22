@@ -29,22 +29,22 @@ class PlatformInfo:
 
 class PlatformManager(ABC):
     """Abstract platform manager for cross-platform operations"""
-    
+
     @abstractmethod
     def get_platform_info(self) -> PlatformInfo:
         """Get detailed platform information"""
         pass
-    
+
     @abstractmethod
     def get_cache_directories(self) -> List[str]:
         """Get platform-specific cache directories"""
         pass
-    
+
     @abstractmethod
     def get_temp_directories(self) -> List[str]:
         """Get platform-specific temporary directories"""
         pass
-    
+
     @abstractmethod
     def is_safe_to_delete(self, path: str) -> bool:
         """Check if path is safe to delete on this platform"""
@@ -75,7 +75,7 @@ for directory in cache_dirs:
 ```python
 class MacOSPlatform(PlatformManager):
     """macOS-specific platform implementation"""
-    
+
     def get_platform_info(self) -> PlatformInfo:
         """Get macOS platform information"""
         return PlatformInfo(
@@ -89,7 +89,7 @@ class MacOSPlatform(PlatformManager):
                 "system_integrity_protection"
             ]
         )
-    
+
     def get_cache_directories(self) -> List[str]:
         """Get macOS cache directories"""
         home = os.path.expanduser("~")
@@ -107,7 +107,7 @@ class MacOSPlatform(PlatformManager):
 ```python
 class WindowsPlatform(PlatformManager):
     """Windows-specific platform implementation"""
-    
+
     def get_platform_info(self) -> PlatformInfo:
         """Get Windows platform information"""
         return PlatformInfo(
@@ -121,13 +121,13 @@ class WindowsPlatform(PlatformManager):
                 "uac_detection"
             ]
         )
-    
+
     def get_cache_directories(self) -> List[str]:
         """Get Windows cache directories"""
         appdata = os.environ.get('APPDATA', '')
         localappdata = os.environ.get('LOCALAPPDATA', '')
         temp = os.environ.get('TEMP', '')
-        
+
         return [
             f"{localappdata}\\Temp",
             f"{appdata}\\Local\\Temp",
@@ -179,32 +179,32 @@ class AnalysisResult:
 
 class CacheAnalyzer:
     """Intelligent cache analysis engine"""
-    
+
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or {}
         self.risk_threshold = self.config.get('risk_threshold', 0.7)
         self.confidence_threshold = self.config.get('confidence_threshold', 0.8)
-        
+
         # Initialize analysis models
         self._load_analysis_models()
-    
+
     def analyze_cache_path(self, cache_path: 'CachePath') -> AnalysisResult:
         """Analyze a single cache path for safety and recommendations"""
-        
+
         # Step 1: Basic safety analysis
         safety_score = self._calculate_safety_score(cache_path)
-        
+
         # Step 2: Usage pattern analysis
         usage_patterns = self._analyze_usage_patterns(cache_path)
-        
+
         # Step 3: Risk assessment
         risk_assessment = self._assess_deletion_risk(cache_path, usage_patterns)
-        
+
         # Step 4: Generate recommendation
         recommendation = self._generate_recommendation(
             safety_score, usage_patterns, risk_assessment
         )
-        
+
         return AnalysisResult(
             path=cache_path.path,
             safety_level=self._determine_safety_level(safety_score),
@@ -218,11 +218,11 @@ class CacheAnalyzer:
                 'analysis_timestamp': time.time()
             }
         )
-    
-    def batch_analyze(self, cache_paths: List['CachePath'], 
+
+    def batch_analyze(self, cache_paths: List['CachePath'],
                      parallel: bool = True) -> List[AnalysisResult]:
         """Analyze multiple cache paths efficiently"""
-        
+
         if parallel and len(cache_paths) > 10:
             return self._parallel_batch_analyze(cache_paths)
         else:
@@ -283,17 +283,17 @@ class PluginMetadata:
 
 class PluginInterface(ABC):
     """Base interface for all LazyScan plugins"""
-    
+
     @abstractmethod
     def get_metadata(self) -> PluginMetadata:
         """Get plugin metadata"""
         pass
-    
+
     @abstractmethod
     def initialize(self, config: Dict[str, Any]) -> bool:
         """Initialize the plugin with configuration"""
         pass
-    
+
     @abstractmethod
     def cleanup(self) -> None:
         """Cleanup plugin resources"""
@@ -307,17 +307,17 @@ class PluginInterface(ABC):
 ```python
 class CacheHandlerPlugin(PluginInterface):
     """Plugin for handling application-specific cache discovery"""
-    
+
     @abstractmethod
     def get_supported_applications(self) -> List[str]:
         """Get list of supported applications"""
         pass
-    
+
     @abstractmethod
     def get_cache_paths(self, application: str) -> List['CachePath']:
         """Get cache paths for specific application"""
         pass
-    
+
     @abstractmethod
     def analyze_cache(self, cache_path: 'CachePath') -> 'AnalysisResult':
         """Analyze application-specific cache"""
@@ -329,12 +329,12 @@ class CacheHandlerPlugin(PluginInterface):
 ```python
 class AnalyzerPlugin(PluginInterface):
     """Plugin for custom analysis algorithms"""
-    
+
     @abstractmethod
     def analyze_file(self, file_path: str) -> Dict[str, Any]:
         """Analyze individual file"""
         pass
-    
+
     @abstractmethod
     def get_analysis_priority(self) -> int:
         """Get analysis priority (higher = more important)"""
@@ -346,7 +346,7 @@ class AnalyzerPlugin(PluginInterface):
 ```python
 class PluginManager:
     """Manages plugin lifecycle and operations"""
-    
+
     def __init__(self, plugin_directory: str = "plugins"):
         self.plugin_directory = plugin_directory
         self.loaded_plugins: Dict[str, PluginInterface] = {}
@@ -356,11 +356,11 @@ class PluginManager:
             'exporters': [],
             'integrations': []
         }
-    
+
     def load_plugins_from_directory(self, directory: str) -> List[str]:
         """Load all plugins from directory"""
         loaded_plugins = []
-        
+
         for plugin_file in self.discover_plugins(directory):
             try:
                 plugin_name = self.load_plugin(plugin_file)
@@ -368,13 +368,13 @@ class PluginManager:
                     loaded_plugins.append(plugin_name)
             except Exception as e:
                 print(f"Failed to load plugin {plugin_file}: {e}")
-        
+
         return loaded_plugins
-    
+
     def get_cache_handlers(self) -> List[CacheHandlerPlugin]:
         """Get all loaded cache handler plugins"""
         return self.plugin_registry.get('cache_handlers', [])
-    
+
     def get_analyzers(self) -> List[AnalyzerPlugin]:
         """Get all loaded analyzer plugins"""
         return self.plugin_registry.get('analyzers', [])
@@ -390,7 +390,7 @@ import os
 
 class ChromeCachePlugin(CacheHandlerPlugin):
     """Chrome-specific cache handler plugin"""
-    
+
     def get_metadata(self) -> PluginMetadata:
         return PluginMetadata(
             name='chrome_cache_handler',
@@ -401,20 +401,20 @@ class ChromeCachePlugin(CacheHandlerPlugin):
             dependencies=['psutil'],
             plugin_type='cache_handler'
         )
-    
+
     def initialize(self, config) -> bool:
         self.chrome_paths = self._discover_chrome_installations()
         return len(self.chrome_paths) > 0
-    
+
     def cleanup(self) -> None:
         pass
-    
+
     def get_supported_applications(self) -> List[str]:
         return ['Google Chrome', 'Chromium']
-    
+
     def get_cache_paths(self, application: str) -> List[CachePath]:
         cache_paths = []
-        
+
         for chrome_path in self.chrome_paths:
             cache_dir = os.path.join(chrome_path, 'Default', 'Cache')
             if os.path.exists(cache_dir):
@@ -423,7 +423,7 @@ class ChromeCachePlugin(CacheHandlerPlugin):
                     application=application,
                     cache_type='browser'
                 ))
-        
+
         return cache_paths
 ```
 
@@ -454,50 +454,50 @@ class ScanResult:
 
 class ScanOptimizer:
     """Advanced scanning optimizations"""
-    
+
     def __init__(self, max_workers: Optional[int] = None):
         self.max_workers = max_workers or min(32, (os.cpu_count() or 1) + 4)
         self.scan_cache: Dict[str, tuple] = {}  # path -> (timestamp, result)
         self.cache_ttl = 3600  # 1 hour cache TTL
-    
-    def parallel_scan(self, directories: List[str], 
+
+    def parallel_scan(self, directories: List[str],
                      progress_callback: Optional[Callable[[str, float], None]] = None) -> ScanResult:
         """Multi-threaded directory scanning with optimal thread allocation"""
-        
+
         optimal_threads = self._calculate_optimal_threads(len(directories))
-        
+
         with ThreadPoolExecutor(max_workers=optimal_threads) as executor:
             # Submit scanning tasks
             future_to_dir = {
-                executor.submit(self._scan_directory_worker, directory): directory 
+                executor.submit(self._scan_directory_worker, directory): directory
                 for directory in directories
             }
-            
+
             # Process results as they complete
             total_files = 0
             total_size = 0
             all_cache_paths = []
             error_count = 0
             completed = 0
-            
+
             for future in as_completed(future_to_dir):
                 directory = future_to_dir[future]
-                
+
                 try:
                     dir_result = future.result()
                     total_files += dir_result['file_count']
                     total_size += dir_result['total_size']
                     all_cache_paths.extend(dir_result['cache_paths'])
-                    
+
                 except Exception as e:
                     print(f"Error scanning directory {directory}: {e}")
                     error_count += 1
-                
+
                 completed += 1
                 if progress_callback:
                     progress = completed / len(directories)
                     progress_callback(directory, progress)
-        
+
         return ScanResult(
             path="multiple_directories",
             total_files=total_files,
@@ -576,13 +576,13 @@ class LazyScanConfig:
     security: SecurityConfig = field(default_factory=SecurityConfig)
     performance: PerformanceConfig = field(default_factory=PerformanceConfig)
     plugins: PluginConfig = field(default_factory=PluginConfig)
-    
+
     # Application-specific settings
     supported_applications: List[str] = field(default_factory=lambda: [
         'Chrome', 'Firefox', 'Safari', 'Unity', 'Unreal Engine',
         'VS Code', 'Slack', 'Discord', 'Spotify'
     ])
-    
+
     # Output settings
     output_format: str = "table"  # table, json, csv
     show_progress: bool = True
@@ -599,18 +599,18 @@ from typing import Union
 
 class ConfigManager:
     """Manages LazyScan configuration"""
-    
+
     def __init__(self, config_path: Optional[str] = None):
         self.config_path = config_path or self._get_default_config_path()
         self.config = LazyScanConfig()
-    
+
     def load_config(self, config_path: Optional[str] = None) -> LazyScanConfig:
         """Load configuration from file"""
         path = config_path or self.config_path
-        
+
         if not os.path.exists(path):
             return self._create_default_config()
-        
+
         try:
             with open(path, 'r') as f:
                 if path.endswith('.json'):
@@ -619,28 +619,28 @@ class ConfigManager:
                     config_data = yaml.safe_load(f)
                 else:
                     raise ValueError(f"Unsupported config format: {path}")
-            
+
             return self._parse_config_data(config_data)
-            
+
         except Exception as e:
             print(f"Error loading config from {path}: {e}")
             return self._create_default_config()
-    
+
     def save_config(self, config: LazyScanConfig, config_path: Optional[str] = None) -> bool:
         """Save configuration to file"""
         path = config_path or self.config_path
-        
+
         try:
             config_data = self._serialize_config(config)
-            
+
             with open(path, 'w') as f:
                 if path.endswith('.json'):
                     json.dump(config_data, f, indent=2)
                 elif path.endswith(('.yml', '.yaml')):
                     yaml.dump(config_data, f, default_flow_style=False)
-            
+
             return True
-            
+
         except Exception as e:
             print(f"Error saving config to {path}: {e}")
             return False
@@ -705,47 +705,47 @@ from typing import Optional
 
 class LazyScanLogger:
     """Centralized logging for LazyScan"""
-    
+
     def __init__(self, name: str = "lazyscan", level: int = logging.INFO):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
-        
+
         if not self.logger.handlers:
             self._setup_handlers()
-    
+
     def _setup_handlers(self):
         """Setup logging handlers"""
         # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        
+
         # File handler
         file_handler = logging.FileHandler('lazyscan.log')
         file_handler.setLevel(logging.DEBUG)
-        
+
         # Formatter
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
-        
+
         console_handler.setFormatter(formatter)
         file_handler.setFormatter(formatter)
-        
+
         self.logger.addHandler(console_handler)
         self.logger.addHandler(file_handler)
-    
+
     def info(self, message: str, **kwargs):
         """Log info message"""
         self.logger.info(message, **kwargs)
-    
+
     def warning(self, message: str, **kwargs):
         """Log warning message"""
         self.logger.warning(message, **kwargs)
-    
+
     def error(self, message: str, **kwargs):
         """Log error message"""
         self.logger.error(message, **kwargs)
-    
+
     def debug(self, message: str, **kwargs):
         """Log debug message"""
         self.logger.debug(message, **kwargs)
@@ -766,28 +766,28 @@ from unittest.mock import Mock, patch
 
 class LazyScanTestCase:
     """Base test case for LazyScan tests"""
-    
+
     def setup_method(self):
         """Setup test environment"""
         self.temp_dir = tempfile.mkdtemp()
         self.test_files = []
-    
+
     def teardown_method(self):
         """Cleanup test environment"""
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir, ignore_errors=True)
-    
+
     def create_test_file(self, path: str, content: str = "test content") -> str:
         """Create a test file with content"""
         full_path = os.path.join(self.temp_dir, path)
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
-        
+
         with open(full_path, 'w') as f:
             f.write(content)
-        
+
         self.test_files.append(full_path)
         return full_path
-    
+
     def create_test_cache_structure(self) -> Dict[str, List[str]]:
         """Create a realistic cache directory structure"""
         cache_structure = {
@@ -805,14 +805,14 @@ class LazyScanTestCase:
                 'cache/project1/Library/artifacts'
             ]
         }
-        
+
         created_files = {}
         for app, files in cache_structure.items():
             created_files[app] = []
             for file_path in files:
                 full_path = self.create_test_file(f"{app}/{file_path}")
                 created_files[app].append(full_path)
-        
+
         return created_files
 ```
 
@@ -837,51 +837,51 @@ class PerformanceMetrics:
     bytes_processed: int
     errors_encountered: int
     memory_peak_mb: float
-    
+
     @property
     def duration_seconds(self) -> float:
         return self.end_time - self.start_time
-    
+
     @property
     def files_per_second(self) -> float:
         return self.files_processed / max(self.duration_seconds, 0.001)
-    
+
     @property
     def bytes_per_second(self) -> float:
         return self.bytes_processed / max(self.duration_seconds, 0.001)
 
 class MetricsCollector:
     """Collects and manages performance metrics"""
-    
+
     def __init__(self):
         self.metrics_history: List[PerformanceMetrics] = []
         self.active_operations: Dict[str, float] = {}
-    
+
     def start_operation(self, operation_name: str) -> str:
         """Start tracking an operation"""
         operation_id = f"{operation_name}_{int(time.time() * 1000)}"
         self.active_operations[operation_id] = time.time()
         return operation_id
-    
-    def end_operation(self, operation_id: str, 
+
+    def end_operation(self, operation_id: str,
                      files_processed: int = 0,
                      bytes_processed: int = 0,
                      errors_encountered: int = 0) -> PerformanceMetrics:
         """End tracking an operation and record metrics"""
-        
+
         if operation_id not in self.active_operations:
             raise ValueError(f"Operation {operation_id} not found")
-        
+
         start_time = self.active_operations.pop(operation_id)
         end_time = time.time()
-        
+
         # Get memory usage
         try:
             import psutil
             memory_mb = psutil.Process().memory_info().rss / (1024 * 1024)
         except ImportError:
             memory_mb = 0.0
-        
+
         metrics = PerformanceMetrics(
             operation_name=operation_id.split('_')[0],
             start_time=start_time,
@@ -891,33 +891,33 @@ class MetricsCollector:
             errors_encountered=errors_encountered,
             memory_peak_mb=memory_mb
         )
-        
+
         self.metrics_history.append(metrics)
         return metrics
-    
+
     def get_summary_stats(self, operation_name: Optional[str] = None) -> Dict[str, Any]:
         """Get summary statistics for operations"""
-        
+
         relevant_metrics = self.metrics_history
         if operation_name:
             relevant_metrics = [
-                m for m in self.metrics_history 
+                m for m in self.metrics_history
                 if m.operation_name == operation_name
             ]
-        
+
         if not relevant_metrics:
             return {}
-        
+
         total_operations = len(relevant_metrics)
         total_files = sum(m.files_processed for m in relevant_metrics)
         total_bytes = sum(m.bytes_processed for m in relevant_metrics)
         total_duration = sum(m.duration_seconds for m in relevant_metrics)
         total_errors = sum(m.errors_encountered for m in relevant_metrics)
-        
+
         avg_duration = total_duration / total_operations
         avg_files_per_sec = sum(m.files_per_second for m in relevant_metrics) / total_operations
         avg_memory = sum(m.memory_peak_mb for m in relevant_metrics) / total_operations
-        
+
         return {
             'total_operations': total_operations,
             'total_files_processed': total_files,
