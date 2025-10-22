@@ -1,0 +1,384 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # Run security scans daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      scan-level:
+        description: 'Security scan level'
+        required: false
+        default: 'comprehensive'
+        type: choice
+        options:
+          - quick
+          - comprehensive
+          - deep
+
+# Cancel in-progress workflows for the same branch
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: 1
+  PY_COLORS: 1
+
+jobs:
+  # Quick security scan for fast feedback
+  quick-security:
+    name: Quick Security Scan
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false || github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit[toml] safety pip-audit semgrep
+
+      - name: Create security reports directory
+        run: mkdir -p security-reports
+
+      - name: Run bandit quick scan
+        run: |
+          bandit -r lazyscan helpers \
+            -f json -o security-reports/bandit-quick.json \
+            -ll -x tests/ || true
+          bandit -r lazyscan helpers \
+            -f txt -o security-reports/bandit-quick.txt \
+            -ll -x tests/
+
+      - name: Run safety check
+        run: |
+          # Create requirements file for safety
+          pip freeze > requirements-current.txt
+          safety check --json --output security-reports/safety-quick.json || true
+          safety check --output text --output security-reports/safety-quick.txt
+
+      - name: Upload quick scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quick-security-scan
+          path: security-reports/
+          retention-days: 30
+
+  # Comprehensive security scanning
+  comprehensive-security:
+    name: Comprehensive Security Scan
+    runs-on: ubuntu-latest
+    needs: quick-security
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for full history analysis
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install comprehensive security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install bandit[toml] safety pip-audit semgrep
+          pip install pipenv-setup vulture dead-code-detector
+
+      - name: Create security reports directory
+        run: mkdir -p security-reports
+
+      - name: Run comprehensive bandit scan
+        run: |
+          echo "Running bandit with comprehensive rules..."
+          bandit -r lazyscan helpers tests \
+            -f json -o security-reports/bandit-comprehensive.json \
+            --severity-level medium \
+            --confidence-level medium || true
+
+          bandit -r lazyscan helpers tests \
+            -f txt -o security-reports/bandit-comprehensive.txt \
+            --severity-level medium \
+            --confidence-level medium
+
+          bandit -r lazyscan helpers tests \
+            -f html -o security-reports/bandit-comprehensive.html \
+            --severity-level medium \
+            --confidence-level medium || true
+
+      - name: Run safety comprehensive check
+        run: |
+          echo "Running safety with comprehensive database..."
+          pip freeze > requirements-current.txt
+          safety check --json \
+            --output security-reports/safety-comprehensive.json || true
+          safety check --output text \
+            --output security-reports/safety-comprehensive.txt
+
+      - name: Run pip-audit vulnerability scan
+        run: |
+          echo "Running pip-audit for vulnerability scanning..."
+          pip-audit --desc --output=json \
+            --output-file=security-reports/pip-audit.json || true
+          pip-audit --desc --output=cyclonedx-json \
+            --output-file=security-reports/pip-audit-cyclonedx.json || true
+          pip-audit --desc > security-reports/pip-audit.txt || true
+
+      - name: Run semgrep static analysis
+        run: |
+          echo "Running semgrep for static analysis..."
+          semgrep --config=auto lazyscan helpers \
+            --json --output=security-reports/semgrep.json || true
+          semgrep --config=auto lazyscan helpers \
+            --text --output=security-reports/semgrep.txt || true
+
+      - name: Check for secrets in code
+        run: |
+          echo "Scanning for potential secrets..."
+          # Simple regex-based secret detection
+          grep -r -n -E '(password|passwd|secret|key|token|api[_-]?key)' \
+            lazyscan helpers --include="*.py" > security-reports/potential-secrets.txt || true
+
+          # Check for hardcoded URLs, IPs, emails
+          grep -r -n -E '(http://|https://|[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})' \
+            lazyscan helpers --include="*.py" > security-reports/hardcoded-data.txt || true
+
+      - name: Analyze dead code
+        run: |
+          echo "Analyzing for dead/unused code..."
+          vulture lazyscan helpers \
+            --json > security-reports/dead-code.json || true
+          vulture lazyscan helpers > security-reports/dead-code.txt || true
+
+      - name: Generate security summary
+        run: |
+          python -c "
+          import json
+          import os
+          from pathlib import Path
+
+          def load_json_report(filepath):
+              try:
+                  with open(filepath, 'r') as f:
+                      return json.load(f)
+              except (FileNotFoundError, json.JSONDecodeError):
+                  return None
+
+          def count_issues(data, key_path):
+              if not data:
+                  return 0
+              keys = key_path.split('.')
+              current = data
+              for key in keys:
+                  if isinstance(current, dict) and key in current:
+                      current = current[key]
+                  else:
+                      return 0
+              return len(current) if isinstance(current, list) else 0
+
+          # Load reports
+          reports_dir = Path('security-reports')
+          bandit_data = load_json_report(reports_dir / 'bandit-comprehensive.json')
+          safety_data = load_json_report(reports_dir / 'safety-comprehensive.json')
+          pip_audit_data = load_json_report(reports_dir / 'pip-audit.json')
+          semgrep_data = load_json_report(reports_dir / 'semgrep.json')
+
+          # Count issues
+          bandit_issues = count_issues(bandit_data, 'results')
+          safety_issues = count_issues(safety_data, 'vulnerabilities')
+          pip_audit_issues = count_issues(pip_audit_data, 'vulnerabilities')
+          semgrep_issues = count_issues(semgrep_data, 'results')
+
+          # Generate summary
+          summary = {
+              'bandit_issues': bandit_issues,
+              'safety_issues': safety_issues,
+              'pip_audit_issues': pip_audit_issues,
+              'semgrep_issues': semgrep_issues,
+              'total_issues': bandit_issues + safety_issues + pip_audit_issues + semgrep_issues
+          }
+
+          print(f'Security Scan Summary:')
+          print(f'  Bandit (code analysis): {bandit_issues} issues')
+          print(f'  Safety (dependencies): {safety_issues} issues')
+          print(f'  Pip-audit (vulnerabilities): {pip_audit_issues} issues')
+          print(f'  Semgrep (static analysis): {semgrep_issues} issues')
+          print(f'  Total issues found: {summary[\"total_issues\"]}')
+
+          with open('security-reports/security-summary.json', 'w') as f:
+              json.dump(summary, f, indent=2)
+          "
+
+      - name: Upload comprehensive scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comprehensive-security-scan
+          path: security-reports/
+          retention-days: 30
+
+      - name: Check security thresholds
+        run: |
+          python -c "
+          import json
+          import sys
+
+          with open('security-reports/security-summary.json', 'r') as f:
+              summary = json.load(f)
+
+          total_issues = summary['total_issues']
+          critical_issues = summary['bandit_issues'] + summary['safety_issues']
+
+          print(f'Total security issues: {total_issues}')
+          print(f'Critical issues (bandit + safety): {critical_issues}')
+
+          # Define thresholds
+          if critical_issues > 0:
+              print('❌ Critical security issues found!')
+              sys.exit(1)
+          elif total_issues > 10:
+              print('⚠️ Many security issues found, please review')
+              # Don't fail CI for non-critical issues
+          else:
+              print('✅ Security scan passed')
+          "
+
+  # SARIF upload for GitHub Security tab
+  upload-sarif:
+    name: Upload SARIF Results
+    runs-on: ubuntu-latest
+    needs: comprehensive-security
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install SARIF tools
+        run: |
+          pip install sarif-tools bandit[toml]
+
+      - name: Generate SARIF report
+        run: |
+          bandit -r lazyscan helpers \
+            -f sarif -o bandit-results.sarif \
+            --severity-level medium \
+            --confidence-level medium || true
+
+      - name: Upload SARIF to GitHub
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+
+  # Security monitoring and alerting
+  security-monitor:
+    name: Security Monitoring
+    runs-on: ubuntu-latest
+    needs: [quick-security, comprehensive-security]
+    if: always() && (github.event_name == 'schedule' || github.ref == 'refs/heads/main')
+
+    steps:
+      - name: Download security scan results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*security-scan'
+          path: all-security-reports/
+
+      - name: Generate security dashboard
+        run: |
+          echo "# Security Dashboard" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Tool | Status | Issues |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          # Parse results and add to summary
+          if [ -f "all-security-reports/comprehensive-security-scan/security-summary.json" ]; then
+            python -c "
+            import json
+            try:
+                with open('all-security-reports/comprehensive-security-scan/security-summary.json', 'r') as f:
+                    summary = json.load(f)
+                print(f'| Bandit | {\"✅\" if summary[\"bandit_issues\"] == 0 else \"⚠️\"} | {summary[\"bandit_issues\"]} |')
+                print(f'| Safety | {\"✅\" if summary[\"safety_issues\"] == 0 else \"⚠️\"} | {summary[\"safety_issues\"]} |')
+                print(f'| Pip-audit | {\"✅\" if summary[\"pip_audit_issues\"] == 0 else \"⚠️\"} | {summary[\"pip_audit_issues\"]} |')
+                print(f'| Semgrep | {\"✅\" if summary[\"semgrep_issues\"] == 0 else \"⚠️\"} | {summary[\"semgrep_issues\"]} |')
+            except:
+                print('| Summary | ❌ | Failed to parse |')
+            " >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comment on PR with security results
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && always()
+        with:
+          script: |
+            const fs = require('fs');
+
+            let securityComment = `## 🔐 Security Scan Results\n\n`;
+
+            try {
+              const summaryPath = 'all-security-reports/comprehensive-security-scan/security-summary.json';
+              if (fs.existsSync(summaryPath)) {
+                const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+
+                securityComment += `| Tool | Issues Found | Status |\n`;
+                securityComment += `|------|--------------|--------|\n`;
+                securityComment += `| 🔍 Bandit | ${summary.bandit_issues} | ${summary.bandit_issues === 0 ? '✅' : '⚠️'} |\n`;
+                securityComment += `| 🛡️ Safety | ${summary.safety_issues} | ${summary.safety_issues === 0 ? '✅' : '❌'} |\n`;
+                securityComment += `| 🔎 Pip-audit | ${summary.pip_audit_issues} | ${summary.pip_audit_issues === 0 ? '✅' : '⚠️'} |\n`;
+                securityComment += `| 🎯 Semgrep | ${summary.semgrep_issues} | ${summary.semgrep_issues === 0 ? '✅' : '⚠️'} |\n\n`;
+
+                const criticalIssues = summary.bandit_issues + summary.safety_issues;
+                if (criticalIssues > 0) {
+                  securityComment += `⚠️ **${criticalIssues} critical security issue(s) found!**\n\n`;
+                } else if (summary.total_issues > 0) {
+                  securityComment += `ℹ️ ${summary.total_issues} non-critical issue(s) found for review.\n\n`;
+                } else {
+                  securityComment += `🎉 **No security issues found!**\n\n`;
+                }
+
+                securityComment += `### 📋 Full Reports\n`;
+                securityComment += `- Detailed reports available in workflow artifacts\n`;
+                securityComment += `- SARIF results uploaded to GitHub Security tab\n`;
+              } else {
+                securityComment += `⚠️ Security scan summary not available. Check workflow logs.\n`;
+              }
+
+              securityComment += `\n---\n*Automated security scan by GitHub Actions*`;
+
+            } catch (error) {
+              securityComment += `❌ Failed to parse security results: ${error.message}`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: securityComment
+            });
