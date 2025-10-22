@@ -1,0 +1,184 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lazyscan"
+version = "0.5.0"
+authors = [
+    {name = "TheLazyIndianTechie", email = ""},
+]
+description = "A lazy way to find what's eating your disk space - by TheLazyIndianTechie"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+]
+keywords = ["disk", "space", "scanner", "cleaner", "cache", "macos", "terminal", "cli"]
+dependencies = [
+    # LazyScan currently has no external runtime dependencies
+    # All functionality uses Python standard library only
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-timeout>=2.1.0",
+    "pytest-benchmark>=4.0.0",
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "mypy>=1.5.0",
+    "isort>=5.12.0",
+    "pre-commit>=3.0.0",
+    "bandit[toml]>=1.7.0",
+    "safety>=2.3.0",
+    "pip-audit>=2.6.0",
+    "coverage[toml]>=7.0.0",
+    "diff-cover>=7.0.0",
+    "tox>=4.0.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-timeout>=2.1.0",
+]
+
+[project.scripts]
+lazyscan = "lazyscan.cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/TheLazyIndianTechie/LazyScan"
+"Bug Tracker" = "https://github.com/TheLazyIndianTechie/LazyScan/issues"
+"Source Code" = "https://github.com/TheLazyIndianTechie/LazyScan"
+
+[tool.setuptools.packages.find]
+include = ["lazyscan*", "helpers*"]
+
+[tool.setuptools.package-dir]
+"" = "."
+
+# Ruff configuration
+[tool.ruff]
+target-version = "py39"
+line-length = 88
+extend-exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".venv",
+    ".tox",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "E501",  # Line too long (handled by black)
+    "B008",  # Do not perform function calls in argument defaults
+    "RUF012", # Mutable class attributes should be annotated with `ClassVar`
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["N802", "N806"]  # Test methods can have different naming
+"setup.py" = ["ALL"]
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.git
+  | __pycache__
+  | build
+  | dist
+  | \.venv
+  | \.tox
+)/
+'''
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["lazyscan", "helpers"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "setup.py",
+    "*/conftest.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "reports/coverage-html"
+
+[tool.coverage.xml]
+output = "reports/coverage.xml"
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+# Bandit configuration
+[tool.bandit]
+exclude_dirs = ["tests", "test_*.py"]
+skips = ["B101", "B601"]
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "slow: Slow tests",
+    "safe: Safe tests that don't modify system",
+    "platform_specific: Tests that are platform-specific",
+    "performance: Performance benchmarking tests",
+]
