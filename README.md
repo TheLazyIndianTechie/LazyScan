@@ -2,9 +2,14 @@
 
 **The lazy developer's disk space scanner with cyberpunk style**
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](https://github.com/TheLazyIndianTechie/lazyscan)
-[![Python](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://python.org)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](https://github.com/TheLazyIndianTechie/lazyscan)
+[![CI/CD Status](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/test-matrix.yml/badge.svg)](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/test-matrix.yml)
+[![Lint & Format](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/lint-format.yml/badge.svg)](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/lint-format.yml)
+[![Security Scan](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/security.yml/badge.svg)](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/security.yml)
+[![Coverage](https://codecov.io/gh/vinayvidyasagar/LazyScan/branch/main/graph/badge.svg)](https://codecov.io/gh/vinayvidyasagar/LazyScan)
+[![Build](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/build.yml/badge.svg)](https://github.com/vinayvidyasagar/LazyScan/actions/workflows/build.yml)
+[![PyPI Version](https://img.shields.io/pypi/v/lazyscan)](https://pypi.org/project/lazyscan/)
+[![Python Support](https://img.shields.io/pypi/pyversions/lazyscan)](https://pypi.org/project/lazyscan/)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](https://github.com/vinayvidyasagar/LazyScan)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > *A cyberpunk-styled disk space analyzer that finds what's eating your storage with minimal effort and maximum style.*
@@ -253,6 +258,89 @@ LazyScan/
 
 ---
 
+## 🔄 CI/CD & Quality Assurance
+
+### Automated Testing & Validation
+
+LazyScan uses a comprehensive CI/CD pipeline to ensure code quality and reliability:
+
+#### 🧪 **Testing Pipeline**
+- **Multi-OS Testing**: Ubuntu, macOS, and Windows
+- **Python Versions**: 3.9, 3.10, 3.11, 3.12
+- **Coverage Reporting**: Minimum 40% coverage with Codecov integration
+- **Performance Tests**: Smoke tests and benchmarking
+
+#### 🔍 **Code Quality**
+- **Linting**: Ruff for fast Python linting
+- **Formatting**: Black for consistent code formatting
+- **Type Checking**: MyPy for static type analysis
+- **Security Scanning**: Bandit, Safety, and Semgrep for vulnerability detection
+
+#### 🏗️ **Build & Release**
+- **Package Building**: Automated wheel and source distribution creation
+- **Package Validation**: Twine checks for PyPI readiness
+- **Trusted Publishing**: OIDC-based secure deployment to PyPI
+- **Release Automation**: Automatic GitHub releases with changelog generation
+
+### 📋 Required Checks for Contributors
+
+All pull requests must pass these automated checks:
+
+✅ **Lint & Format** - Ruff and Black formatting compliance
+✅ **Type Check** - MyPy static type validation
+✅ **Security Scan** - No high-severity security vulnerabilities
+✅ **Test Matrix** - All tests pass on Python 3.9-3.12 across all platforms
+✅ **Coverage** - Maintain or improve test coverage
+✅ **Build Validation** - Package builds successfully and installs correctly
+
+### 🚀 Release Process
+
+#### Pre-release Testing
+```bash
+# Create pre-release tag
+git tag v1.0.0-rc1
+git push origin v1.0.0-rc1
+
+# Automatically publishes to TestPyPI for validation
+```
+
+#### Production Release
+```bash
+# Create release tag
+git tag v1.0.0
+git push origin v1.0.0
+
+# Automatically publishes to PyPI and creates GitHub release
+```
+
+### 🛠️ Local Development Commands
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run linting and formatting
+ruff check .
+ruff format .
+black .
+
+# Run type checking
+mypy --ignore-missing-imports lazyscan.py
+
+# Run security checks
+bandit -r .
+safety check
+
+# Run tests with coverage
+pytest --cov=. --cov-report=html
+
+# Build package locally
+python -m build
+twine check dist/*
+```
+
+---
+
 ## 🚨 Important Safety Information
 
 **⚠️ WARNING: This tool can permanently delete files ⚠️**
@@ -310,8 +398,8 @@ lazyscan --recovery-stats
 ## 📋 Roadmap
 
 ### 🚀 Planned Enhancements
-- [ ] **Unit & Integration Testing** - Comprehensive test coverage
-- [ ] **CI/CD Pipeline** - GitHub Actions for automated testing
+- [x] **CI/CD Pipeline** - GitHub Actions for automated testing, linting, security, and releases
+- [x] **Package Build & Release** - Automated PyPI publishing with OIDC trusted publishing
 - [ ] **Plugin Architecture** - Extensible app integration system
 - [ ] **Subcommand Structure** - `lazyscan scan`, `lazyscan clean`, etc.
 - [ ] **JSON Output Mode** - Machine-readable output format
@@ -333,18 +421,54 @@ lazyscan --recovery-stats
 
 We welcome contributions! Here's how to get started:
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature-name`
-3. **Make your changes** following our coding standards
-4. **Add tests** for new functionality
-5. **Submit a pull request**
+### 📋 **Contribution Process**
+1. **Fork the repository** and clone it locally
+2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+3. **Install development dependencies**: `pip install -r requirements-dev.txt`
+4. **Make your changes** following our coding standards
+5. **Run the full CI/CD validation locally** (see commands above)
+6. **Add tests** for new functionality
+7. **Update documentation** as needed
+8. **Submit a pull request** with a clear description
 
-### Development Guidelines
-- Follow PEP 8 style guidelines
-- Add docstrings for all public functions
-- Include type hints where appropriate
-- Write tests for new features
-- Update documentation as needed
+### ✅ **Pre-submission Checklist**
+Before submitting your PR, ensure all these pass locally:
+
+```bash
+# Code quality checks (must pass)
+ruff check . && ruff format --check . && black --check .
+mypy --ignore-missing-imports lazyscan.py
+
+# Security and safety (must pass)
+bandit -r . && safety check
+
+# Tests and coverage (must maintain coverage)
+pytest --cov=. --cov-report=term-missing --cov-fail-under=40
+
+# Build validation (must succeed)
+python -m build && twine check dist/*
+```
+
+### 🎯 **Development Guidelines**
+- **Code Style**: Follow Ruff and Black formatting (auto-enforced)
+- **Type Safety**: Add type hints for all new functions
+- **Testing**: Write tests for new features (pytest framework)
+- **Documentation**: Update docstrings and README for user-facing changes
+- **Security**: No introduction of security vulnerabilities
+- **Compatibility**: Maintain Python 3.9+ compatibility
+
+### 🚫 **Common CI/CD Failures**
+- **Formatting Issues**: Run `ruff format . && black .` before committing
+- **Type Errors**: Add proper type hints and test with `mypy`
+- **Security Vulnerabilities**: Address any findings from `bandit` and `safety`
+- **Test Failures**: Ensure all tests pass with `pytest`
+- **Coverage Drops**: Maintain test coverage above minimum threshold
+
+### 💡 **Development Tips**
+- Use **pre-commit hooks**: `pre-commit install` (automatically formats code)
+- Run tests frequently: `pytest -v` for detailed output
+- Check coverage locally: `pytest --cov=. --cov-report=html`
+- Build and test package: `pip install -e . && lazyscan --version`
 
 ---
 
